@@ -7,7 +7,7 @@ import { catchError, throwError } from 'rxjs';
 })
 export class AuthService {
 
-  private baseUrl = 'http://127.0.0.1:8000';  // 🔹 Change to your Django backend URL
+  private baseUrl = 'http://127.0.0.1:8000';  // Django backend URL
 
   constructor(private http: HttpClient) { }
 
@@ -18,10 +18,19 @@ export class AuthService {
       );
   }
 
-   private handleError(error: HttpErrorResponse) {
+  logout() {
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('user');
+  }
+
+  isLoggedIn(): boolean {
+    return !!sessionStorage.getItem('accessToken');
+  }
+
+  private handleError(error: HttpErrorResponse) {
     let errorMsg = 'Something went wrong!';
     if (error.error && error.error.detail) {
-      errorMsg = error.error.detail; // Django APIException response
+      errorMsg = error.error.detail;
     } else if (error.error && typeof error.error === 'string') {
       errorMsg = error.error;
     }

@@ -1,0 +1,85 @@
+<div class="container">
+  <h2>Clients</h2>
+
+  <!-- ✅ Add Client Button -->
+  <button class="add-btn" (click)="openAddClientPopup()">+ Add Client</button>
+
+  <!-- ✅ Clients Table -->
+  <div class="card">
+    <div class="table-container">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Client Name</th>
+            <th>Type</th>
+            <th>Contact Person</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Website</th>
+            <th>Created</th>
+            <th>Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of clients">
+            <td>{{ client.client_name }}</td>
+            <td>{{ client.client_type }}</td>
+            <td>{{ client.contact_person_name }}</td>
+            <td>{{ client.contact_person_email }}</td>
+            <td>{{ client.contact_person_phone }}</td>
+            <td>
+              <a *ngIf="client.website_url" [href]="client.website_url" target="_blank">{{client.website_url}}</a>
+            </td>
+            <td>{{ client.created_at | date : 'short' }}</td>
+            <td>{{ client.updated_at | date : 'short' }}</td>
+            <td class="actions">
+              <button class="edit-btn" (click)="editClient(client)">✏️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ✅ Add/Edit Client Popup -->
+  <div class="popup" *ngIf="showAddClientPopup">
+    <div class="popup-content">
+      <h3>{{ isEditMode ? 'Edit Client' : 'Add Client' }}</h3>
+      <form (ngSubmit)="saveClient()" class="form-grid">
+
+        <label>Client Name</label>
+        <input type="text" [(ngModel)]="newClient.client_name" name="client_name" required />
+
+        <label>Client Type</label>
+        <select [(ngModel)]="newClient.client_type" name="client_type">
+          <option value="Internal">Internal</option>
+          <option value="External">External</option>
+        </select>
+
+        <label>Contact Person Name</label>
+        <input type="text" [(ngModel)]="newClient.contact_person_name" name="contact_person_name" />
+
+        <label>Contact Person Email</label>
+        <input type="email" [(ngModel)]="newClient.contact_person_email" name="contact_person_email" required />
+
+        <label>Contact Person Phone</label>
+        <input type="text" [(ngModel)]="newClient.contact_person_phone" name="contact_person_phone" />
+
+        <label>Company Logo URL</label>
+        <input type="text" [(ngModel)]="newClient.company_logo" name="company_logo" />
+
+        <label>Website URL</label>
+        <input type="text" [(ngModel)]="newClient.website_url" name="website_url" />
+
+        <!-- ✅ Actions -->
+        <div class="form-actions">
+          <button type="submit" class="save-btn">
+            {{ isEditMode ? 'Update' : 'Save' }}
+          </button>
+          <button type="button" class="cancel-btn" (click)="closeAddClientPopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

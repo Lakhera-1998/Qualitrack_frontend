@@ -16,8 +16,13 @@ export class LoginComponent {
   password: string = '';
   errorMessage: string = '';
   isLoading: boolean = false;
+  showPassword: boolean = false;   // ✅ Add toggle flag
 
   constructor(private authService: AuthService, private router: Router) {}
+
+  togglePassword() {   // ✅ Password toggle method
+    this.showPassword = !this.showPassword;
+  }
 
   onLogin() {
     this.isLoading = true;
@@ -26,11 +31,11 @@ export class LoginComponent {
     this.authService.login(this.email, this.password).subscribe({
       next: (res) => {
         // ✅ Backend returns { token: access_token, user: {...} }
-        localStorage.setItem('accessToken', res.token);
-        localStorage.setItem('user', JSON.stringify(res.user));
+      sessionStorage.setItem('accessToken', res.token);
+      sessionStorage.setItem('user', JSON.stringify(res.user));
 
-        this.isLoading = false;
-        this.router.navigate(['/dashboard']); // redirect after login
+      this.isLoading = false;
+      this.router.navigate(['/clients']); // redirect after login
       },
       error: (err) => {
          this.isLoading = false;
