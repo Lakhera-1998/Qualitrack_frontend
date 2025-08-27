@@ -2,19 +2,18 @@ import { Component, OnInit } from '@angular/core';
 import { TestingTypeService } from '../services/testing-type.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TruncatePipe } from '../pipes/truncate.pipe'; // ✅ Add this import
-
+import { TruncatePipe } from '../pipes/truncate.pipe';
 
 @Component({
   selector: 'app-testing-types',
   templateUrl: './testing-types.component.html',
   styleUrls: ['./testing-types.component.css'],
-  standalone: true, // ✅ Make it standalone
-  imports: [CommonModule, FormsModule, TruncatePipe] // ✅ Add TruncatePipe to imports
+  standalone: true,
+  imports: [CommonModule, FormsModule, TruncatePipe]
 })
 export class TestingTypesComponent implements OnInit {
   testingTypes: any[] = [];
-  
+
   newTestingType: any = {
     name: '',
     description: ''
@@ -23,6 +22,7 @@ export class TestingTypesComponent implements OnInit {
   showTestingTypePopup = false;
   isEditMode = false;
   editingTestingTypeId: number | null = null;
+  submitted = false;
 
   constructor(private testingTypeService: TestingTypeService) {}
 
@@ -47,6 +47,7 @@ export class TestingTypesComponent implements OnInit {
       name: '',
       description: ''
     };
+    this.submitted = false;
     this.showTestingTypePopup = true;
   }
 
@@ -54,6 +55,7 @@ export class TestingTypesComponent implements OnInit {
     this.isEditMode = true;
     this.editingTestingTypeId = testingType.id;
     this.newTestingType = { ...testingType };
+    this.submitted = false;
     this.showTestingTypePopup = true;
   }
 
@@ -61,11 +63,13 @@ export class TestingTypesComponent implements OnInit {
     this.showTestingTypePopup = false;
     this.isEditMode = false;
     this.editingTestingTypeId = null;
+    this.submitted = false;
   }
 
   saveTestingType(): void {
-    if (!this.newTestingType.name) {
-      alert('Please fill all required fields');
+    this.submitted = true;
+
+    if (this.hasErrors()) {
       return;
     }
 
@@ -90,5 +94,10 @@ export class TestingTypesComponent implements OnInit {
         }
       });
     }
+  }
+
+  // ✅ Validate fields
+  hasErrors(): boolean {
+    return !this.newTestingType.name;
   }
 }

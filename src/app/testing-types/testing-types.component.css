@@ -1,0 +1,167 @@
+/* Container */
+.container {
+  margin-left: 80px;
+  padding: 20px;
+}
+
+/* Card */
+.card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  margin-top: 20px;
+}
+
+/* Add Button */
+.add-btn {
+  margin-bottom: 15px;
+  padding: 8px 16px;
+  background: #3f51b5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.add-btn:hover {
+  background: #2c3e99;
+}
+
+/* Table Vertical Scroll */
+.table-vertical-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding-right: 12px;
+  margin-right: 4px;
+}
+
+.table-vertical-scroll .styled-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Styled Table */
+.styled-table th, .styled-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.styled-table th {
+  background: lightgray;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+.styled-table tr:hover {
+  background: #f9f9f9;
+}
+
+/* Actions */
+.actions button {
+  margin-right: 6px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.edit-btn {
+  background: #6c63ff;
+  color: white;
+}
+
+/* Popup */
+.popup {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+.popup-content {
+  position: relative;
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 450px;
+  max-width: 90%;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+/* Popup Header */
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #555;
+}
+.close-btn:hover {
+  color: #000;
+}
+
+/* Form */
+.form-grid {
+  display: flex;
+  flex-direction: column;
+}
+.form-grid input, .form-grid textarea {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+}
+.save-btn {
+  background: #3f51b5;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+}
+.cancel-btn {
+  background: gray;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+}
+
+/* Error */
+.error {
+  border: 2px solid red;
+  background-color: #ffe5e5;
+}
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+/* Scrollbar */
+.table-vertical-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.table-vertical-scroll::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+.table-vertical-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

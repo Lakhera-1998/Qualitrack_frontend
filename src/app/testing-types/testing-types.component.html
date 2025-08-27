@@ -1,15 +1,19 @@
 <div class="container">
   <h2>Testing Types</h2>
 
+  <!-- Add Testing Type Button -->
   <button class="add-btn" (click)="openAddTestingTypePopup()">+ Add Testing Type</button>
 
+  <!-- Testing Types Table with vertical scrolling -->
   <div class="card">
-    <div class="table-container">
+    <div class="table-vertical-scroll">
       <table class="styled-table">
         <thead>
           <tr>
             <th>Name</th>
             <th>Description</th>
+            <th>Created</th>
+            <th>Updated</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -17,6 +21,8 @@
           <tr *ngFor="let testingType of testingTypes">
             <td>{{ testingType.name }}</td>
             <td>{{ testingType.description | truncate:50 }}</td>
+            <td>{{ testingType.created_at | date : 'short' }}</td>
+            <td>{{ testingType.updated_at | date : 'short' }}</td>
             <td class="actions">
               <button class="edit-btn" (click)="editTestingType(testingType)">✏️</button>
             </td>
@@ -29,14 +35,25 @@
   <!-- Add/Edit Testing Type Popup -->
   <div class="popup" *ngIf="showTestingTypePopup">
     <div class="popup-content">
-      <h3>{{ isEditMode ? 'Edit Testing Type' : 'Add Testing Type' }}</h3>
-      <form (ngSubmit)="saveTestingType()" class="form-grid">
-        <label>Name</label>
-        <input type="text" [(ngModel)]="newTestingType.name" name="name" required />
+      <div class="popup-header">
+        <h3>{{ isEditMode ? 'Edit Testing Type' : 'Add Testing Type' }}</h3>
+        <button class="close-btn" (click)="closeTestingTypePopup()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveTestingType()" class="form-grid" #testingTypeForm="ngForm">
+        <label>Name *</label>
+        <input type="text" [(ngModel)]="newTestingType.name" name="name"
+               [ngClass]="{'error': submitted && !newTestingType.name}" required />
 
         <label>Description</label>
         <textarea [(ngModel)]="newTestingType.description" name="description" rows="3"></textarea>
 
+        <!-- Error Message -->
+        <div *ngIf="submitted && hasErrors()" class="error-message">
+          These input fields are required
+        </div>
+
+        <!-- Actions -->
         <div class="form-actions">
           <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
           <button type="button" class="cancel-btn" (click)="closeTestingTypePopup()">Cancel</button>
