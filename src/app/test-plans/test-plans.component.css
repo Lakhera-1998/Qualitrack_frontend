@@ -1,0 +1,25 @@
+.large-popup {
+  width: 600px;
+  max-width: 90%;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 2px;
+  background: #e0e0e0;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.checkbox-group input {
+  width: auto;
+  margin-right: 8px;
+  margin-bottom: 0;
+}

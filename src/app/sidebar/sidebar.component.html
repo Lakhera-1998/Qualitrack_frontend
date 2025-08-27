@@ -1,0 +1,33 @@
+<div class="sidebar">
+  
+  <div class="menu-section">
+    <h3>Home</h3>
+    <ul>
+      <li [class.active]="currentRoute === '/dashboard'">
+        <a routerLink="/dashboard">Dashboard</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="menu-section">
+    <h3>PAGES</h3>
+    <ul>
+      <li [class.active]="currentRoute === '/clients'">
+        <a routerLink="/clients">Clients</a>
+      </li>
+      <li [class.active]="currentRoute === '/projects'">
+        <a routerLink="/projects">Projects</a>
+      </li>
+      <li [class.active]="currentRoute === '/technologies'">
+        <a routerLink="/technologies">Technologies</a>
+      </li>
+      <li [class.active]="currentRoute === '/testing-types'">
+        <a routerLink="/testing-types">Testing Types</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="user-section">
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </div>
+</div>

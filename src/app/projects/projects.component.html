@@ -1,0 +1,173 @@
+<div class="container">
+  <h2>Projects</h2>
+
+  <!-- Add Project Button -->
+  <button class="add-btn" (click)="openAddProjectPopup()">+ Add Project</button>
+
+  <!-- Projects Table with Horizontal Scroll -->
+  <div class="card">
+    <div class="table-vertical-scroll">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Project Name</th>
+            <th>Client</th>
+            <th>Status</th>
+            <th>Frontend Developers</th>
+            <th>Backend Developers</th>
+            <th>Project Lead</th>
+            <th>QA Lead</th>
+            <th>Frontend Technologies</th>
+            <th>Backend Technologies</th>
+            <th>Other Technologies</th>
+            <th>Start Date</th>
+            <th>Deadline Date</th>
+            <th>Delivery Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let project of projects">
+            <td>{{ project.project_name }}</td>
+            <td>{{ getClientName(project.client) }}</td>
+            <td>
+              <span class="status-badge" [class]="project.status.replace(' ', '-').toLowerCase()">
+                {{ project.status }}
+              </span>
+            </td>
+            
+
+            <!-- Robust display handling IDs or objects -->
+            <td>{{ displayUserList(project.frontend_developers) }}</td>
+            <td>{{ displayUserList(project.backend_developers) }}</td>
+            <td>{{ displayUser(project.project_lead) }}</td>
+            <td>{{ displayUser(project.qa_lead) }}</td>
+            <td>{{ displayTechList(project.frontend_technologies) }}</td>
+            <td>{{ displayTechList(project.backend_technologies) }}</td>
+            <td>{{ displayTechList(project.other_technologies) }}</td>
+
+            <td>{{ project.start_date | date:'mediumDate' }}</td>
+            <td>{{ project.deadline_date | date:'mediumDate' }}</td>
+            <td>{{ project.delivery_date ? (project.delivery_date | date:'mediumDate') : 'N/A' }}</td>
+
+            <td class="actions">
+              <button class="edit-btn" (click)="editProject(project)">✏️</button>
+              <button class="view-btn" (click)="viewRequirements(project)">📋</button>
+              <button class="plan-btn" (click)="viewTestPlans(project)">📝</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add/Edit Project Popup -->
+  <div class="popup" *ngIf="showProjectPopup">
+    <div class="popup-content">
+      <div class="popup-header">
+        <h3>{{ isEditMode ? 'Edit Project' : 'Add Project' }}</h3>
+        <button class="close-btn" (click)="closeProjectPopup()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveProject()" class="form-grid">
+        <!-- Project Name -->
+        <label>Project Name *</label>
+        <input type="text" [(ngModel)]="newProject.project_name" name="project_name"
+               [ngClass]="{'error': submitted && !newProject.project_name}" required />
+
+        <!-- Client -->
+        <label>Client *</label>
+        <select [(ngModel)]="newProject.client" name="client"
+                [ngClass]="{'error': submitted && !newProject.client}" required>
+          <option [ngValue]="null" disabled>Select Client</option>
+          <option *ngFor="let client of clients" [ngValue]="client.id">{{ client.client_name }}</option>
+        </select>
+
+        <!-- Status -->
+        <label>Status</label>
+        <select [(ngModel)]="newProject.status" name="status">
+          <option [ngValue]="null" disabled>Select Status</option>
+          <option value="Not Started">Not Started</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+          <option value="On Hold">On Hold</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+
+        <!-- Start Date -->
+        <label>Start Date *</label>
+        <input type="date" [(ngModel)]="newProject.start_date" name="start_date"
+               [ngClass]="{'error': submitted && !newProject.start_date}" required />
+
+        <!-- Deadline Date -->
+        <label>Deadline Date *</label>
+        <input type="date" [(ngModel)]="newProject.deadline_date" name="deadline_date"
+               [min]="newProject.start_date"
+               [ngClass]="{'error': submitted && (!newProject.deadline_date || !!dateErrorMessage)}" required />
+
+        <!-- Delivery Date -->
+        <label>Delivery Date</label>
+        <input type="date" [(ngModel)]="newProject.delivery_date" name="delivery_date"
+               [min]="newProject.start_date" />
+
+        <!-- Frontend Developers -->
+        <label>Frontend Developers</label>
+        <select multiple [(ngModel)]="newProject.frontend_developers" name="frontend_developers">
+          <option *ngFor="let user of users" [ngValue]="user.id">{{ user.email || user.name }}</option>
+        </select>
+
+        <!-- Backend Developers -->
+        <label>Backend Developers</label>
+        <select multiple [(ngModel)]="newProject.backend_developers" name="backend_developers">
+          <option *ngFor="let user of users" [ngValue]="user.id">{{ user.email || user.name }}</option>
+        </select>
+
+        <!-- Project Lead -->
+        <label>Project Lead</label>
+        <select [(ngModel)]="newProject.project_lead" name="project_lead">
+          <option [ngValue]="null" disabled>Select Project Lead</option>
+          <option *ngFor="let user of users" [ngValue]="user.id">{{ user.email || user.name }}</option>
+        </select>
+
+        <!-- QA Lead -->
+        <label>QA Lead</label>
+        <select [(ngModel)]="newProject.qa_lead" name="qa_lead">
+          <option [ngValue]="null" disabled>Select QA Lead</option>
+          <option *ngFor="let user of users" [ngValue]="user.id">{{ user.email || user.name }}</option>
+        </select>
+
+        <!-- Frontend Technologies -->
+        <label>Frontend Technologies</label>
+        <select multiple [(ngModel)]="newProject.frontend_technologies" name="frontend_technologies">
+          <option *ngFor="let tech of technologies" [ngValue]="tech.id">{{ tech.name }}</option>
+        </select>
+
+        <!-- Backend Technologies -->
+        <label>Backend Technologies</label>
+        <select multiple [(ngModel)]="newProject.backend_technologies" name="backend_technologies">
+          <option *ngFor="let tech of technologies" [ngValue]="tech.id">{{ tech.name }}</option>
+        </select>
+
+      <!-- Other Technologies -->
+        <label>Other Technologies</label>
+        <select multiple [(ngModel)]="newProject.other_technologies" name="other_technologies">
+          <option *ngFor="let tech of technologies" [ngValue]="tech.id">{{ tech.name }}</option>
+        </select>
+
+        <!-- Error Messages -->
+        <div *ngIf="submitted && hasErrors()" class="error-message">
+          <div>These input fields are required or invalid.</div>
+          <div *ngIf="dateErrorMessage">{{ dateErrorMessage }}</div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="submit" class="save-btn">
+            {{ isEditMode ? 'Update' : 'Save' }}
+          </button>
+          <button type="button" class="cancel-btn" (click)="closeProjectPopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

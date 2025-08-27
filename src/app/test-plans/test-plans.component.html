@@ -1,0 +1,84 @@
+<div class="container">
+  <h2>Test Plans for {{ project?.project_name }}</h2>
+
+  <button class="add-btn" (click)="openAddTestPlanPopup()">+ Add Test Plan</button>
+
+  <div class="card">
+    <div class="table-container">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Test Plan ID</th>
+            <th>Title</th>
+            <th>Objective</th>
+            <th>Testing Types</th>
+            <th>Test Lead</th>
+            <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let testPlan of testPlans">
+            <td>{{ testPlan.test_plan_id }}</td>
+            <td>{{ testPlan.title }}</td>
+            <td>{{ testPlan.objective | truncate:50 }}</td>
+            <td>
+              <span *ngFor="let type of testPlan.testing_types" class="badge">
+                {{ type.name }}
+              </span>
+            </td>
+            <td>{{ getUsername(testPlan.test_lead) }}</td>
+            <td>{{ testPlan.created_at | date:'mediumDate' }}</td>
+            <td class="actions">
+              <button class="edit-btn" (click)="editTestPlan(testPlan)">✏️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add/Edit Test Plan Popup -->
+  <div class="popup" *ngIf="showTestPlanPopup">
+    <div class="popup-content large-popup">
+      <h3>{{ isEditMode ? 'Edit Test Plan' : 'Add Test Plan' }}</h3>
+      <form (ngSubmit)="saveTestPlan()" class="form-grid">
+        <label>Test Plan ID</label>
+        <input type="text" [(ngModel)]="newTestPlan.test_plan_id" name="test_plan_id" required />
+
+        <label>Title</label>
+        <input type="text" [(ngModel)]="newTestPlan.title" name="title" required />
+
+        <label>Objective</label>
+        <textarea [(ngModel)]="newTestPlan.objective" name="objective" rows="3" required></textarea>
+
+        <label>Scope</label>
+        <textarea [(ngModel)]="newTestPlan.scope" name="scope" rows="3" required></textarea>
+
+        <label>Testing Types</label>
+        <div *ngFor="let type of testingTypes" class="checkbox-group">
+          <input type="checkbox" 
+                 [id]="'type-' + type.id" 
+                 [value]="type.id" 
+                 [checked]="isTestingTypeSelected(type.id)"
+                 (change)="onTestingTypeChange(type.id, $event)">
+          <label [for]="'type-' + type.id">{{ type.name }}</label>
+        </div>
+
+        <label>Roles Covered</label>
+        <input type="text" [(ngModel)]="newTestPlan.roles_covered" name="roles_covered" />
+
+        <label>Test Lead</label>
+        <select [(ngModel)]="newTestPlan.test_lead" name="test_lead">
+          <option [value]="null">Select Test Lead</option>
+          <option *ngFor="let user of users" [value]="user.id">{{ user.username || user.email }}</option>
+        </select>
+
+        <div class="form-actions">
+          <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
+          <button type="button" class="cancel-btn" (click)="closeTestPlanPopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

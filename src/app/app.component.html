@@ -1,1 +1,11 @@
-<router-outlet></router-outlet>
+<div class="app-container">
+  <app-navbar (sidebarToggle)="toggleSidebar()" *ngIf="isLoggedIn()"></app-navbar>
+
+  <!-- ✅ Sidebar closes when flag is true -->
+  <app-sidebar *ngIf="isLoggedIn()" [class.closed]="isSidebarClosed"></app-sidebar>
+
+  <!-- ✅ Content shifts only when sidebar is open -->
+  <div class="main-content" [class.with-sidebar]="isLoggedIn() && !isSidebarClosed">
+    <router-outlet></router-outlet>
+  </div>
+</div>

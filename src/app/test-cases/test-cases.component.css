@@ -1,0 +1,31 @@
+.bug-status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.bug-status-badge.open {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.bug-status-badge.in-progress {
+  background: #fff8e1;
+  color: #ff8f00;
+}
+
+.bug-status-badge.resolved {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.bug-status-badge.closed {
+  background: #f5f5f5;
+  color: #616161;
+}
+
+.execute-btn {
+  background: #4caf50;
+  color: white;
+}

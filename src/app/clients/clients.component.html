@@ -4,9 +4,9 @@
   <!-- ✅ Add Client Button -->
   <button class="add-btn" (click)="openAddClientPopup()">+ Add Client</button>
 
-  <!-- ✅ Clients Table -->
+  <!-- ✅ Clients Table with horizontal scrolling -->
   <div class="card">
-    <div class="table-container">
+    <div class="table-vertical-scroll">
       <table class="styled-table">
         <thead>
           <tr>
@@ -45,32 +45,46 @@
   <!-- ✅ Add/Edit Client Popup -->
   <div class="popup" *ngIf="showAddClientPopup">
     <div class="popup-content">
-      <h3>{{ isEditMode ? 'Edit Client' : 'Add Client' }}</h3>
-      <form (ngSubmit)="saveClient()" class="form-grid">
+      <div class="popup-header">
+        <h3>{{ isEditMode ? 'Edit Client' : 'Add Client' }}</h3>
+        <button class="close-btn" (click)="closeAddClientPopup()">×</button>
+      </div>
 
-        <label>Client Name</label>
-        <input type="text" [(ngModel)]="newClient.client_name" name="client_name" required />
+      <form (ngSubmit)="saveClient()" class="form-grid" #clientForm="ngForm">
 
-        <label>Client Type</label>
-        <select [(ngModel)]="newClient.client_type" name="client_type">
+        <label>Client Name *</label>
+        <input type="text" [(ngModel)]="newClient.client_name" name="client_name"
+               [ngClass]="{'error': submitted && !newClient.client_name}" required />
+
+        <label>Client Type *</label>
+        <select [(ngModel)]="newClient.client_type" name="client_type"
+                [ngClass]="{'error': submitted && !newClient.client_type}" required>
           <option value="Internal">Internal</option>
           <option value="External">External</option>
         </select>
 
-        <label>Contact Person Name</label>
-        <input type="text" [(ngModel)]="newClient.contact_person_name" name="contact_person_name" />
+        <label>Contact Person Name *</label>
+        <input type="text" [(ngModel)]="newClient.contact_person_name" name="contact_person_name"
+               [ngClass]="{'error': submitted && !newClient.contact_person_name}" required />
 
-        <label>Contact Person Email</label>
-        <input type="email" [(ngModel)]="newClient.contact_person_email" name="contact_person_email" required />
+        <label>Contact Person Email *</label>
+        <input type="email" [(ngModel)]="newClient.contact_person_email" name="contact_person_email"
+               [ngClass]="{'error': submitted && !newClient.contact_person_email}" required />
 
-        <label>Contact Person Phone</label>
-        <input type="text" [(ngModel)]="newClient.contact_person_phone" name="contact_person_phone" />
+        <label>Contact Person Phone *</label>
+        <input type="text" [(ngModel)]="newClient.contact_person_phone" name="contact_person_phone"
+               [ngClass]="{'error': submitted && !newClient.contact_person_phone}" required />
 
-        <label>Company Logo URL</label>
-        <input type="text" [(ngModel)]="newClient.company_logo" name="company_logo" />
+        <label>Company Logo</label>
+        <input type="file" (change)="onFileSelected($event)" />
 
         <label>Website URL</label>
         <input type="text" [(ngModel)]="newClient.website_url" name="website_url" />
+
+        <!-- ✅ Error Message -->
+        <div *ngIf="submitted && hasErrors()" class="error-message">
+          These input fields are required
+        </div>
 
         <!-- ✅ Actions -->
         <div class="form-actions">

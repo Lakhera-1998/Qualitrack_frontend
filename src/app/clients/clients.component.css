@@ -22,6 +22,7 @@
 
 /* Card */
 .container {
+  margin-left: 80px;
   padding: 20px;
 }
 .card {
@@ -29,6 +30,7 @@
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  margin-top: 20px;
 }
 .title {
   font-size: 22px;
@@ -52,21 +54,27 @@
 
 /* Styled Table */
 .table-container {
-  overflow-x: auto;
+  overflow-x: auto; /* Keep this for backward compatibility */
 }
+
 .styled-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
+  min-width: 1000px;
 }
 .styled-table th, .styled-table td {
   padding: 12px;
   border: 1px solid #ddd;
   text-align: left;
+  white-space: nowrap;
 }
+
 .styled-table th {
-  background: #f5f5f5;
+  background: lightgray;
   font-weight: 600;
+  position: sticky;
+  top: 0;
 }
 .styled-table tr:hover {
   background: #f9f9f9;
@@ -98,6 +106,7 @@
   display: flex; justify-content: center; align-items: center;
 }
 .popup-content {
+  position: relative;
   background: white;
   padding: 25px;
   border-radius: 12px;
@@ -138,4 +147,134 @@
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
+}
+
+.close-btn {
+  /* position :absolute; */
+  top: 10px;
+  right: 5px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #555;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+/* Popup Header */
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.popup-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Input focus effect */
+.form-grid input:focus,
+.form-grid select:focus {
+  border: solid 1px gray;
+  outline: none;
+}
+
+/* Error styling */
+.error {
+  border: 2px solid red;
+  background-color: #ffe5e5;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+/* Table Scroll Container - NEW */
+.table-scroll-container {
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+/* Scrollbar styling for webkit browsers */
+.table-scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Styled table */
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0;
+}
+.styled-table th, .styled-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+  white-space: nowrap;
+}
+.styled-table th {
+  background: lightgray;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+
+/* Scrollbar styling */
+.table-vertical-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.table-vertical-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.table-vertical-scroll::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+.table-vertical-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Table Vertical Scroll Container */
+.table-vertical-scroll {
+  max-height: 400px; /* Adjust height as needed */
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding-right: 12px;   /* ✅ space inside container */
+  margin-right: 4px;     /* ✅ space outside container */
+}
+
+/* Ensure table takes full width but respects padding */
+.table-vertical-scroll .styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0;
 }

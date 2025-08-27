@@ -1,0 +1,115 @@
+<div class="container">
+  <h2>Test Cases for {{ requirement?.requirement_title }}</h2>
+
+  <button class="add-btn" (click)="openAddTestCasePopup()">+ Add Test Case</button>
+
+  <div class="card">
+    <div class="table-container">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Bug Status</th>
+            <th>Is Automated</th>
+            <th>Executed By</th>
+            <th>Executed On</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let testCase of testCases">
+            <td>{{ testCase.title }}</td>
+            <td>
+              <span class="status-badge" [class]="testCase.status?.toLowerCase().replace(' ', '-')">
+                {{ testCase.status || 'Not tested yet' }}
+              </span>
+            </td>
+            <td>
+              <span class="bug-status-badge" [class]="testCase.bug_status?.toLowerCase()" *ngIf="testCase.bug_status">
+                {{ testCase.bug_status }}
+              </span>
+              <span *ngIf="!testCase.bug_status">-</span>
+            </td>
+            <td>{{ testCase.is_automated ? 'Yes' : 'No' }}</td>
+            <td>{{ getUsername(testCase.executed_by) }}</td>
+            <td>{{ testCase.executed_on | date:'medium' }}</td>
+            <td class="actions">
+              <button class="edit-btn" (click)="editTestCase(testCase)">✏️</button>
+              <button class="execute-btn" (click)="executeTestCase(testCase)" *ngIf="!testCase.is_executed">▶️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add/Edit Test Case Popup -->
+  <div class="popup" *ngIf="showTestCasePopup">
+    <div class="popup-content large-popup">
+      <h3>{{ isEditMode ? 'Edit Test Case' : 'Add Test Case' }}</h3>
+      <form (ngSubmit)="saveTestCase()" class="form-grid">
+        <label>Title</label>
+        <input type="text" [(ngModel)]="newTestCase.title" name="title" required />
+
+        <label>Description</label>
+        <textarea [(ngModel)]="newTestCase.description" name="description" rows="3" required></textarea>
+
+        <label>Pre Conditions</label>
+        <textarea [(ngModel)]="newTestCase.pre_conditions" name="pre_conditions" rows="2"></textarea>
+
+        <label>Test Actions</label>
+        <textarea [(ngModel)]="newTestCase.test_actions" name="test_actions" rows="3" required></textarea>
+
+        <label>Expected Result</label>
+        <textarea [(ngModel)]="newTestCase.expected_result" name="expected_result" rows="3" required></textarea>
+
+        <label>Is Automated</label>
+        <input type="checkbox" [(ngModel)]="newTestCase.is_automated" name="is_automated" />
+
+        <div class="form-actions">
+          <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
+          <button type="button" class="cancel-btn" (click)="closeTestCasePopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Execute Test Case Popup -->
+  <div class="popup" *ngIf="showExecutePopup">
+    <div class="popup-content">
+      <h3>Execute Test Case: {{ executingTestCase?.title }}</h3>
+      <form (ngSubmit)="saveExecution()" class="form-grid">
+        <label>Status</label>
+        <select [(ngModel)]="executionData.status" name="status" required>
+          <option value="Pass">Pass</option>
+          <option value="Fail">Fail</option>
+        </select>
+
+        <label>Actual Result</label>
+        <textarea [(ngModel)]="executionData.actual_result" name="actual_result" rows="3"></textarea>
+
+        <label>Comments</label>
+        <textarea [(ngModel)]="executionData.comments" name="comments" rows="2"></textarea>
+
+        <label>Bug Raised</label>
+        <input type="checkbox" [(ngModel)]="executionData.bug_raised" name="bug_raised" />
+
+        <div *ngIf="executionData.bug_raised">
+          <label>Bug Status</label>
+          <select [(ngModel)]="executionData.bug_status" name="bug_status">
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="save-btn">Save Execution</button>
+          <button type="button" class="cancel-btn" (click)="closeExecutePopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

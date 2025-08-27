@@ -1,0 +1,46 @@
+<p>dashboard works!</p>
+<div class="dashboard-container">
+  <div class="header">
+    <h2>Dashboard</h2>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Active Projects</h3>
+      <p class="count">{{ projectCount }}</p>
+      <p>Active {{ projectCount }}, Inactive 0</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Employees</h3>
+      <p class="count">{{ employeeCount }}</p>
+      <p>Active {{ employeeCount }}, Inactive 0</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Clients</h3>
+      <p class="count">{{ clientCount }}</p>
+      <p>Active {{ clientCount }}, Inactive 0</p>
+    </div>
+  </div>
+
+  <div class="chart-section">
+    <div class="card">
+      <h3>Project Status</h3>
+      <div class="chart-placeholder">
+        <!-- Chart would go here in a real implementation -->
+        <p>Project status visualization</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Recent Activity</h3>
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let activity of recentActivities">
+          <p>{{ activity.message }}</p>
+          <small>{{ activity.time | date:'short' }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

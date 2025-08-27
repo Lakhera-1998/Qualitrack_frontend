@@ -1,0 +1,78 @@
+<div class="container">
+  <h2>Requirements for {{ project?.project_name }}</h2>
+
+  <button class="add-btn" (click)="openAddRequirementPopup()">+ Add Requirement</button>
+
+  <div class="card">
+    <div class="table-container">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Priority</th>
+            <th>Reported Date</th>
+            <th>Expected Delivery</th>
+            <th>Actual Delivery</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let requirement of requirements">
+            <td>{{ requirement.requirement_title }}</td>
+            <td>
+              <span class="priority-badge" [class]="requirement.priority.toLowerCase()">
+                {{ requirement.priority }}
+              </span>
+            </td>
+            <td>{{ requirement.reported_date | date:'mediumDate' }}</td>
+            <td>{{ requirement.expected_delivery | date:'mediumDate' }}</td>
+            <td>{{ requirement.actual_delivery ? (requirement.actual_delivery | date:'mediumDate') : 'Pending' }}</td>
+            <td>
+              <span class="status-badge" [class]="getRequirementStatus(requirement)">
+                {{ getRequirementStatus(requirement) }}
+              </span>
+            </td>
+            <td class="actions">
+              <button class="edit-btn" (click)="editRequirement(requirement)">✏️</button>
+              <button class="test-case-btn" (click)="viewTestCases(requirement)">🧪</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add/Edit Requirement Popup -->
+  <div class="popup" *ngIf="showRequirementPopup">
+    <div class="popup-content">
+      <h3>{{ isEditMode ? 'Edit Requirement' : 'Add Requirement' }}</h3>
+      <form (ngSubmit)="saveRequirement()" class="form-grid">
+        <label>Requirement Title</label>
+        <input type="text" [(ngModel)]="newRequirement.requirement_title" name="requirement_title" required />
+
+        <label>Requirement Description</label>
+        <textarea [(ngModel)]="newRequirement.requirement" name="requirement" rows="4" required></textarea>
+
+        <label>Priority</label>
+        <select [(ngModel)]="newRequirement.priority" name="priority">
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+          <option value="Critical">Critical</option>
+        </select>
+
+        <label>Reported Date</label>
+        <input type="date" [(ngModel)]="newRequirement.reported_date" name="reported_date" required />
+
+        <label>Expected Delivery</label>
+        <input type="date" [(ngModel)]="newRequirement.expected_delivery" name="expected_delivery" />
+
+        <div class="form-actions">
+          <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
+          <button type="button" class="cancel-btn" (click)="closeRequirementPopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

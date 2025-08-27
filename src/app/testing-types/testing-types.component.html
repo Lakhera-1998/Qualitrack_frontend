@@ -1,0 +1,47 @@
+<div class="container">
+  <h2>Testing Types</h2>
+
+  <button class="add-btn" (click)="openAddTestingTypePopup()">+ Add Testing Type</button>
+
+  <div class="card">
+    <div class="table-container">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let testingType of testingTypes">
+            <td>{{ testingType.name }}</td>
+            <td>{{ testingType.description | truncate:50 }}</td>
+            <td class="actions">
+              <button class="edit-btn" (click)="editTestingType(testingType)">✏️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add/Edit Testing Type Popup -->
+  <div class="popup" *ngIf="showTestingTypePopup">
+    <div class="popup-content">
+      <h3>{{ isEditMode ? 'Edit Testing Type' : 'Add Testing Type' }}</h3>
+      <form (ngSubmit)="saveTestingType()" class="form-grid">
+        <label>Name</label>
+        <input type="text" [(ngModel)]="newTestingType.name" name="name" required />
+
+        <label>Description</label>
+        <textarea [(ngModel)]="newTestingType.description" name="description" rows="3"></textarea>
+
+        <div class="form-actions">
+          <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
+          <button type="button" class="cancel-btn" (click)="closeTestingTypePopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

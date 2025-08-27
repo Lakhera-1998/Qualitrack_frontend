@@ -1,0 +1,82 @@
+<div class="container">
+  <h2>Technologies</h2>
+
+  <!-- ✅ Add Technology Button -->
+  <button class="add-btn" (click)="openAddTechnologyPopup()">+ Add Technology</button>
+
+  <!-- ✅ Technologies Table with vertical scrolling -->
+  <div class="card">
+    <div class="table-vertical-scroll">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let technology of technologies">
+            <td>{{ technology.name }}</td>
+            <td>
+              <span class="type-badge" [class]="technology.type_name.toLowerCase()">
+                {{ technology.type_name }}
+              </span>
+            </td>
+            <td>{{ technology.description | truncate:50 }}</td>
+            <td>{{ technology.created_at | date : 'short' }}</td>
+            <td>{{ technology.updated_at | date : 'short' }}</td>
+            <td class="actions">
+              <button class="edit-btn" (click)="editTechnology(technology)">✏️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ✅ Add/Edit Technology Popup -->
+  <div class="popup" *ngIf="showTechnologyPopup">
+    <div class="popup-content">
+      <div class="popup-header">
+        <h3>{{ isEditMode ? 'Edit Technology' : 'Add Technology' }}</h3>
+        <button class="close-btn" (click)="closeTechnologyPopup()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveTechnology()" class="form-grid" #technologyForm="ngForm">
+        <label>Name *</label>
+        <input type="text" [(ngModel)]="newTechnology.name" name="name"
+               [ngClass]="{'error': submitted && !newTechnology.name}" required />
+
+        <label>Type *</label>
+        <select [(ngModel)]="newTechnology.type_name" name="type_name"
+                [ngClass]="{'error': submitted && !newTechnology.type_name}" required>
+          <option value="Frontend">Frontend</option>
+          <option value="Backend">Backend</option>
+          <option value="Database">Database</option>
+          <option value="DevOps">DevOps</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <label>Description</label>
+        <textarea [(ngModel)]="newTechnology.description" name="description" rows="3"></textarea>
+
+        <!-- ✅ Error Message -->
+        <div *ngIf="submitted && hasErrors()" class="error-message">
+          These input fields are required
+        </div>
+
+        <!-- ✅ Actions -->
+        <div class="form-actions">
+          <button type="submit" class="save-btn">
+            {{ isEditMode ? 'Update' : 'Save' }}
+          </button>
+          <button type="button" class="cancel-btn" (click)="closeTechnologyPopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
