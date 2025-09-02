@@ -1,7 +1,8 @@
-<div class="container">
-  <h2>Requirements for {{ project?.project_name }}</h2>
-
-  <button class="add-btn" (click)="openAddRequirementPopup()">+ Add Requirement</button>
+<div class="requirements-container">
+  <div class="header">
+    <h2>Requirements for {{ project?.project_name }}</h2>
+    <button class="add-btn" (click)="openAddRequirementPopup()">+ Add Requirement</button>
+  </div>
 
   <div class="card">
     <div class="table-container">
@@ -14,14 +15,14 @@
             <th>Expected Delivery</th>
             <th>Actual Delivery</th>
             <th>Status</th>
-            <th>Actions</th>
+            <th class="actions-header">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let requirement of requirements">
             <td>{{ requirement.requirement_title }}</td>
             <td>
-              <span class="priority-badge" [class]="requirement.priority.toLowerCase()">
+              <span class="priority-badge {{ requirement.priority.toLowerCase() }}">
                 {{ requirement.priority }}
               </span>
             </td>
@@ -29,13 +30,17 @@
             <td>{{ requirement.expected_delivery | date:'mediumDate' }}</td>
             <td>{{ requirement.actual_delivery ? (requirement.actual_delivery | date:'mediumDate') : 'Pending' }}</td>
             <td>
-              <span class="status-badge" [class]="getRequirementStatus(requirement)">
+              <span class="status-badge {{ getRequirementStatus(requirement) }}">
                 {{ getRequirementStatus(requirement) }}
               </span>
             </td>
             <td class="actions">
-              <button class="edit-btn" (click)="editRequirement(requirement)">✏️</button>
-              <button class="test-case-btn" (click)="viewTestCases(requirement)">🧪</button>
+              <button class="edit-btn" (click)="editRequirement(requirement)" title="Edit Requirement">
+                ✏️
+              </button>
+              <button class="test-case-btn" (click)="viewTestCases(requirement)" title="View Test Cases">
+                🧪
+              </button>
             </td>
           </tr>
         </tbody>
@@ -46,15 +51,22 @@
   <!-- Add/Edit Requirement Popup -->
   <div class="popup" *ngIf="showRequirementPopup">
     <div class="popup-content">
-      <h3>{{ isEditMode ? 'Edit Requirement' : 'Add Requirement' }}</h3>
+      <div class="popup-header">
+        <h3>{{ isEditMode ? 'Edit Requirement' : 'Add Requirement' }}</h3>
+        <button class="close-btn" (click)="closeRequirementPopup()">✖</button>
+      </div>
+
       <form (ngSubmit)="saveRequirement()" class="form-grid">
-        <label>Requirement Title</label>
+        <!-- Title -->
+        <label>Requirement Title *</label>
         <input type="text" [(ngModel)]="newRequirement.requirement_title" name="requirement_title" required />
 
-        <label>Requirement Description</label>
-        <textarea [(ngModel)]="newRequirement.requirement" name="requirement" rows="4" required></textarea>
+        <!-- Description -->
+        <label>Requirement Description *</label>
+        <textarea [(ngModel)]="newRequirement.requirement" name="requirement" rows="3" required></textarea>
 
-        <label>Priority</label>
+        <!-- Priority -->
+        <label>Priority *</label>
         <select [(ngModel)]="newRequirement.priority" name="priority">
           <option value="Low">Low</option>
           <option value="Medium">Medium</option>
@@ -62,12 +74,45 @@
           <option value="Critical">Critical</option>
         </select>
 
-        <label>Reported Date</label>
+        <!-- Dates -->
+        <label>Reported Date *</label>
         <input type="date" [(ngModel)]="newRequirement.reported_date" name="reported_date" required />
 
         <label>Expected Delivery</label>
         <input type="date" [(ngModel)]="newRequirement.expected_delivery" name="expected_delivery" />
 
+        <label>Actual Delivery</label>
+        <input type="date" [(ngModel)]="newRequirement.actual_delivery" name="actual_delivery" />
+
+        <!-- Boolean fields -->
+        <div class="boolean-fields">
+          <label>
+            <input type="checkbox" [(ngModel)]="newRequirement.is_developed" name="is_developed" />
+            Is Developed
+          </label>
+          <label>
+            <input type="checkbox" [(ngModel)]="newRequirement.is_tested" name="is_tested" />
+            Is Tested
+          </label>
+          <label>
+            <input type="checkbox" [(ngModel)]="newRequirement.is_delivered" name="is_delivered" />
+            Is Delivered
+          </label>
+          <label>
+            <input type="checkbox" [(ngModel)]="newRequirement.uat_testing" name="uat_testing" />
+            UAT Testing Done
+          </label>
+          <label>
+            <input type="checkbox" [(ngModel)]="newRequirement.bug_raised_by_client_after_uat" name="bug_raised_by_client_after_uat" />
+            Bug Raised After UAT
+          </label>
+          <label>
+            <input type="checkbox" [(ngModel)]="newRequirement.bug_fixed" name="bug_fixed" />
+            Bug Fixed
+          </label>
+        </div>
+
+        <!-- Buttons -->
         <div class="form-actions">
           <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
           <button type="button" class="cancel-btn" (click)="closeRequirementPopup()">Cancel</button>

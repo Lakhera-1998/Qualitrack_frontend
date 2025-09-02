@@ -34,4 +34,8 @@ export class RequirementService {
   getRequirement(id: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/projects/1/requirements/${id}/`, this.getHeaders());
   }
+
+  // getRequirement(projectId: number, id: number): Observable<any> {
+  // return this.http.get<any>(`${this.baseUrl}/projects/${projectId}/requirements/${id}/`, this.getHeaders());
+  // }
 }

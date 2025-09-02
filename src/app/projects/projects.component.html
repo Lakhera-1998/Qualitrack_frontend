@@ -51,9 +51,9 @@
             <td>{{ project.delivery_date ? (project.delivery_date | date:'mediumDate') : 'N/A' }}</td>
 
             <td class="actions">
-              <button class="edit-btn" (click)="editProject(project)">✏️</button>
-              <button class="view-btn" (click)="viewRequirements(project)">📋</button>
-              <button class="plan-btn" (click)="viewTestPlans(project)">📝</button>
+              <button class="edit-btn" (click)="editProject(project)" title="edit project details">✏️</button>
+              <button class="view-btn" (click)="viewRequirements(project)" title="view project requirements">📋</button>
+              <button class="plan-btn" (click)="viewTestPlans(project)" title="view project test plan">📝</button>
             </td>
           </tr>
         </tbody>

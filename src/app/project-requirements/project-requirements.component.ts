@@ -2,30 +2,35 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RequirementService } from '../services/requirement.service';
 import { ProjectService } from '../services/project.service';
-import { CommonModule } from '@angular/common';   // ✅ Needed for date pipe
-import { FormsModule } from '@angular/forms';     // ✅ Needed for ngModel
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-project-requirements',
   templateUrl: './project-requirements.component.html',
   styleUrls: ['./project-requirements.component.css'],
-  standalone: true,  // ✅ Standalone component
-  imports: [CommonModule, FormsModule]  // ✅ Import date + ngModel support
+  standalone: true,
+  imports: [CommonModule, FormsModule]
 })
 export class ProjectRequirementsComponent implements OnInit {
   projectId: number = 0;
   project: any = null;
   requirements: any[] = [];
-  
+
   newRequirement: any = {
     requirement_title: '',
     requirement: '',
     priority: 'Medium',
     reported_date: '',
     expected_delivery: null,
+    actual_delivery: null,
     is_developed: false,
     is_tested: false,
-    is_delivered: false
+    is_delivered: false,
+    uat_testing: false,
+    bug_raised_by_client_after_uat: false,
+    bug_fixed: false,
+    project: null
   };
 
   showRequirementPopup = false;
@@ -50,9 +55,7 @@ export class ProjectRequirementsComponent implements OnInit {
       next: (data: any) => {
         this.project = data;
       },
-      error: (err) => {
-        console.error('Error fetching project:', err);
-      }
+      error: (err) => console.error('Error fetching project:', err)
     });
   }
 
@@ -61,9 +64,7 @@ export class ProjectRequirementsComponent implements OnInit {
       next: (data: any[]) => {
         this.requirements = data;
       },
-      error: (err) => {
-        console.error('Error fetching requirements:', err);
-      }
+      error: (err) => console.error('Error fetching requirements:', err)
     });
   }
 
@@ -82,9 +83,13 @@ export class ProjectRequirementsComponent implements OnInit {
       priority: 'Medium',
       reported_date: new Date().toISOString().split('T')[0],
       expected_delivery: null,
+      actual_delivery: null,
       is_developed: false,
       is_tested: false,
       is_delivered: false,
+      uat_testing: false,
+      bug_raised_by_client_after_uat: false,
+      bug_fixed: false,
       project: this.projectId
     };
     this.showRequirementPopup = true;
@@ -109,7 +114,6 @@ export class ProjectRequirementsComponent implements OnInit {
       return;
     }
 
-    // Ensure project ID is set
     this.newRequirement.project = this.projectId;
 
     if (this.isEditMode && this.editingRequirementId) {
@@ -118,9 +122,7 @@ export class ProjectRequirementsComponent implements OnInit {
           this.loadRequirements();
           this.closeRequirementPopup();
         },
-        error: (err) => {
-          console.error('Error updating requirement:', err);
-        }
+        error: (err) => console.error('Error updating requirement:', err)
       });
     } else {
       this.requirementService.addRequirement(this.newRequirement).subscribe({
@@ -128,9 +130,7 @@ export class ProjectRequirementsComponent implements OnInit {
           this.loadRequirements();
           this.closeRequirementPopup();
         },
-        error: (err) => {
-          console.error('Error adding requirement:', err);
-        }
+        error: (err) => console.error('Error adding requirement:', err)
       });
     }
   }
