@@ -128,8 +128,8 @@
           <label>Bug Screenshot</label>
           <input type="file" (change)="onFileSelected($event, 'bug_screenshot')" accept="image/*" />
 
-          <label>Bug Status</label>
-          <select [(ngModel)]="newTestCase.bug_status" name="bug_status">
+          <label>Bug Status *</label>
+          <select [(ngModel)]="newTestCase.bug_status" name="bug_status" required>
             <option value="Open">Open</option>
             <option value="In Progress">In Progress</option>
             <option value="Resolved">Resolved</option>
@@ -209,6 +209,50 @@
         <div class="form-actions">
           <button type="submit" class="save-btn">{{ isEditTestDataMode ? 'Update' : 'Save' }}</button>
           <button type="button" class="cancel-btn" (click)="closeTestDataPopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Execute Test Case Popup -->
+  <div class="popup" *ngIf="showExecutePopup">
+    <div class="popup-content medium-popup">
+      <div class="popup-header">
+        <h3>Execute Test Case: {{ executingTestCase?.title }}</h3>
+        <button class="close-btn" (click)="closeExecutePopup()">✖</button>
+      </div>
+
+      <form (ngSubmit)="saveExecution()" class="form-grid">
+        <label>Status *</label>
+        <select [(ngModel)]="executionData.status" name="status" required>
+          <option value="Pass">Pass</option>
+          <option value="Fail">Fail</option>
+        </select>
+
+        <label>Actual Result</label>
+        <textarea [(ngModel)]="executionData.actual_result" name="actual_result" rows="3"></textarea>
+
+        <label>Comments</label>
+        <textarea [(ngModel)]="executionData.comments" name="comments" rows="2"></textarea>
+
+        <label class="checkbox-field">
+          <input type="checkbox" [(ngModel)]="executionData.bug_raised" name="bug_raised" />
+          Bug Raised
+        </label>
+
+        <ng-container *ngIf="executionData.bug_raised">
+          <label>Bug Status *</label>
+          <select [(ngModel)]="executionData.bug_status" name="bug_status" required>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </ng-container>
+
+        <div class="form-actions">
+          <button type="submit" class="save-btn">Save Execution</button>
+          <button type="button" class="cancel-btn" (click)="closeExecutePopup()">Cancel</button>
         </div>
       </form>
     </div>

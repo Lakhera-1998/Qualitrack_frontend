@@ -1,8 +1,83 @@
-.large-popup {
-  width: 600px;
-  max-width: 90%;
+/* Same layout as Projects page */
+.container {
+  margin-left: 80px;
+  padding: 20px;
 }
 
+.card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  margin-top: 20px;
+}
+
+.add-btn {
+  margin-bottom: 15px;
+  padding: 8px 16px;
+  background: #3f51b5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.add-btn:hover {
+  background: #2c3e99;
+}
+
+/* Table */
+.styled-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+.styled-table th, .styled-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+  white-space: nowrap;
+}
+.styled-table th {
+  background: lightgray;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.styled-table tr:hover {
+  background: #f9f9f9;
+}
+
+/* Scroll container */
+.table-vertical-scroll {
+  max-height: 400px;
+  overflow-y: scroll;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding-right: 16px;
+  margin-right: 0;
+  box-sizing: content-box;
+}
+.table-vertical-scroll .styled-table {
+  width: 100%;
+}
+
+/* Actions */
+.actions button {
+  margin-right: 6px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.edit-btn {
+  background: #6c63ff;
+  color: white;
+}
+
+/* Badges for testing types */
 .badge {
   display: inline-block;
   padding: 4px 8px;
@@ -12,14 +87,134 @@
   font-size: 12px;
 }
 
+/* Popup */
+.popup {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 999;
+}
+.popup-content {
+  position: relative;
+  margin: 20px;
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 520px;
+  max-height: 80%;
+  overflow-y: auto;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+.large-popup {
+  width: 500px;
+  max-width: 90%;
+  height: 50%;
+}
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #555;
+}
+.close-btn:hover {
+  color: #000;
+}
+
+/* Form */
+.form-grid {
+  display: flex;
+  flex-direction: column;
+}
+.form-grid input, 
+.form-grid select,
+.form-grid textarea {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+/* Checkbox group */
 .checkbox-group {
   display: flex;
   align-items: center;
   margin-bottom: 8px;
 }
+.checkbox-group input {
+  margin-right: 8px;
+}
+
+/* Form actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+}
+.save-btn {
+  background: #3f51b5;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+}
+.cancel-btn {
+  background: gray;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+}
+
+/* Scrollbar styling */
+.table-vertical-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.table-vertical-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.table-vertical-scroll::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+.table-vertical-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Checkbox sections */
+.checkbox-section {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.checkbox-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 4px;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
 
 .checkbox-group input {
-  width: auto;
   margin-right: 8px;
-  margin-bottom: 0;
 }

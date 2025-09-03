@@ -3,32 +3,37 @@ import { ActivatedRoute } from '@angular/router';
 import { TestPlanService } from '../services/test-plan.service';
 import { ProjectService } from '../services/project.service';
 import { TestingTypeService } from '../services/testing-type.service';
-import { CommonModule } from '@angular/common';   // ✅ Needed for date pipe
-import { FormsModule } from '@angular/forms';     // ✅ Needed for ngModel
-import { TruncatePipe } from '../pipes/truncate.pipe';  // adjust path if needed
+import { TechnologyService } from '../services/technology.service';
+import { UserService } from '../services/user.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TruncatePipe } from '../pipes/truncate.pipe';
 
 @Component({
   selector: 'app-test-plans',
   templateUrl: './test-plans.component.html',
   styleUrls: ['./test-plans.component.css'],
-  standalone: true,  // ✅ Standalone component
-  imports: [CommonModule, FormsModule, TruncatePipe]  // ✅ Import date + ngModel support
+  standalone: true,
+  imports: [CommonModule, FormsModule, TruncatePipe]
 })
 export class TestPlansComponent implements OnInit {
   projectId: number = 0;
   project: any = null;
   testPlans: any[] = [];
   testingTypes: any[] = [];
-  users: any[] = []; // This would typically come from a user service
-  
+  technologies: any[] = [];
+  users: any[] = [];
+
   newTestPlan: any = {
     test_plan_id: '',
     title: '',
     objective: '',
     scope: '',
-    testing_types: [],
+    testing_types_ids: [],
+    technologies_ids: [],
     roles_covered: '',
-    test_lead: null,
+    test_lead_id: null,
+    project_lead_id: null,
     project: null
   };
 
@@ -40,7 +45,9 @@ export class TestPlansComponent implements OnInit {
     private route: ActivatedRoute,
     private testPlanService: TestPlanService,
     private projectService: ProjectService,
-    private testingTypeService: TestingTypeService
+    private testingTypeService: TestingTypeService,
+    private technologyService: TechnologyService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -48,68 +55,48 @@ export class TestPlansComponent implements OnInit {
     this.loadProject();
     this.loadTestPlans();
     this.loadTestingTypes();
-    this.loadUsers(); // You would implement this method to load users
+    this.loadTechnologies();
+    this.loadUsers();
   }
 
   loadProject(): void {
-    this.projectService.getProject(this.projectId).subscribe({
-      next: (data: any) => {
-        this.project = data;
-      },
-      error: (err) => {
-        console.error('Error fetching project:', err);
-      }
-    });
+    this.projectService.getProject(this.projectId).subscribe(data => this.project = data);
   }
 
   loadTestPlans(): void {
-    this.testPlanService.getTestPlansByProject(this.projectId).subscribe({
-      next: (data: any[]) => {
-        this.testPlans = data;
-      },
-      error: (err) => {
-        console.error('Error fetching test plans:', err);
-      }
-    });
+    this.testPlanService.getTestPlansByProject(this.projectId).subscribe(data => this.testPlans = data);
   }
 
   loadTestingTypes(): void {
-    this.testingTypeService.getTestingTypes().subscribe({
-      next: (data: any[]) => {
-        this.testingTypes = data;
-      },
-      error: (err: any) => {
-        console.error('Error fetching testing types:', err);
-      }
-    });
+    this.testingTypeService.getTestingTypes().subscribe(data => this.testingTypes = data);
+  }
+
+  loadTechnologies(): void {
+    this.technologyService.getTechnologies().subscribe(data => this.technologies = data);
   }
 
   loadUsers(): void {
-    // This is a placeholder - you would implement a user service
-    this.users = [
-      { id: 1, username: 'testlead1', email: 'testlead1@example.com' },
-      { id: 2, username: 'testlead2', email: 'testlead2@example.com' }
-    ];
+    this.userService.getUsers().subscribe(data => this.users = data);
   }
 
-  getUsername(userId: number): string {
-    const user = this.users.find(u => u.id === userId);
+  getUsername(user: any): string {
     return user ? (user.username || user.email) : 'Unknown';
   }
 
-  isTestingTypeSelected(typeId: number): boolean {
-    return this.newTestPlan.testing_types.includes(typeId);
+  isTestingTypeSelected(id: number): boolean {
+    return this.newTestPlan.testing_types_ids.includes(id);
+  }
+  onTestingTypeChange(id: number, event: any): void {
+    if (event.target.checked) this.newTestPlan.testing_types_ids.push(id);
+    else this.newTestPlan.testing_types_ids = this.newTestPlan.testing_types_ids.filter((x: number) => x !== id);
   }
 
-  onTestingTypeChange(typeId: number, event: any): void {
-    if (event.target.checked) {
-      this.newTestPlan.testing_types.push(typeId);
-    } else {
-      const index = this.newTestPlan.testing_types.indexOf(typeId);
-      if (index > -1) {
-        this.newTestPlan.testing_types.splice(index, 1);
-      }
-    }
+  isTechnologySelected(id: number): boolean {
+    return this.newTestPlan.technologies_ids.includes(id);
+  }
+  onTechnologyChange(id: number, event: any): void {
+    if (event.target.checked) this.newTestPlan.technologies_ids.push(id);
+    else this.newTestPlan.technologies_ids = this.newTestPlan.technologies_ids.filter((x: number) => x !== id);
   }
 
   openAddTestPlanPopup(): void {
@@ -119,9 +106,11 @@ export class TestPlansComponent implements OnInit {
       title: '',
       objective: '',
       scope: '',
-      testing_types: [],
+      testing_types_ids: [],
+      technologies_ids: [],
       roles_covered: '',
-      test_lead: null,
+      test_lead_id: null,
+      project_lead_id: null,
       project: this.projectId
     };
     this.showTestPlanPopup = true;
@@ -130,11 +119,13 @@ export class TestPlansComponent implements OnInit {
   editTestPlan(testPlan: any): void {
     this.isEditMode = true;
     this.editingTestPlanId = testPlan.id;
-    this.newTestPlan = { ...testPlan };
-    // Convert testing_types from objects to IDs if needed
-    if (testPlan.testing_types && testPlan.testing_types.length > 0 && typeof testPlan.testing_types[0] === 'object') {
-      this.newTestPlan.testing_types = testPlan.testing_types.map((type: any) => type.id);
-    }
+    this.newTestPlan = {
+      ...testPlan,
+      testing_types_ids: testPlan.testing_types.map((t: any) => t.id),
+      technologies_ids: testPlan.technologies.map((t: any) => t.id),
+      test_lead_id: testPlan.test_lead?.id || null,
+      project_lead_id: testPlan.project_lead?.id || null
+    };
     this.showTestPlanPopup = true;
   }
 
@@ -149,29 +140,17 @@ export class TestPlansComponent implements OnInit {
       alert('Please fill all required fields');
       return;
     }
-
-    // Ensure project ID is set
     this.newTestPlan.project = this.projectId;
 
     if (this.isEditMode && this.editingTestPlanId) {
-      this.testPlanService.updateTestPlan(this.editingTestPlanId, this.newTestPlan).subscribe({
-        next: () => {
-          this.loadTestPlans();
-          this.closeTestPlanPopup();
-        },
-        error: (err) => {
-          console.error('Error updating test plan:', err);
-        }
+      this.testPlanService.updateTestPlan(this.editingTestPlanId, this.newTestPlan).subscribe(() => {
+        this.loadTestPlans();
+        this.closeTestPlanPopup();
       });
     } else {
-      this.testPlanService.addTestPlan(this.newTestPlan).subscribe({
-        next: () => {
-          this.loadTestPlans();
-          this.closeTestPlanPopup();
-        },
-        error: (err) => {
-          console.error('Error adding test plan:', err);
-        }
+      this.testPlanService.addTestPlan(this.newTestPlan).subscribe(() => {
+        this.loadTestPlans();
+        this.closeTestPlanPopup();
       });
     }
   }

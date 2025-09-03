@@ -31,7 +31,16 @@ export class TestCasesComponent implements OnInit {
     test_data: null,
     is_automated: false,
     requirement: null,
-    created_by: null
+    created_by: null,
+    is_executed: false,
+    executed_by: null,
+    executed_on: null,
+    status: 'Not tested yet',
+    actual_result: '',
+    comments: '',
+    bug_raised: false,
+    bug_status: 'Open',
+    bug_screenshot: null
   };
 
   newTestData: any = {
@@ -159,7 +168,16 @@ export class TestCasesComponent implements OnInit {
       test_data: null,
       is_automated: false,
       requirement: this.requirementId,
-      created_by: this.currentUser?.id
+      created_by: this.currentUser?.id,
+      is_executed: false,
+      executed_by: null,
+      executed_on: null,
+      status: 'Not tested yet',
+      actual_result: '',
+      comments: '',
+      bug_raised: false,
+      bug_status: 'Open',
+      bug_screenshot: null
     };
     this.showTestCasePopup = true;
   }
@@ -168,6 +186,10 @@ export class TestCasesComponent implements OnInit {
     this.isEditMode = true;
     this.editingTestCaseId = testCase.id;
     this.newTestCase = { ...testCase };
+    // Ensure bug_screenshot is properly handled (it might be a string URL from backend)
+    if (this.newTestCase.bug_screenshot && typeof this.newTestCase.bug_screenshot === 'string') {
+      this.newTestCase.bug_screenshot = null; // Reset file reference, keep URL for display
+    }
     this.showTestCasePopup = true;
   }
 
@@ -179,13 +201,43 @@ export class TestCasesComponent implements OnInit {
 
   saveTestCase(): void {
     if (!this.newTestCase.title || !this.newTestCase.description || 
-        !this.newTestCase.test_actions || !this.newTestCase.expected_result) {
+        !this.newTestCase.expected_result) {
       alert('Please fill all required fields');
       return;
     }
 
+    // If executed, require test_actions and set executed_by/executed_on
+    if (this.newTestCase.is_executed) {
+      if (!this.newTestCase.test_actions) {
+        alert('Test Actions is required when test case is executed');
+        return;
+      }
+      this.newTestCase.executed_by = this.currentUser?.id;
+      this.newTestCase.executed_on = new Date().toISOString();
+    } else {
+      this.newTestCase.executed_by = null;
+      this.newTestCase.executed_on = null;
+      this.newTestCase.status = 'Not tested yet';
+      this.newTestCase.actual_result = '';
+    }
+
+    // If bug is raised, require bug_status
+    if (this.newTestCase.bug_raised && !this.newTestCase.bug_status) {
+      alert('Bug Status is required when bug is raised');
+      return;
+    } else if (!this.newTestCase.bug_raised) {
+      this.newTestCase.bug_status = null;
+      // Remove bug screenshot if bug is not raised
+      this.newTestCase.bug_screenshot = null;
+    }
+
     this.newTestCase.requirement = this.requirementId;
     this.newTestCase.created_by = this.currentUser?.id;
+
+    // Convert test_data to number if it's a string
+    if (this.newTestCase.test_data) {
+      this.newTestCase.test_data = Number(this.newTestCase.test_data);
+    }
 
     if (this.isEditMode && this.editingTestCaseId) {
       this.testCaseService.updateTestCase(this.editingTestCaseId, this.newTestCase).subscribe({
@@ -250,6 +302,8 @@ export class TestCasesComponent implements OnInit {
       } else if (type === 'image') {
         this.newTestData.image_data = file;
         this.newTestData.image_data_name = file.name;
+      } else if (type === 'bug_screenshot') {
+        this.newTestCase.bug_screenshot = file;
       }
     }
   }

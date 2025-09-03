@@ -30,4 +30,8 @@ export class TechnologyService {
   updateTechnology(id: number, technologyData: any): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}/technologies/${id}/update/`, technologyData, this.getHeaders());
   }
+
+  deleteTechnology(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/technologies/${id}/delete/`, this.getHeaders());
+  }
 }
