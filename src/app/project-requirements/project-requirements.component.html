@@ -9,38 +9,81 @@
       <table class="styled-table">
         <thead>
           <tr>
-            <th>Title</th>
+            <th class="col-title">Title</th>
             <th>Priority</th>
             <th>Reported Date</th>
             <th>Expected Delivery</th>
             <th>Actual Delivery</th>
             <th>Status</th>
+            <th class="col-boolean">Is Developed</th>
+            <th class="col-boolean">Is Tested</th>
+            <th class="col-boolean">Is Delivered</th>
+            <th class="col-boolean">UAT Testing Done</th>
+            <th class="col-boolean">Bug Raised After UAT</th>
+            <th class="col-boolean">Bug Fixed</th>
             <th class="actions-header">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let requirement of requirements">
-            <td>{{ requirement.requirement_title }}</td>
+            <!-- Title wider -->
+            <td class="col-title">{{ requirement.requirement_title }}</td>
+
+            <!-- Priority -->
             <td>
               <span class="priority-badge {{ requirement.priority.toLowerCase() }}">
                 {{ requirement.priority }}
               </span>
             </td>
+
+            <!-- Dates -->
             <td>{{ requirement.reported_date | date:'mediumDate' }}</td>
             <td>{{ requirement.expected_delivery | date:'mediumDate' }}</td>
             <td>{{ requirement.actual_delivery ? (requirement.actual_delivery | date:'mediumDate') : 'Pending' }}</td>
+
+            <!-- Status -->
             <td>
               <span class="status-badge {{ getRequirementStatus(requirement) }}">
                 {{ getRequirementStatus(requirement) }}
               </span>
             </td>
+
+            <!-- ✅ Boolean fields with icons -->
+            <td class="col-boolean">
+              <span [ngClass]="requirement.is_developed ? 'icon-yes' : 'icon-no'">
+                {{ requirement.is_developed ? '✔' : '✖' }}
+              </span>
+            </td>
+            <td class="col-boolean">
+              <span [ngClass]="requirement.is_tested ? 'icon-yes' : 'icon-no'">
+                {{ requirement.is_tested ? '✔' : '✖' }}
+              </span>
+            </td>
+            <td class="col-boolean">
+              <span [ngClass]="requirement.is_delivered ? 'icon-yes' : 'icon-no'">
+                {{ requirement.is_delivered ? '✔' : '✖' }}
+              </span>
+            </td>
+            <td class="col-boolean">
+              <span [ngClass]="requirement.uat_testing ? 'icon-yes' : 'icon-no'">
+                {{ requirement.uat_testing ? '✔' : '✖' }}
+              </span>
+            </td>
+            <td class="col-boolean">
+              <span [ngClass]="requirement.bug_raised_by_client_after_uat ? 'icon-yes' : 'icon-no'">
+                {{ requirement.bug_raised_by_client_after_uat ? '✔' : '✖' }}
+              </span>
+            </td>
+            <td class="col-boolean">
+              <span [ngClass]="requirement.bug_fixed ? 'icon-yes' : 'icon-no'">
+                {{ requirement.bug_fixed ? '✔' : '✖' }}
+              </span>
+            </td>
+
+            <!-- Actions -->
             <td class="actions">
-              <button class="edit-btn" (click)="editRequirement(requirement)" title="Edit Requirement">
-                ✏️
-              </button>
-              <button class="test-case-btn" (click)="viewTestCases(requirement)" title="View Test Cases">
-                🧪
-              </button>
+              <button class="edit-btn" (click)="editRequirement(requirement)" title="Edit Requirement">✏️</button>
+              <button class="test-case-btn" (click)="viewTestCases(requirement)" title="View Test Cases">🧪</button>
             </td>
           </tr>
         </tbody>
@@ -86,30 +129,30 @@
 
         <!-- Boolean fields -->
         <div class="boolean-fields">
-          <label>
+          <div class="checkbox-field">
             <input type="checkbox" [(ngModel)]="newRequirement.is_developed" name="is_developed" />
-            Is Developed
-          </label>
-          <label>
+            <label>Is Developed</label>
+          </div>
+          <div class="checkbox-field">
             <input type="checkbox" [(ngModel)]="newRequirement.is_tested" name="is_tested" />
-            Is Tested
-          </label>
-          <label>
+            <label>Is Tested</label>
+          </div>
+          <div class="checkbox-field">
             <input type="checkbox" [(ngModel)]="newRequirement.is_delivered" name="is_delivered" />
-            Is Delivered
-          </label>
-          <label>
+            <label>Is Delivered</label>
+          </div>
+          <div class="checkbox-field">
             <input type="checkbox" [(ngModel)]="newRequirement.uat_testing" name="uat_testing" />
-            UAT Testing Done
-          </label>
-          <label>
+            <label>UAT Testing Done</label>
+          </div>
+          <div class="checkbox-field">
             <input type="checkbox" [(ngModel)]="newRequirement.bug_raised_by_client_after_uat" name="bug_raised_by_client_after_uat" />
-            Bug Raised After UAT
-          </label>
-          <label>
+            <label>Bug Raised After UAT</label>
+          </div>
+          <div class="checkbox-field">
             <input type="checkbox" [(ngModel)]="newRequirement.bug_fixed" name="bug_fixed" />
-            Bug Fixed
-          </label>
+            <label>Bug Fixed</label>
+          </div>
         </div>
 
         <!-- Buttons -->

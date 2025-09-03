@@ -1,42 +1,72 @@
-<div class="container">
-  <h2>Test Cases for {{ requirement?.requirement_title }}</h2>
-
-  <button class="add-btn" (click)="openAddTestCasePopup()">+ Add Test Case</button>
+<div class="testcases-container">
+  <div class="header">
+    <h2>Test Cases for {{ requirement?.requirement_title }}</h2>
+    <button class="add-btn" (click)="openAddTestCasePopup()">+ Add Test Case</button>
+  </div>
 
   <div class="card">
     <div class="table-container">
       <table class="styled-table">
         <thead>
           <tr>
-            <th>Title</th>
+            <th class="col-title">Title</th>
             <th>Status</th>
             <th>Bug Status</th>
-            <th>Is Automated</th>
+            <th class="col-boolean">Is Automated</th>
+            <th class="col-boolean">Is Executed</th>
+            <th class="col-boolean">Bug Raised</th>
             <th>Executed By</th>
             <th>Executed On</th>
-            <th>Actions</th>
+            <th>Created By</th>
+            <th>Created At</th>
+            <th class="actions-header">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let testCase of testCases">
-            <td>{{ testCase.title }}</td>
+            <td class="col-title">{{ testCase.title }}</td>
+
             <td>
-              <span class="status-badge" [class]="testCase.status?.toLowerCase().replace(' ', '-')">
+              <span class="status-badge {{ testCase.status?.toLowerCase()?.replace(' ', '-') || 'pending' }}">
                 {{ testCase.status || 'Not tested yet' }}
               </span>
             </td>
+
             <td>
-              <span class="bug-status-badge" [class]="testCase.bug_status?.toLowerCase()" *ngIf="testCase.bug_status">
+              <span *ngIf="testCase.bug_status"
+                    class="bug-status-badge {{ testCase.bug_status?.toLowerCase().replace(' ', '-') }}">
                 {{ testCase.bug_status }}
               </span>
               <span *ngIf="!testCase.bug_status">-</span>
             </td>
-            <td>{{ testCase.is_automated ? 'Yes' : 'No' }}</td>
+
+            <td class="col-boolean">
+              <span [ngClass]="testCase.is_automated ? 'icon-yes' : 'icon-no'">
+                {{ testCase.is_automated ? '✔' : '✖' }}
+              </span>
+            </td>
+
+            <td class="col-boolean">
+              <span [ngClass]="testCase.is_executed ? 'icon-yes' : 'icon-no'">
+                {{ testCase.is_executed ? '✔' : '✖' }}
+              </span>
+            </td>
+
+            <td class="col-boolean">
+              <span [ngClass]="testCase.bug_raised ? 'icon-yes' : 'icon-no'">
+                {{ testCase.bug_raised ? '✔' : '✖' }}
+              </span>
+            </td>
+
             <td>{{ getUsername(testCase.executed_by) }}</td>
-            <td>{{ testCase.executed_on | date:'medium' }}</td>
+            <td>{{ testCase.executed_on ? (testCase.executed_on | date:'medium') : '-' }}</td>
+            <td>{{ getUsername(testCase.created_by) }}</td>
+            <td>{{ testCase.created_at ? (testCase.created_at | date:'medium') : '-' }}</td>
+
             <td class="actions">
-              <button class="edit-btn" (click)="editTestCase(testCase)">✏️</button>
-              <button class="execute-btn" (click)="executeTestCase(testCase)" *ngIf="!testCase.is_executed">▶️</button>
+              <button class="edit-btn" (click)="editTestCase(testCase)" title="Edit Test Case">✏️</button>
+              <button class="execute-btn" (click)="executeTestCase(testCase)"
+                      *ngIf="!testCase.is_executed" title="Execute Test Case">▶️</button>
             </td>
           </tr>
         </tbody>
@@ -47,25 +77,87 @@
   <!-- Add/Edit Test Case Popup -->
   <div class="popup" *ngIf="showTestCasePopup">
     <div class="popup-content large-popup">
-      <h3>{{ isEditMode ? 'Edit Test Case' : 'Add Test Case' }}</h3>
-      <form (ngSubmit)="saveTestCase()" class="form-grid">
-        <label>Title</label>
+      <div class="popup-header">
+        <h3>{{ isEditMode ? 'Edit Test Case' : 'Add Test Case' }}</h3>
+        <button class="close-btn" (click)="closeTestCasePopup()">✖</button>
+      </div>
+
+      <form (ngSubmit)="saveTestCase()" class="form-grid" enctype="multipart/form-data">
+        <label>Title *</label>
         <input type="text" [(ngModel)]="newTestCase.title" name="title" required />
 
-        <label>Description</label>
+        <label>Description *</label>
         <textarea [(ngModel)]="newTestCase.description" name="description" rows="3" required></textarea>
 
         <label>Pre Conditions</label>
         <textarea [(ngModel)]="newTestCase.pre_conditions" name="pre_conditions" rows="2"></textarea>
 
-        <label>Test Actions</label>
-        <textarea [(ngModel)]="newTestCase.test_actions" name="test_actions" rows="3" required></textarea>
-
-        <label>Expected Result</label>
+        <label>Expected Result *</label>
         <textarea [(ngModel)]="newTestCase.expected_result" name="expected_result" rows="3" required></textarea>
 
-        <label>Is Automated</label>
-        <input type="checkbox" [(ngModel)]="newTestCase.is_automated" name="is_automated" />
+        <label>Actual Result</label>
+        <textarea [(ngModel)]="newTestCase.actual_result" name="actual_result" rows="3"></textarea>
+
+        <!-- Is Executed -->
+        <label class="checkbox-field">
+          <input type="checkbox" [(ngModel)]="newTestCase.is_executed" name="is_executed" />
+          Is Executed
+        </label>
+
+        <!-- Show Test Actions & Status only if executed -->
+        <ng-container *ngIf="newTestCase.is_executed">
+          <label>Test Actions *</label>
+          <textarea [(ngModel)]="newTestCase.test_actions" name="test_actions" rows="3" required></textarea>
+
+          <label>Status</label>
+          <select [(ngModel)]="newTestCase.status" name="status">
+            <option value="Pass">Pass</option>
+            <option value="Fail">Fail</option>
+            <option value="Not tested yet">Not tested yet</option>
+          </select>
+        </ng-container>
+
+        <!-- Bug Raised -->
+        <label class="checkbox-field">
+          <input type="checkbox" [(ngModel)]="newTestCase.bug_raised" name="bug_raised" />
+          Bug Raised
+        </label>
+
+        <!-- Show bug fields only if bug raised -->
+        <ng-container *ngIf="newTestCase.bug_raised">
+          <label>Bug Screenshot</label>
+          <input type="file" (change)="onFileSelected($event, 'bug_screenshot')" accept="image/*" />
+
+          <label>Bug Status</label>
+          <select [(ngModel)]="newTestCase.bug_status" name="bug_status">
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </ng-container>
+
+        <!-- Test Data -->
+        <label>Test Data</label>
+        <div class="test-data-section">
+          <select [(ngModel)]="newTestCase.test_data" name="test_data" class="test-data-select">
+            <option [value]="null">-- Select Test Data --</option>
+            <option *ngFor="let testData of testDataList" [value]="testData.id">
+              {{ getTestDataDisplay(testData) }}
+            </option>
+          </select>
+          <button type="button" class="add-test-data-btn" (click)="openAddTestDataPopup()">+ Add Test Data</button>
+        </div>
+
+        <!-- Is Automated -->
+        <label class="checkbox-field">
+          <input type="checkbox" [(ngModel)]="newTestCase.is_automated" name="is_automated" />
+          Is Automated
+        </label>
+
+        <!-- Comments -->
+        <label>Comments</label>
+        <textarea [(ngModel)]="newTestCase.comments" name="comments" rows="2"></textarea>
 
         <div class="form-actions">
           <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
@@ -75,39 +167,48 @@
     </div>
   </div>
 
-  <!-- Execute Test Case Popup -->
-  <div class="popup" *ngIf="showExecutePopup">
-    <div class="popup-content">
-      <h3>Execute Test Case: {{ executingTestCase?.title }}</h3>
-      <form (ngSubmit)="saveExecution()" class="form-grid">
-        <label>Status</label>
-        <select [(ngModel)]="executionData.status" name="status" required>
-          <option value="Pass">Pass</option>
-          <option value="Fail">Fail</option>
+  <!-- Add/Edit Test Data Popup -->
+  <div class="popup" *ngIf="showTestDataPopup">
+    <div class="popup-content medium-popup">
+      <div class="popup-header">
+        <h3>{{ isEditTestDataMode ? 'Edit Test Data' : 'Add Test Data' }}</h3>
+        <button class="close-btn" (click)="closeTestDataPopup()">✖</button>
+      </div>
+
+      <form (ngSubmit)="saveTestData()" class="form-grid" enctype="multipart/form-data">
+        <label>Data Type *</label>
+        <select [(ngModel)]="newTestData.data_type" name="data_type" required (change)="onDataTypeChange()">
+          <option value="text">Text</option>
+          <option value="file">File</option>
+          <option value="image">Image</option>
+          <option value="other">Other</option>
         </select>
 
-        <label>Actual Result</label>
-        <textarea [(ngModel)]="executionData.actual_result" name="actual_result" rows="3"></textarea>
+        <div *ngIf="newTestData.data_type === 'text'">
+          <label>Text Data *</label>
+          <textarea [(ngModel)]="newTestData.text_data" name="text_data" rows="4" required></textarea>
+        </div>
 
-        <label>Comments</label>
-        <textarea [(ngModel)]="executionData.comments" name="comments" rows="2"></textarea>
+        <div *ngIf="newTestData.data_type === 'file'">
+          <label>File Data *</label>
+          <input type="file" (change)="onFileSelected($event, 'file')" accept="*/*" />
+          <span *ngIf="newTestData.file_data_name" class="file-name">{{ newTestData.file_data_name }}</span>
+        </div>
 
-        <label>Bug Raised</label>
-        <input type="checkbox" [(ngModel)]="executionData.bug_raised" name="bug_raised" />
+        <div *ngIf="newTestData.data_type === 'image'">
+          <label>Image Data *</label>
+          <input type="file" (change)="onFileSelected($event, 'image')" accept="image/*" />
+          <span *ngIf="newTestData.image_data_name" class="file-name">{{ newTestData.image_data_name }}</span>
+        </div>
 
-        <div *ngIf="executionData.bug_raised">
-          <label>Bug Status</label>
-          <select [(ngModel)]="executionData.bug_status" name="bug_status">
-            <option value="Open">Open</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Closed">Closed</option>
-          </select>
+        <div *ngIf="newTestData.data_type === 'other'">
+          <label>Other Data</label>
+          <textarea [(ngModel)]="newTestData.text_data" name="text_data" rows="4"></textarea>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="save-btn">Save Execution</button>
-          <button type="button" class="cancel-btn" (click)="closeExecutePopup()">Cancel</button>
+          <button type="submit" class="save-btn">{{ isEditTestDataMode ? 'Update' : 'Save' }}</button>
+          <button type="button" class="cancel-btn" (click)="closeTestDataPopup()">Cancel</button>
         </div>
       </form>
     </div>

@@ -6,7 +6,6 @@ import { catchError, throwError } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-
   private baseUrl = 'http://127.0.0.1:8000';  // Django backend URL
 
   constructor(private http: HttpClient) { }
@@ -25,6 +24,30 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     return !!sessionStorage.getItem('accessToken');
+  }
+
+  // Add this method to get current user
+  getCurrentUser(): any {
+    const userStr = sessionStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  }
+
+  // Update login method to store user data
+  loginAndStoreUser(email: string, password: string) {
+    return this.http.post<any>(`${this.baseUrl}/login/`, { email, password })
+      .pipe(
+        catchError(this.handleError)
+      ).subscribe({
+        next: (response) => {
+          if (response.user && response.access) {
+            sessionStorage.setItem('accessToken', response.access);
+            sessionStorage.setItem('user', JSON.stringify(response.user));
+          }
+        },
+        error: (error) => {
+          console.error('Login error:', error);
+        }
+      });
   }
 
   private handleError(error: HttpErrorResponse) {

@@ -80,10 +80,12 @@
   width: 100%; height: 100%;
   background: rgba(0,0,0,0.5);
   display: flex; justify-content: center; align-items: center;
+  z-index: 999;
 }
 .popup-content {
-  margin-top: 20px;   /* space below navbar */
-  margin-bottom: 20px; /* space above bottom */
+  position: relative;
+  margin-top: 20px;
+  margin-bottom: 20px; 
   background: white;
   padding: 25px;
   border-radius: 12px;
@@ -91,6 +93,7 @@
   height: 50%;
   overflow-y: auto;
   box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+  z-index: 1000;
 }
 .popup-header {
   display: flex;

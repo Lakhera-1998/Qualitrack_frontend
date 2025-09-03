@@ -100,6 +100,7 @@
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  padding: 20px;
 }
 
 .popup-content {
@@ -107,8 +108,12 @@
   padding: 20px;
   border-radius: 10px;
   width: 420px;
+  max-height: 90vh;      /* ✅ Prevents full screen stretch */
+  overflow-y: auto;      /* ✅ Enables vertical scroll */
+  overflow-x: hidden;    /* ✅ Prevents horizontal overflow */
   box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
   animation: popupScale 0.2s ease-in-out;
+  box-sizing: border-box; /* ✅ Keep inputs inside border */
 }
 
 @keyframes popupScale {
@@ -149,6 +154,7 @@
 .form-grid textarea,
 .form-grid select {
   width: 100%;
+  box-sizing: border-box;
   padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -177,4 +183,87 @@
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.checkbox-field input[type="checkbox"] {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* Bigger and clearer input text */
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+  font-size: 15px;       /* increase font size */
+  font-family: "Segoe UI", sans-serif; /* clean modern font */
+  line-height: 1.5;      /* improve readability */
+  color: #333;           /* darker text for contrast */
+  padding: 8px 10px;     /* spacing inside fields */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Increase description textarea height */
+textarea {
+  min-height: 100px;     /* taller description field */
+  resize: vertical;      /* allow user to resize vertically */
+}
+
+/* Checkbox labels better aligned */
+.checkbox-field label {
+  font-size: 14px;
+  color: #333;
+}
+
+.boolean-yes {
+  color: white;
+  background: #28a745;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.boolean-no {
+  color: white;
+  background: #dc3545;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* Title column should be wider */
+.col-title {
+  min-width: 250px;
+  max-width: 400px;
+  white-space: normal;
+}
+
+/* Boolean columns smaller */
+.col-boolean {
+  text-align: center;
+  width: 80px;
+}
+
+/* Boolean icons */
+.icon-yes {
+  color: #28a745;  /* green */
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.icon-no {
+  color: #dc3545;  /* red */
+  font-size: 18px;
+  font-weight: bold;
 }
