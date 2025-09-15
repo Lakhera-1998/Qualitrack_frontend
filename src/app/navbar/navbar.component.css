@@ -24,6 +24,9 @@
 .logo {
   font-weight: bold;
   color: #3f51b5;
+  display: block;          /* ✅ Inline se block element banayenge */
+  width: 250px;            /* ✅ Sidebar ki width ke barabar karein */
+  text-align: center;      /* ✅ Text ko center align karein */
 }
 
 .navbar-right {
@@ -35,4 +38,87 @@
 .logout {
   color: red;
   cursor: pointer;
+}
+
+/* Existing navbar styles remain same */
+
+.logout-popup-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.logout-popup {
+  background: #fff;
+  padding: 20px 30px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+.logout-popup h3 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-icon {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-icon:hover {
+  color: #f44336;
+}
+
+.logout-popup p {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #555;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: space-around;
+}
+
+.popup-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.popup-actions .yes {
+  background-color: #f44336;
+  color: white;
+}
+
+.popup-actions .yes:hover {
+  background-color: #d32f2f;
+}
+
+.popup-actions .no {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.popup-actions .no:hover {
+  background-color: #bdbdbd;
 }

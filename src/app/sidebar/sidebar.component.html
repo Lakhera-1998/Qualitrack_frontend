@@ -1,5 +1,4 @@
 <div class="sidebar">
-  
   <div class="menu-section">
     <h3>Home</h3>
     <ul>
@@ -18,6 +17,15 @@
       <li [class.active]="currentRoute === '/projects'">
         <a routerLink="/projects">Projects</a>
       </li>
+      <li [class.active]="currentRoute === '/requirements'">
+        <a routerLink="/requirements">Requirements</a>
+      </li>
+      <li [class.active]="currentRoute === '/test-plans'">
+        <a routerLink="/test-plans">Test Plans</a>
+      </li>
+      <li [class.active]="currentRoute === '/test-cases'">
+        <a routerLink="/test-cases">Test Cases</a>
+      </li>
       <li [class.active]="currentRoute === '/technologies'">
         <a routerLink="/technologies">Technologies</a>
       </li>
@@ -25,9 +33,5 @@
         <a routerLink="/testing-types">Testing Types</a>
       </li>
     </ul>
-  </div>
-
-  <div class="user-section">
-    <button class="logout-btn" (click)="logout()">Logout</button>
   </div>
 </div>

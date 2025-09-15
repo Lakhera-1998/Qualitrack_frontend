@@ -1,13 +1,25 @@
 <nav class="navbar">
   <div class="navbar-left">
     <span class="logo">Qualitrack</span>
-    <button class="menu-btn" (click)="toggleSidebar()">
-      &#9776; 
-    </button>
   </div>
 
   <div class="navbar-right">
     <span class="user">User</span>
-    <a class="logout" (click)="logout()">Logout</a>
+    <a class="logout" (click)="openLogoutPopup()">Logout</a>
   </div>
 </nav>
+
+<!-- 🔽 Custom Popup Modal -->
+<div class="logout-popup-backdrop" *ngIf="showLogoutPopup">
+  <div class="logout-popup">
+    <!-- ✖ Close Icon -->
+    <span class="close-icon" (click)="cancelLogout()">×</span>
+
+    <h3>Confirm Logout</h3>
+    <p>Are you sure you want to logout?</p>
+    <div class="popup-actions">
+      <button class="yes" (click)="confirmLogout()">Yes</button>
+      <button class="no" (click)="cancelLogout()">No</button>
+    </div>
+  </div>
+</div>
