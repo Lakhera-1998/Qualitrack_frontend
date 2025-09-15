@@ -1,76 +1,125 @@
 <div class="testcases-container">
   <div class="header">
-    <h2>Test Cases for {{ requirement?.requirement_title }}</h2>
-    <button class="add-btn" (click)="openAddTestCasePopup()">+ Add Test Case</button>
+    <h2>Test Cases</h2>
+    <button class="add-btn" (click)="openAddTestCasePopup()" [disabled]="!selectedRequirementId">+ Add Test Case</button>
   </div>
 
-  <div class="card">
-    <div class="table-container">
-      <table class="styled-table">
-        <thead>
-          <tr>
-            <th class="col-title">Title</th>
-            <th>Status</th>
-            <th>Bug Status</th>
-            <th class="col-boolean">Is Automated</th>
-            <th class="col-boolean">Is Executed</th>
-            <th class="col-boolean">Bug Raised</th>
-            <th>Executed By</th>
-            <th>Executed On</th>
-            <th>Created By</th>
-            <th>Created At</th>
-            <th class="actions-header">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let testCase of testCases">
-            <td class="col-title">{{ testCase.title }}</td>
+  <!-- Client, Project, and Requirement Filters -->
+  <div class="filters-card card">
+    <h3>Filter Test Cases</h3>
+    <div class="filter-form">
+      <div class="form-group">
+        <label for="clientSelect">Client *</label>
+        <select id="clientSelect" [(ngModel)]="selectedClientId" (change)="onClientChange()" class="form-control">
+          <option value="">Select Client</option>
+          <option *ngFor="let client of clients" [value]="client.id">{{ client.client_name }}</option>
+        </select>
+      </div>
 
-            <td>
-              <span class="status-badge {{ testCase.status?.toLowerCase()?.replace(' ', '-') || 'pending' }}">
-                {{ testCase.status || 'Not tested yet' }}
-              </span>
-            </td>
+      <div class="form-group">
+        <label for="projectSelect">Project *</label>
+        <select id="projectSelect" [(ngModel)]="selectedProjectId" (change)="onProjectChange()" class="form-control" [disabled]="!selectedClientId">
+          <option value="">Select Project</option>
+          <option *ngFor="let project of filteredProjects" [value]="project.id">{{ project.project_name }}</option>
+        </select>
+      </div>
 
-            <td>
-              <span *ngIf="testCase.bug_status"
-                    class="bug-status-badge {{ testCase.bug_status?.toLowerCase().replace(' ', '-') }}">
-                {{ testCase.bug_status }}
-              </span>
-              <span *ngIf="!testCase.bug_status">-</span>
-            </td>
+      <div class="form-group">
+        <label for="requirementSelect">Requirement *</label>
+        <select id="requirementSelect" [(ngModel)]="selectedRequirementId" (change)="onRequirementChange()" class="form-control" [disabled]="!selectedProjectId">
+          <option value="">Select Requirement</option>
+          <option *ngFor="let requirement of filteredRequirements" [value]="requirement.id">{{ requirement.requirement_title }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
 
-            <td class="col-boolean">
-              <span [ngClass]="testCase.is_automated ? 'icon-yes' : 'icon-no'">
-                {{ testCase.is_automated ? '✔' : '✖' }}
-              </span>
-            </td>
+  <!-- Test Cases Display Area -->
+  <div *ngIf="selectedRequirementId && requirement" class="requirements-content">
+    <div class="project-header">
+      <h3>Test Cases for {{ requirement?.requirement_title }} ({{ selectedProjectName }} - {{ selectedClientName }})</h3>
+    </div>
 
-            <td class="col-boolean">
-              <span [ngClass]="testCase.is_executed ? 'icon-yes' : 'icon-no'">
-                {{ testCase.is_executed ? '✔' : '✖' }}
-              </span>
-            </td>
+    <div class="card">
+      <div class="table-container">
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th class="col-title">Title</th>
+              <th>Status</th>
+              <th>Bug Status</th>
+              <th class="col-boolean">Is Automated</th>
+              <th class="col-boolean">Is Executed</th>
+              <th class="col-boolean">Bug Raised</th>
+              <th>Executed By</th>
+              <th>Executed On</th>
+              <th>Created By</th>
+              <th>Created At</th>
+              <th class="actions-header">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let testCase of testCases">
+              <td class="col-title">{{ testCase.title }}</td>
 
-            <td class="col-boolean">
-              <span [ngClass]="testCase.bug_raised ? 'icon-yes' : 'icon-no'">
-                {{ testCase.bug_raised ? '✔' : '✖' }}
-              </span>
-            </td>
+              <td>
+                <span class="status-badge {{ testCase.status?.toLowerCase()?.replace(' ', '-') || 'pending' }}">
+                  {{ testCase.status || 'Not tested yet' }}
+                </span>
+              </td>
 
-            <td>{{ getUsername(testCase.executed_by) }}</td>
-            <td>{{ testCase.executed_on ? (testCase.executed_on | date:'medium') : '-' }}</td>
-            <td>{{ getUsername(testCase.created_by) }}</td>
-            <td>{{ testCase.created_at ? (testCase.created_at | date:'medium') : '-' }}</td>
+              <td>
+                <span *ngIf="testCase.bug_status"
+                      class="bug-status-badge {{ testCase.bug_status?.toLowerCase().replace(' ', '-') }}">
+                  {{ testCase.bug_status }}
+                </span>
+                <span *ngIf="!testCase.bug_status">-</span>
+              </td>
 
-            <td class="actions">
-              <button class="edit-btn" (click)="editTestCase(testCase)" title="Edit Test Case">✏️</button>
-              <button class="execute-btn" (click)="executeTestCase(testCase)"
-                      *ngIf="!testCase.is_executed" title="Execute Test Case">▶️</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <td class="col-boolean">
+                <span [ngClass]="testCase.is_automated ? 'icon-yes' : 'icon-no'">
+                  {{ testCase.is_automated ? '✔' : '✖' }}
+                </span>
+              </td>
+
+              <td class="col-boolean">
+                <span [ngClass]="testCase.is_executed ? 'icon-yes' : 'icon-no'">
+                  {{ testCase.is_executed ? '✔' : '✖' }}
+                </span>
+              </td>
+
+              <td class="col-boolean">
+                <span [ngClass]="testCase.bug_raised ? 'icon-yes' : 'icon-no'">
+                  {{ testCase.bug_raised ? '✔' : '✖' }}
+                </span>
+              </td>
+
+              <td>{{ getUsername(testCase.executed_by) }}</td>
+              <td>{{ testCase.executed_on ? (testCase.executed_on | date:'medium') : '-' }}</td>
+              <td>{{ getUsername(testCase.created_by) }}</td>
+              <td>{{ testCase.created_at ? (testCase.created_at | date:'medium') : '-' }}</td>
+
+              <td class="actions">
+                <button class="edit-btn" (click)="editTestCase(testCase)" title="Edit Test Case">✏️</button>
+                <button class="execute-btn" (click)="executeTestCase(testCase)"
+                        *ngIf="!testCase.is_executed" title="Execute Test Case">▶️</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div *ngIf="testCases.length === 0 && selectedRequirementId" class="no-requirements">
+          No test cases found for this requirement.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message when no client/project/requirement selected -->
+  <div *ngIf="!selectedRequirementId" class="placeholder-message card">
+    <div class="message-content">
+      <h3>Select Client, Project and Requirement</h3>
+      <p>Select a client, project and requirement from the dropdowns above to display the test cases.</p>
     </div>
   </div>
 

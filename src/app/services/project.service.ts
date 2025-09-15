@@ -25,6 +25,11 @@ export class ProjectService {
     return this.http.get<any[]>(`${this.baseUrl}/projects/`, this.getHeaders());
   }
 
+  // ✅ List projects by client
+  getProjectsByClient(clientId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/clients/${clientId}/projects/`, this.getHeaders());
+  }
+
   // ✅ Create a new project
   addProject(projectData: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/projects/create/`, projectData, this.getHeaders());

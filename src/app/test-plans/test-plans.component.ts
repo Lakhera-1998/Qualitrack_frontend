@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TestPlanService } from '../services/test-plan.service';
 import { ProjectService } from '../services/project.service';
 import { TestingTypeService } from '../services/testing-type.service';
 import { TechnologyService } from '../services/technology.service';
 import { UserService } from '../services/user.service';
+import { ClientsService } from '../clients.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TruncatePipe } from '../pipes/truncate.pipe';
@@ -17,7 +18,11 @@ import { TruncatePipe } from '../pipes/truncate.pipe';
   imports: [CommonModule, FormsModule, TruncatePipe]
 })
 export class TestPlansComponent implements OnInit {
-  projectId: number = 0;
+  clients: any[] = [];
+  filteredProjects: any[] = [];
+  selectedClientId: number | null = null;
+  selectedClientName: string = '';
+  selectedProjectId: number | null = null;
   project: any = null;
   testPlans: any[] = [];
   testingTypes: any[] = [];
@@ -43,40 +48,113 @@ export class TestPlansComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private testPlanService: TestPlanService,
     private projectService: ProjectService,
     private testingTypeService: TestingTypeService,
     private technologyService: TechnologyService,
-    private userService: UserService
+    private userService: UserService,
+    private clientsService: ClientsService
   ) {}
 
   ngOnInit(): void {
-    this.projectId = Number(this.route.snapshot.paramMap.get('projectId'));
-    this.loadProject();
-    this.loadTestPlans();
+    this.loadClients();
     this.loadTestingTypes();
     this.loadTechnologies();
     this.loadUsers();
   }
 
-  loadProject(): void {
-    this.projectService.getProject(this.projectId).subscribe(data => this.project = data);
+  loadClients(): void {
+    this.clientsService.getClients().subscribe({
+      next: (data: any[]) => {
+        this.clients = data;
+      },
+      error: (err) => console.error('Error fetching clients:', err)
+    });
+  }
+
+  onClientChange(): void {
+    this.selectedProjectId = null;
+    this.project = null;
+    this.testPlans = [];
+    this.filteredProjects = [];
+    
+    if (this.selectedClientId) {
+      this.loadProjectsByClient(this.selectedClientId);
+      
+      const selectedClient = this.clients.find(client => client.id === this.selectedClientId);
+      this.selectedClientName = selectedClient ? selectedClient.client_name : '';
+    } else {
+      this.selectedClientName = '';
+    }
+  }
+
+  loadProjectsByClient(clientId: number): void {
+    this.projectService.getProjectsByClient(clientId).subscribe({
+      next: (data: any[]) => {
+        this.filteredProjects = data;
+      },
+      error: (err) => console.error('Error fetching projects by client:', err)
+    });
+  }
+
+  onProjectChange(): void {
+    if (this.selectedProjectId) {
+      this.loadProjectDetails();
+      this.loadTestPlans();
+    } else {
+      this.project = null;
+      this.testPlans = [];
+    }
+  }
+
+  loadProjectDetails(): void {
+    if (!this.selectedProjectId) return;
+    
+    this.projectService.getProject(this.selectedProjectId).subscribe({
+      next: (data: any) => {
+        this.project = data;
+      },
+      error: (err) => console.error('Error fetching project:', err)
+    });
   }
 
   loadTestPlans(): void {
-    this.testPlanService.getTestPlansByProject(this.projectId).subscribe(data => this.testPlans = data);
+    if (!this.selectedProjectId) return;
+    
+    this.testPlanService.getTestPlansByProject(this.selectedProjectId).subscribe({
+      next: (data: any[]) => {
+        this.testPlans = data;
+      },
+      error: (err) => console.error('Error fetching test plans:', err)
+    });
   }
 
   loadTestingTypes(): void {
-    this.testingTypeService.getTestingTypes().subscribe(data => this.testingTypes = data);
+    this.testingTypeService.getTestingTypes().subscribe({
+      next: (data: any[]) => {
+        this.testingTypes = data;
+      },
+      error: (err) => console.error('Error fetching testing types:', err)
+    });
   }
 
   loadTechnologies(): void {
-    this.technologyService.getTechnologies().subscribe(data => this.technologies = data);
+    this.technologyService.getTechnologies().subscribe({
+      next: (data: any[]) => {
+        this.technologies = data;
+      },
+      error: (err) => console.error('Error fetching technologies:', err)
+    });
   }
 
   loadUsers(): void {
-    this.userService.getUsers().subscribe(data => this.users = data);
+    this.userService.getUsers().subscribe({
+      next: (data: any[]) => {
+        this.users = data;
+      },
+      error: (err) => console.error('Error fetching users:', err)
+    });
   }
 
   getUsername(user: any): string {
@@ -86,20 +164,30 @@ export class TestPlansComponent implements OnInit {
   isTestingTypeSelected(id: number): boolean {
     return this.newTestPlan.testing_types_ids.includes(id);
   }
+
   onTestingTypeChange(id: number, event: any): void {
-    if (event.target.checked) this.newTestPlan.testing_types_ids.push(id);
-    else this.newTestPlan.testing_types_ids = this.newTestPlan.testing_types_ids.filter((x: number) => x !== id);
+    if (event.target.checked) {
+      this.newTestPlan.testing_types_ids.push(id);
+    } else {
+      this.newTestPlan.testing_types_ids = this.newTestPlan.testing_types_ids.filter((x: number) => x !== id);
+    }
   }
 
   isTechnologySelected(id: number): boolean {
     return this.newTestPlan.technologies_ids.includes(id);
   }
+
   onTechnologyChange(id: number, event: any): void {
-    if (event.target.checked) this.newTestPlan.technologies_ids.push(id);
-    else this.newTestPlan.technologies_ids = this.newTestPlan.technologies_ids.filter((x: number) => x !== id);
+    if (event.target.checked) {
+      this.newTestPlan.technologies_ids.push(id);
+    } else {
+      this.newTestPlan.technologies_ids = this.newTestPlan.technologies_ids.filter((x: number) => x !== id);
+    }
   }
 
   openAddTestPlanPopup(): void {
+    if (!this.selectedProjectId) return;
+    
     this.isEditMode = false;
     this.newTestPlan = {
       test_plan_id: '',
@@ -111,7 +199,7 @@ export class TestPlansComponent implements OnInit {
       roles_covered: '',
       test_lead_id: null,
       project_lead_id: null,
-      project: this.projectId
+      project: this.selectedProjectId
     };
     this.showTestPlanPopup = true;
   }
@@ -140,17 +228,23 @@ export class TestPlansComponent implements OnInit {
       alert('Please fill all required fields');
       return;
     }
-    this.newTestPlan.project = this.projectId;
+    this.newTestPlan.project = this.selectedProjectId;
 
     if (this.isEditMode && this.editingTestPlanId) {
-      this.testPlanService.updateTestPlan(this.editingTestPlanId, this.newTestPlan).subscribe(() => {
-        this.loadTestPlans();
-        this.closeTestPlanPopup();
+      this.testPlanService.updateTestPlan(this.editingTestPlanId, this.newTestPlan).subscribe({
+        next: () => {
+          this.loadTestPlans();
+          this.closeTestPlanPopup();
+        },
+        error: (err) => console.error('Error updating test plan:', err)
       });
     } else {
-      this.testPlanService.addTestPlan(this.newTestPlan).subscribe(() => {
-        this.loadTestPlans();
-        this.closeTestPlanPopup();
+      this.testPlanService.addTestPlan(this.newTestPlan).subscribe({
+        next: () => {
+          this.loadTestPlans();
+          this.closeTestPlanPopup();
+        },
+        error: (err) => console.error('Error adding test plan:', err)
       });
     }
   }

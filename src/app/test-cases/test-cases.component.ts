@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TestCaseService } from '../services/test-case.service';
 import { RequirementService } from '../services/requirement.service';
+import { ProjectService } from '../services/project.service';
+import { ClientsService } from '../clients.service';
 import { TestDataService } from '../services/test-data.service';
 import { AuthService } from '../auth.service';
 import { CommonModule } from '@angular/common';
@@ -15,7 +17,14 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, FormsModule]
 })
 export class TestCasesComponent implements OnInit {
-  requirementId: number = 0;
+  clients: any[] = [];
+  filteredProjects: any[] = [];
+  filteredRequirements: any[] = [];
+  selectedClientId: number | null = null;
+  selectedClientName: string = '';
+  selectedProjectId: number | null = null;
+  selectedProjectName: string = '';
+  selectedRequirementId: number | null = null;
   requirement: any = null;
   testCases: any[] = [];
   testDataList: any[] = [];
@@ -74,17 +83,18 @@ export class TestCasesComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private testCaseService: TestCaseService,
     private requirementService: RequirementService,
+    private projectService: ProjectService,
+    private clientsService: ClientsService,
     private testDataService: TestDataService,
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.requirementId = Number(this.route.snapshot.paramMap.get('requirementId'));
     this.loadCurrentUser();
-    this.loadRequirement();
-    this.loadTestCases();
+    this.loadClients();
     this.loadTestData();
     this.loadUsers();
   }
@@ -97,9 +107,94 @@ export class TestCasesComponent implements OnInit {
     }
   }
 
-  loadRequirement(): void {
-    this.requirementService.getRequirement(this.requirementId).subscribe({
-      next: (data: any) => (this.requirement = data),
+  loadClients(): void {
+    this.clientsService.getClients().subscribe({
+      next: (data: any[]) => {
+        this.clients = data;
+      },
+      error: (error: any) => {
+        console.error('Error fetching clients:', error);
+        alert('Error loading clients: ' + (error.error?.message || error.message));
+      }
+    });
+  }
+
+  onClientChange(): void {
+    this.selectedProjectId = null;
+    this.selectedProjectName = '';
+    this.selectedRequirementId = null;
+    this.requirement = null;
+    this.testCases = [];
+    this.filteredProjects = [];
+    this.filteredRequirements = [];
+    
+    if (this.selectedClientId) {
+      this.loadProjectsByClient(this.selectedClientId);
+      
+      const selectedClient = this.clients.find(client => client.id === this.selectedClientId);
+      this.selectedClientName = selectedClient ? selectedClient.client_name : '';
+    } else {
+      this.selectedClientName = '';
+    }
+  }
+
+  loadProjectsByClient(clientId: number): void {
+    this.projectService.getProjectsByClient(clientId).subscribe({
+      next: (data: any[]) => {
+        this.filteredProjects = data;
+      },
+      error: (error: any) => {
+        console.error('Error fetching projects by client:', error);
+        alert('Error loading projects: ' + (error.error?.message || error.message));
+      }
+    });
+  }
+
+  onProjectChange(): void {
+    this.selectedRequirementId = null;
+    this.requirement = null;
+    this.testCases = [];
+    this.filteredRequirements = [];
+    
+    if (this.selectedProjectId) {
+      this.loadRequirementsByProject(this.selectedProjectId);
+      
+      const selectedProject = this.filteredProjects.find(project => project.id === this.selectedProjectId);
+      this.selectedProjectName = selectedProject ? selectedProject.project_name : '';
+    } else {
+      this.selectedProjectName = '';
+    }
+  }
+
+  loadRequirementsByProject(projectId: number): void {
+    this.requirementService.getRequirementsByProject(projectId).subscribe({
+      next: (data: any[]) => {
+        this.filteredRequirements = data;
+      },
+      error: (error: any) => {
+        console.error('Error fetching requirements by project:', error);
+        alert('Error loading requirements: ' + (error.error?.message || error.message));
+      }
+    });
+  }
+
+  onRequirementChange(): void {
+    if (this.selectedRequirementId) {
+      this.loadRequirementDetails();
+      this.loadTestCases();
+    } else {
+      this.requirement = null;
+      this.testCases = [];
+    }
+  }
+
+  loadRequirementDetails(): void {
+    if (!this.selectedRequirementId) return;
+    
+    this.requirementService.getRequirement(this.selectedRequirementId).subscribe({
+      next: (data: any) => {
+        this.requirement = data;
+      },
       error: (error: any) => {
         console.error('Error fetching requirement:', error);
         alert('Error loading requirement: ' + (error.error?.message || error.message));
@@ -108,8 +203,12 @@ export class TestCasesComponent implements OnInit {
   }
 
   loadTestCases(): void {
-    this.testCaseService.getTestCasesByRequirement(this.requirementId).subscribe({
-      next: (data: any[]) => (this.testCases = data),
+    if (!this.selectedRequirementId) return;
+    
+    this.testCaseService.getTestCasesByRequirement(this.selectedRequirementId).subscribe({
+      next: (data: any[]) => {
+        this.testCases = data;
+      },
       error: (error: any) => {
         console.error('Error fetching test cases:', error);
         alert('Error loading test cases: ' + (error.error?.message || error.message));
@@ -158,6 +257,8 @@ export class TestCasesComponent implements OnInit {
 
   // ✅ Test Case CRUD
   openAddTestCasePopup(): void {
+    if (!this.selectedRequirementId) return;
+    
     this.isEditMode = false;
     this.newTestCase = {
       title: '',
@@ -167,7 +268,7 @@ export class TestCasesComponent implements OnInit {
       expected_result: '',
       test_data: null,
       is_automated: false,
-      requirement: this.requirementId,
+      requirement: this.selectedRequirementId,
       created_by: this.currentUser?.id,
       is_executed: false,
       executed_by: null,
@@ -231,7 +332,7 @@ export class TestCasesComponent implements OnInit {
       this.newTestCase.bug_screenshot = null;
     }
 
-    this.newTestCase.requirement = this.requirementId;
+    this.newTestCase.requirement = this.selectedRequirementId;
     this.newTestCase.created_by = this.currentUser?.id;
 
     // Convert test_data to number if it's a string

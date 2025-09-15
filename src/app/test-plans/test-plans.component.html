@@ -1,42 +1,82 @@
-<div class="container">
-  <h2>Test Plans for {{ project?.project_name }}</h2>
+<div class="requirements-container">
+  <div class="header">
+    <h2>Test Plans</h2>
+    <button class="add-btn" (click)="openAddTestPlanPopup()" [disabled]="!selectedProjectId">+ Add Test Plan</button>
+  </div>
 
-  <!-- Add Test Plan Button -->
-  <button class="add-btn" (click)="openAddTestPlanPopup()">+ Add Test Plan</button>
+  <!-- Client and Project Filters -->
+  <div class="filters-card card">
+    <h3>Filter Test Plans</h3>
+    <div class="filter-form">
+      <div class="form-group">
+        <label for="clientSelect">Client *</label>
+        <select id="clientSelect" [(ngModel)]="selectedClientId" (change)="onClientChange()" class="form-control">
+          <option value="">Select Client</option>
+          <option *ngFor="let client of clients" [value]="client.id">{{ client.client_name }}</option>
+        </select>
+      </div>
 
-  <!-- Test Plans Table with Vertical + Horizontal Scroll -->
-  <div class="card">
-    <div class="table-vertical-scroll">
-      <table class="styled-table">
-        <thead>
-          <tr>
-            <th>Test Plan ID</th>
-            <th>Title</th>
-            <th>Objective</th>
-            <th>Testing Types</th>
-            <th>Test Lead</th>
-            <th>Created At</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let testPlan of testPlans">
-            <td>{{ testPlan.test_plan_id }}</td>
-            <td>{{ testPlan.title }}</td>
-            <td>{{ testPlan.objective | truncate:50 }}</td>
-            <td>
-              <span *ngFor="let type of testPlan.testing_types" class="badge">
-                {{ type.name }}
-              </span>
-            </td>
-            <td>{{ getUsername(testPlan.test_lead) }}</td>
-            <td>{{ testPlan.created_at | date:'mediumDate' }}</td>
-            <td class="actions">
-              <button class="edit-btn" (click)="editTestPlan(testPlan)" title="Edit Test Plan">✏️</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="form-group">
+        <label for="projectSelect">Project *</label>
+        <select id="projectSelect" [(ngModel)]="selectedProjectId" (change)="onProjectChange()" class="form-control" [disabled]="!selectedClientId">
+          <option value="">Select Project</option>
+          <option *ngFor="let project of filteredProjects" [value]="project.id">{{ project.project_name }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Plans Display Area -->
+  <div *ngIf="selectedProjectId && project" class="requirements-content">
+    <div class="project-header">
+      <h3>Test Plans for {{ project?.project_name }} ({{ selectedClientName }})</h3>
+    </div>
+
+    <div class="card">
+      <div class="table-container">
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>Test Plan ID</th>
+              <th>Title</th>
+              <th>Objective</th>
+              <th>Testing Types</th>
+              <th>Test Lead</th>
+              <th>Created At</th>
+              <th class="actions-header">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let testPlan of testPlans">
+              <td>{{ testPlan.test_plan_id }}</td>
+              <td>{{ testPlan.title }}</td>
+              <td>{{ testPlan.objective | truncate:50 }}</td>
+              <td>
+                <span *ngFor="let type of testPlan.testing_types" class="badge">
+                  {{ type.name }}
+                </span>
+              </td>
+              <td>{{ getUsername(testPlan.test_lead) }}</td>
+              <td>{{ testPlan.created_at | date:'mediumDate' }}</td>
+              <td class="actions">
+                <button class="edit-btn" (click)="editTestPlan(testPlan)" title="Edit Test Plan">✏️</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div *ngIf="testPlans.length === 0 && selectedProjectId" class="no-requirements">
+          No test plans found for this project.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message when no client/project selected -->
+  <div *ngIf="!selectedProjectId" class="placeholder-message card">
+    <div class="message-content">
+      <h3>Select Client and Project</h3>
+      <p>Select a client and project from the dropdowns above to display the test plans.</p>
     </div>
   </div>
 
@@ -89,7 +129,7 @@
 
         <label>Project Lead</label>
         <select [(ngModel)]="newTestPlan.project_lead_id" name="project_lead_id">
-          <option [value]="null" disabled>Select Project Lead</option>
+          <option [value]="null">Select Project Lead</option>
           <option *ngFor="let user of users" [value]="user.id">{{ user.username || user.email }}</option>
         </select>
 
@@ -97,8 +137,8 @@
         <input type="text" [(ngModel)]="newTestPlan.roles_covered" name="roles_covered" />
 
         <label>Test Lead</label>
-        <select [(ngModel)]="newTestPlan.test_lead" name="test_lead">
-          <option [value]="null" disabled>Select Test Lead</option>
+        <select [(ngModel)]="newTestPlan.test_lead_id" name="test_lead_id">
+          <option [value]="null">Select Test Lead</option>
           <option *ngFor="let user of users" [value]="user.id">{{ user.username || user.email }}</option>
         </select>
 

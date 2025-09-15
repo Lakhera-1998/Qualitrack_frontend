@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RequirementService } from '../services/requirement.service';
 import { ProjectService } from '../services/project.service';
+import { ClientsService } from '../clients.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -13,7 +14,11 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, FormsModule]
 })
 export class ProjectRequirementsComponent implements OnInit {
-  projectId: number = 0;
+  clients: any[] = [];
+  filteredProjects: any[] = [];
+  selectedClientId: number | null = null;
+  selectedClientName: string = '';
+  selectedProjectId: number | null = null;
   project: any = null;
   requirements: any[] = [];
 
@@ -41,17 +46,62 @@ export class ProjectRequirementsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private requirementService: RequirementService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private clientsService: ClientsService
   ) {}
 
   ngOnInit(): void {
-    this.projectId = Number(this.route.snapshot.paramMap.get('projectId'));
-    this.loadProject();
-    this.loadRequirements();
+    this.loadClients();
   }
 
-  loadProject(): void {
-    this.projectService.getProject(this.projectId).subscribe({
+  loadClients(): void {
+    this.clientsService.getClients().subscribe({
+      next: (data: any[]) => {
+        this.clients = data;
+      },
+      error: (err) => console.error('Error fetching clients:', err)
+    });
+  }
+
+  onClientChange(): void {
+    this.selectedProjectId = null;
+    this.project = null;
+    this.requirements = [];
+    this.filteredProjects = [];
+    
+    if (this.selectedClientId) {
+      this.loadProjectsByClient(this.selectedClientId);
+      
+      const selectedClient = this.clients.find(client => client.id === this.selectedClientId);
+      this.selectedClientName = selectedClient ? selectedClient.client_name : '';
+    } else {
+      this.selectedClientName = '';
+    }
+  }
+
+  loadProjectsByClient(clientId: number): void {
+    this.projectService.getProjectsByClient(clientId).subscribe({
+      next: (data: any[]) => {
+        this.filteredProjects = data;
+      },
+      error: (err) => console.error('Error fetching projects by client:', err)
+    });
+  }
+
+  onProjectChange(): void {
+    if (this.selectedProjectId) {
+      this.loadProjectDetails();
+      this.loadRequirements();
+    } else {
+      this.project = null;
+      this.requirements = [];
+    }
+  }
+
+  loadProjectDetails(): void {
+    if (!this.selectedProjectId) return;
+    
+    this.projectService.getProject(this.selectedProjectId).subscribe({
       next: (data: any) => {
         this.project = data;
       },
@@ -60,7 +110,9 @@ export class ProjectRequirementsComponent implements OnInit {
   }
 
   loadRequirements(): void {
-    this.requirementService.getRequirementsByProject(this.projectId).subscribe({
+    if (!this.selectedProjectId) return;
+    
+    this.requirementService.getRequirementsByProject(this.selectedProjectId).subscribe({
       next: (data: any[]) => {
         this.requirements = data;
       },
@@ -76,6 +128,8 @@ export class ProjectRequirementsComponent implements OnInit {
   }
 
   openAddRequirementPopup(): void {
+    if (!this.selectedProjectId) return;
+    
     this.isEditMode = false;
     this.newRequirement = {
       requirement_title: '',
@@ -90,7 +144,7 @@ export class ProjectRequirementsComponent implements OnInit {
       uat_testing: false,
       bug_raised_by_client_after_uat: false,
       bug_fixed: false,
-      project: this.projectId
+      project: this.selectedProjectId
     };
     this.showRequirementPopup = true;
   }
@@ -114,7 +168,7 @@ export class ProjectRequirementsComponent implements OnInit {
       return;
     }
 
-    this.newRequirement.project = this.projectId;
+    this.newRequirement.project = this.selectedProjectId;
 
     if (this.isEditMode && this.editingRequirementId) {
       this.requirementService.updateRequirement(this.editingRequirementId, this.newRequirement).subscribe({

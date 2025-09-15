@@ -16,9 +16,17 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'clients', component: ClientsComponent, canActivate: [authGuard] },
   { path: 'projects', component: ProjectsComponent, canActivate: [authGuard] },
+
+  // ✅ Added base routes
+  { path: 'requirements', component: ProjectRequirementsComponent, canActivate: [authGuard] },
+  { path: 'test-plans', component: TestPlansComponent, canActivate: [authGuard] },
+  { path: 'test-cases', component: TestCasesComponent, canActivate: [authGuard] },
+  
+  // ✅ Keep param-based routes if you still need deep linking
   { path: 'project-requirements/:projectId', component: ProjectRequirementsComponent, canActivate: [authGuard] },
   { path: 'test-plans/:projectId', component: TestPlansComponent, canActivate: [authGuard] },
   { path: 'test-cases/:requirementId', component: TestCasesComponent, canActivate: [authGuard] },
+
   { path: 'technologies', component: TechnologiesComponent, canActivate: [authGuard] },
   { path: 'testing-types', component: TestingTypesComponent, canActivate: [authGuard] },
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' }
