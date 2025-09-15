@@ -9,9 +9,10 @@ import { TestCasesComponent } from './test-cases/test-cases.component';
 import { TechnologiesComponent } from './technologies/technologies.component';
 import { TestingTypesComponent } from './testing-types/testing-types.component';
 import { authGuard } from './guards/auth.guard'; // ✅ Changed from AuthGuard to authGuard
+import { loginGuard } from './guards/login.guard';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginComponent },
+  { path: 'login', component: LoginComponent, canActivate: [loginGuard] },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'clients', component: ClientsComponent, canActivate: [authGuard] },
   { path: 'projects', component: ProjectsComponent, canActivate: [authGuard] },

@@ -1,26 +1,32 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';   // ✅ Import here
-import { CommonModule } from '@angular/common';   // ✅ Add thiss
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  standalone: true,  // ✅ Make component standalone
-  imports: [FormsModule, CommonModule]  // ✅ Tell Angular this component uses FormsModule
+  standalone: true,
+  imports: [FormsModule, CommonModule]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email: string = '';
   password: string = '';
   errorMessage: string = '';
   isLoading: boolean = false;
-  showPassword: boolean = false;   // ✅ Add toggle flag
+  showPassword: boolean = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  togglePassword() {   // ✅ Password toggle method
+  ngOnInit() {
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/clients'], { replaceUrl: true });
+    }
+  }
+
+  togglePassword() {
     this.showPassword = !this.showPassword;
   }
 
@@ -30,16 +36,15 @@ export class LoginComponent {
 
     this.authService.login(this.email, this.password).subscribe({
       next: (res) => {
-        // ✅ Backend returns { token: access_token, user: {...} }
-      sessionStorage.setItem('accessToken', res.token);
-      sessionStorage.setItem('user', JSON.stringify(res.user));
+        sessionStorage.setItem('accessToken', res.token);
+        sessionStorage.setItem('user', JSON.stringify(res.user));
 
-      this.isLoading = false;
-      this.router.navigate(['/clients']); // redirect after login
+        this.isLoading = false;
+        this.router.navigate(['/clients'], { replaceUrl: true });
       },
       error: (err) => {
-         this.isLoading = false;
-         this.errorMessage = err.error?.detail || 'Login failed!';
+        this.isLoading = false;
+        this.errorMessage = err.error?.detail || 'Login failed!';
       }
     });
   }
