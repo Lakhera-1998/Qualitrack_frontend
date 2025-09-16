@@ -101,29 +101,33 @@
         <label>Scope *</label>
         <textarea [(ngModel)]="newTestPlan.scope" name="scope" rows="3" required></textarea>
 
-        <!-- Testing Types Section -->
+        <!-- Testing Types Section - Updated to match boolean fields style -->
         <div class="checkbox-section">
           <h4>Testing Types</h4>
-          <div *ngFor="let type of testingTypes" class="checkbox-group">
-            <input type="checkbox" 
-                   [id]="'type-' + type.id" 
-                   [value]="type.id" 
-                   [checked]="isTestingTypeSelected(type.id)"
-                   (change)="onTestingTypeChange(type.id, $event)">
-            <label [for]="'type-' + type.id">{{ type.name }}</label>
+          <div class="boolean-fields">
+            <div *ngFor="let type of testingTypes" class="checkbox-field">
+              <input type="checkbox" 
+                     [id]="'type-' + type.id" 
+                     [value]="type.id" 
+                     [checked]="isTestingTypeSelected(type.id)"
+                     (change)="onTestingTypeChange(type.id, $event)">
+              <label [for]="'type-' + type.id">{{ type.name }}</label>
+            </div>
           </div>
         </div>
 
-        <!-- Technologies Section -->
+        <!-- Technologies Section - Updated to match boolean fields style -->
         <div class="checkbox-section">
           <h4>Technologies</h4>
-          <div *ngFor="let tech of technologies" class="checkbox-group">
-            <input type="checkbox" 
-                   [id]="'tech-' + tech.id" 
-                   [value]="tech.id" 
-                   [checked]="isTechnologySelected(tech.id)"
-                   (change)="onTechnologyChange(tech.id, $event)">
-            <label [for]="'tech-' + tech.id">{{ tech.name }}</label>
+          <div class="boolean-fields">
+            <div *ngFor="let tech of technologies" class="checkbox-field">
+              <input type="checkbox" 
+                     [id]="'tech-' + tech.id" 
+                     [value]="tech.id" 
+                     [checked]="isTechnologySelected(tech.id)"
+                     (change)="onTechnologyChange(tech.id, $event)">
+              <label [for]="'tech-' + tech.id">{{ tech.name }}</label>
+            </div>
           </div>
         </div>
 

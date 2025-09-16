@@ -28,7 +28,7 @@ export class ClientsService {
 
   // ✅ Add a new client
   addClient(clientData: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/clients/create/`, clientData, this.getHeaders());
+  return this.http.post<any>(`${this.baseUrl}/create-clients/`, clientData, this.getHeaders());
   }
 
   // ✅ Update client

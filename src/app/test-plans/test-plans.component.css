@@ -272,7 +272,7 @@
   border-radius: 6px;
 }
 
-/* Checkbox sections */
+/* Updated Checkbox sections to match project requirements style */
 .checkbox-section {
   margin-bottom: 15px;
   padding: 10px;
@@ -290,14 +290,28 @@
   padding-bottom: 4px;
 }
 
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
+.boolean-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
 }
 
-.checkbox-group input {
-  margin-right: 8px;
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.checkbox-field input[type="checkbox"] {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.checkbox-field label {
+  font-size: 14px;
+  color: #333;
 }
 
 /* Responsive design */
@@ -325,5 +339,9 @@
   
   .large-popup {
     width: 90%;
+  }
+  
+  .boolean-fields {
+    grid-template-columns: 1fr;
   }
 }
