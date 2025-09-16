@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -8,30 +8,49 @@ import { Observable } from 'rxjs';
 export class TestDataService {
   private baseUrl = 'http://127.0.0.1:8000';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  // Get all test data
+  private getHeaders() {
+    const token = sessionStorage.getItem('accessToken');
+    return {
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      })
+    };
+  }
+
+  private getHeadersForFormData() {
+    const token = sessionStorage.getItem('accessToken');
+    return {
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      })
+    };
+  }
+
+  // Add this new method to get test data by project
+  getTestDataByProject(projectId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/test-data/?project=${projectId}`, this.getHeaders());
+  }
+
+  // Keep existing methods but update the base URL if needed
   getAllTestData(): Observable<any> {
-    return this.http.get<any[]>(`${this.baseUrl}/test-data/`);
+    return this.http.get<any>(`${this.baseUrl}/test-data/`, this.getHeaders());
   }
 
-  // Get test data by ID
-  getTestDataById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/test-data/${id}/`);
+  createTestData(testData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/test-data/`, testData, this.getHeadersForFormData());
   }
 
-  // Create new test data
-  createTestData(formData: FormData): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/test-data/create/`, formData);
+  updateTestData(id: number, testData: FormData): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/test-data/${id}/`, testData, this.getHeadersForFormData());
   }
 
-  // Update test data
-  updateTestData(id: number, formData: FormData): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}/test-data/${id}/update/`, formData);
+  getTestData(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/test-data/${id}/`, this.getHeaders());
   }
 
-  // Delete test data
   deleteTestData(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}/test-data/${id}/`);
+    return this.http.delete<any>(`${this.baseUrl}/test-data/${id}/`, this.getHeaders());
   }
 }

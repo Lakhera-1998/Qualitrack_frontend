@@ -95,8 +95,8 @@ export class TestCasesComponent implements OnInit {
   ngOnInit(): void {
     this.loadCurrentUser();
     this.loadClients();
-    this.loadTestData();
     this.loadUsers();
+    // Removed: this.loadTestData(); - Now loaded only when project is selected
   }
 
   // ✅ Loaders
@@ -127,6 +127,7 @@ export class TestCasesComponent implements OnInit {
     this.testCases = [];
     this.filteredProjects = [];
     this.filteredRequirements = [];
+    this.testDataList = []; // Clear test data when client changes
     
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -158,11 +159,13 @@ export class TestCasesComponent implements OnInit {
     
     if (this.selectedProjectId) {
       this.loadRequirementsByProject(this.selectedProjectId);
+      this.loadTestData(); // Load test data only when project is selected
       
       const selectedProject = this.filteredProjects.find(project => project.id === this.selectedProjectId);
       this.selectedProjectName = selectedProject ? selectedProject.project_name : '';
     } else {
       this.selectedProjectName = '';
+      this.testDataList = []; // Clear test data when no project is selected
     }
   }
 
@@ -189,18 +192,19 @@ export class TestCasesComponent implements OnInit {
   }
 
   loadRequirementDetails(): void {
-    if (!this.selectedRequirementId) return;
-    
-    this.requirementService.getRequirement(this.selectedRequirementId).subscribe({
-      next: (data: any) => {
-        this.requirement = data;
-      },
-      error: (error: any) => {
-        console.error('Error fetching requirement:', error);
-        alert('Error loading requirement: ' + (error.error?.message || error.message));
-      }
-    });
-  }
+  if (!this.selectedRequirementId || !this.selectedProjectId) return;
+  
+  // ✅ Updated to pass both projectId and requirementId
+  this.requirementService.getRequirement(this.selectedProjectId, this.selectedRequirementId).subscribe({
+    next: (data: any) => {
+      this.requirement = data;
+    },
+    error: (error: any) => {
+      console.error('Error fetching requirement:', error);
+      alert('Error loading requirement: ' + (error.error?.message || error.message));
+    }
+  });
+}
 
   loadTestCases(): void {
     if (!this.selectedRequirementId) return;
@@ -217,11 +221,24 @@ export class TestCasesComponent implements OnInit {
   }
 
   loadTestData(): void {
-    this.testDataService.getAllTestData().subscribe({
-      next: (data: any[]) => (this.testDataList = data),
+    if (!this.selectedProjectId) {
+      this.testDataList = [];
+      return;
+    }
+    
+    this.testDataService.getTestDataByProject(this.selectedProjectId).subscribe({
+      next: (data: any[]) => {
+        this.testDataList = data;
+      },
       error: (error: any) => {
         console.error('Error fetching test data:', error);
-        alert('Error loading test data: ' + (error.error?.message || error.message));
+        // Don't show alert for 403 errors as they're expected when no proper context
+        if (error.status !== 403) {
+          alert('Error loading test data: ' + (error.error?.message || error.message));
+        } else {
+          // Set empty array for 403 errors (no access to project test data)
+          this.testDataList = [];
+        }
       }
     });
   }
@@ -417,6 +434,12 @@ export class TestCasesComponent implements OnInit {
 
     const formData = new FormData();
     formData.append('data_type', this.newTestData.data_type);
+    
+    // Add project context to the test data if available
+    if (this.selectedProjectId) {
+      formData.append('project', this.selectedProjectId.toString());
+    }
+    
     if (this.newTestData.text_data) formData.append('text_data', this.newTestData.text_data);
     if (this.newTestData.file_data) formData.append('file_data', this.newTestData.file_data);
     if (this.newTestData.image_data) formData.append('image_data', this.newTestData.image_data);

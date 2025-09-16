@@ -31,11 +31,8 @@ export class RequirementService {
     return this.http.put<any>(`${this.baseUrl}/requirements/${id}/update/`, requirementData, this.getHeaders());
   }
 
-  getRequirement(id: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/projects/1/requirements/${id}/`, this.getHeaders());
+  // ✅ CORRECTED: Get requirement with both projectId and requirementId
+  getRequirement(projectId: number, id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/projects/${projectId}/requirements/${id}/`, this.getHeaders());
   }
-
-  // getRequirement(projectId: number, id: number): Observable<any> {
-  // return this.http.get<any>(`${this.baseUrl}/projects/${projectId}/requirements/${id}/`, this.getHeaders());
-  // }
 }
