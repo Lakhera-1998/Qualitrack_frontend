@@ -41,6 +41,9 @@ export class ProjectsComponent implements OnInit {
   editingProjectId: number | null = null;
   submitted = false;
   dateErrorMessage = '';
+  apiErrorMessage: string = '';
+  apiError: boolean = false;
+  successMessage: string = '';
 
   constructor(
     private projectService: ProjectService,
@@ -133,6 +136,9 @@ export class ProjectsComponent implements OnInit {
     this.isEditMode = false;
     this.submitted = false;
     this.dateErrorMessage = '';
+    this.apiErrorMessage = '';
+    this.apiError = false;
+    this.successMessage = '';
     this.newProject = {
       project_name: '',
       client: null,
@@ -157,6 +163,9 @@ export class ProjectsComponent implements OnInit {
     this.editingProjectId = project.id;
     this.submitted = false;
     this.dateErrorMessage = '';
+    this.apiErrorMessage = '';
+    this.apiError = false;
+    this.successMessage = '';
     this.newProject = {
       project_name: project.project_name ?? '',
       client: this.toId(project.client),
@@ -182,6 +191,8 @@ export class ProjectsComponent implements OnInit {
     this.editingProjectId = null;
     this.submitted = false;
     this.dateErrorMessage = '';
+    this.apiErrorMessage = '';
+    this.apiError = false;
   }
 
   // ✅ Date validation
@@ -195,6 +206,7 @@ export class ProjectsComponent implements OnInit {
     const deadline = this.parseDate(this.newProject.deadline_date);
     const delivery = this.parseDate(this.newProject.delivery_date);
     this.dateErrorMessage = '';
+    
     if (start && deadline && deadline < start) {
       this.dateErrorMessage = 'Deadline cannot be before Start date.';
       return false;
@@ -219,7 +231,12 @@ export class ProjectsComponent implements OnInit {
   // ✅ Save or Update
   saveProject(): void {
     this.submitted = true;
-    if (this.hasErrors()) return;
+    this.apiErrorMessage = '';
+    this.apiError = false;
+
+    if (this.hasErrors()) {
+      return;
+    }
 
     const payload = {
       project_name: this.newProject.project_name,
@@ -241,19 +258,53 @@ export class ProjectsComponent implements OnInit {
       this.projectService.updateProject(this.editingProjectId, payload).subscribe({
         next: () => {
           this.loadProjects();
+          this.successMessage = 'Project updated successfully!';
           this.closeProjectPopup();
+          this.clearSuccessMessageAfterTimeout();
         },
-        error: (err) => console.error('Error updating project:', err)
+        error: (err) => this.handleApiError(err)
       });
     } else {
       this.projectService.addProject(payload).subscribe({
         next: () => {
           this.loadProjects();
+          this.successMessage = 'Project added successfully!';
           this.closeProjectPopup();
+          this.clearSuccessMessageAfterTimeout();
         },
-        error: (err) => console.error('Error adding project:', err)
+        error: (err) => this.handleApiError(err)
       });
     }
+  }
+
+  private handleApiError(err: any): void {
+    if (err.error) {
+      if (err.error.detail) {
+        this.apiErrorMessage = err.error.detail;
+      } else if (err.error.message) {
+        this.apiErrorMessage = err.error.message;
+      } else if (typeof err.error === 'string') {
+        this.apiErrorMessage = err.error;
+      } else if (err.error.non_field_errors) {
+        this.apiErrorMessage = err.error.non_field_errors[0];
+      } else {
+        const firstErrorKey = Object.keys(err.error)[0];
+        if (firstErrorKey && err.error[firstErrorKey]) {
+          this.apiErrorMessage = `${firstErrorKey}: ${err.error[firstErrorKey]}`;
+        } else {
+          this.apiErrorMessage = 'An error occurred. Please try again.';
+        }
+      }
+    } else {
+      this.apiErrorMessage = 'An error occurred. Please try again.';
+    }
+    this.apiError = true;
+  }
+
+  private clearSuccessMessageAfterTimeout(): void {
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 3000);
   }
 
   // ✅ Navigation

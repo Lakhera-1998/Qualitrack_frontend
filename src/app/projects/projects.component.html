@@ -10,6 +10,7 @@
       <table class="styled-table">
         <thead>
           <tr>
+            <th>S. No.</th>
             <th>Project Name</th>
             <th>Client</th>
             <th>Status</th>
@@ -27,7 +28,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let project of projects">
+          <tr *ngFor="let project of projects; let i = index">
+            <td>{{ i + 1 }}</td>
             <td>{{ project.project_name }}</td>
             <td>{{ getClientName(project.client) }}</td>
             <td>
@@ -69,19 +71,25 @@
         <button class="close-btn" (click)="closeProjectPopup()">×</button>
       </div>
 
-      <form (ngSubmit)="saveProject()" class="form-grid">
+      <form (ngSubmit)="saveProject()" class="form-grid" #projectForm="ngForm">
         <!-- Project Name -->
         <label>Project Name *</label>
         <input type="text" [(ngModel)]="newProject.project_name" name="project_name"
-               [ngClass]="{'error': submitted && !newProject.project_name}" required />
+               [ngClass]="{'error-border': submitted && !newProject.project_name}" required />
+        <div *ngIf="submitted && !newProject.project_name" class="field-error">
+          This field is mandatory
+        </div>
 
         <!-- Client -->
         <label>Client *</label>
         <select [(ngModel)]="newProject.client" name="client"
-                [ngClass]="{'error': submitted && !newProject.client}" required>
+                [ngClass]="{'error-border': submitted && !newProject.client}" required>
           <option [ngValue]="null" disabled>Select Client</option>
           <option *ngFor="let client of clients" [ngValue]="client.id">{{ client.client_name }}</option>
         </select>
+        <div *ngIf="submitted && !newProject.client" class="field-error">
+          This field is mandatory
+        </div>
 
         <!-- Status -->
         <label>Status</label>
@@ -97,13 +105,19 @@
         <!-- Start Date -->
         <label>Start Date *</label>
         <input type="date" [(ngModel)]="newProject.start_date" name="start_date"
-               [ngClass]="{'error': submitted && !newProject.start_date}" required />
+               [ngClass]="{'error-border': submitted && !newProject.start_date}" required />
+        <div *ngIf="submitted && !newProject.start_date" class="field-error">
+          This field is mandatory
+        </div>
 
         <!-- Deadline Date -->
         <label>Deadline Date *</label>
         <input type="date" [(ngModel)]="newProject.deadline_date" name="deadline_date"
                [min]="newProject.start_date"
-               [ngClass]="{'error': submitted && (!newProject.deadline_date || !!dateErrorMessage)}" required />
+               [ngClass]="{'error-border': submitted && (!newProject.deadline_date || dateErrorMessage)}" required />
+        <div *ngIf="submitted && !newProject.deadline_date" class="field-error">
+          This field is mandatory
+        </div>
 
         <!-- Delivery Date -->
         <label>Delivery Date</label>
@@ -148,16 +162,20 @@
           <option *ngFor="let tech of technologies" [ngValue]="tech.id">{{ tech.name }}</option>
         </select>
 
-      <!-- Other Technologies -->
+        <!-- Other Technologies -->
         <label>Other Technologies</label>
         <select multiple [(ngModel)]="newProject.other_technologies" name="other_technologies">
           <option *ngFor="let tech of technologies" [ngValue]="tech.id">{{ tech.name }}</option>
         </select>
 
-        <!-- Error Messages -->
-        <div *ngIf="submitted && hasErrors()" class="error-message">
-          <div>These input fields are required or invalid.</div>
-          <div *ngIf="dateErrorMessage">{{ dateErrorMessage }}</div>
+        <!-- Date Error Message -->
+        <div *ngIf="dateErrorMessage" class="field-error">
+          {{ dateErrorMessage }}
+        </div>
+
+        <!-- API Error Message -->
+        <div *ngIf="apiErrorMessage" class="api-error-message">
+          {{ apiErrorMessage }}
         </div>
 
         <!-- Actions -->
@@ -169,5 +187,12 @@
         </div>
       </form>
     </div>
+  </div>
+</div>
+
+<!-- Success Message Overlay -->
+<div *ngIf="successMessage" class="success-overlay">
+  <div class="success-box">
+    {{ successMessage }}
   </div>
 </div>
