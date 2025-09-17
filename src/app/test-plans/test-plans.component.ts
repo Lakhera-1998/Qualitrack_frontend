@@ -29,6 +29,18 @@ export class TestPlansComponent implements OnInit {
   technologies: any[] = [];
   users: any[] = [];
 
+  // Form validation
+  formErrors: any = {
+    test_plan_id: '',
+    title: '',
+    objective: '',
+    scope: ''
+  };
+
+  // Success message
+  showSuccessMessage: boolean = false;
+  successMessage: string = '';
+
   newTestPlan: any = {
     test_plan_id: '',
     title: '',
@@ -189,6 +201,7 @@ export class TestPlansComponent implements OnInit {
     if (!this.selectedProjectId) return;
     
     this.isEditMode = false;
+    this.clearFormErrors();
     this.newTestPlan = {
       test_plan_id: '',
       title: '',
@@ -206,6 +219,7 @@ export class TestPlansComponent implements OnInit {
 
   editTestPlan(testPlan: any): void {
     this.isEditMode = true;
+    this.clearFormErrors();
     this.editingTestPlanId = testPlan.id;
     this.newTestPlan = {
       ...testPlan,
@@ -221,13 +235,51 @@ export class TestPlansComponent implements OnInit {
     this.showTestPlanPopup = false;
     this.isEditMode = false;
     this.editingTestPlanId = null;
+    this.clearFormErrors();
+  }
+
+  // Validate form fields
+  validateForm(): boolean {
+    let isValid = true;
+    this.clearFormErrors();
+
+    if (!this.newTestPlan.test_plan_id) {
+      this.formErrors.test_plan_id = 'Test Plan ID is required';
+      isValid = false;
+    }
+
+    if (!this.newTestPlan.title) {
+      this.formErrors.title = 'Title is required';
+      isValid = false;
+    }
+
+    if (!this.newTestPlan.objective) {
+      this.formErrors.objective = 'Objective is required';
+      isValid = false;
+    }
+
+    if (!this.newTestPlan.scope) {
+      this.formErrors.scope = 'Scope is required';
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  clearFormErrors(): void {
+    this.formErrors = {
+      test_plan_id: '',
+      title: '',
+      objective: '',
+      scope: ''
+    };
   }
 
   saveTestPlan(): void {
-    if (!this.newTestPlan.test_plan_id || !this.newTestPlan.title || !this.newTestPlan.objective || !this.newTestPlan.scope) {
-      alert('Please fill all required fields');
+    if (!this.validateForm()) {
       return;
     }
+    
     this.newTestPlan.project = this.selectedProjectId;
 
     if (this.isEditMode && this.editingTestPlanId) {
@@ -235,6 +287,7 @@ export class TestPlansComponent implements OnInit {
         next: () => {
           this.loadTestPlans();
           this.closeTestPlanPopup();
+          this.showSuccess('Test Plan updated successfully!');
         },
         error: (err) => console.error('Error updating test plan:', err)
       });
@@ -243,9 +296,27 @@ export class TestPlansComponent implements OnInit {
         next: () => {
           this.loadTestPlans();
           this.closeTestPlanPopup();
+          this.showSuccess('Test Plan added successfully!');
         },
         error: (err) => console.error('Error adding test plan:', err)
       });
     }
+  }
+
+  // Show success message
+  showSuccess(message: string): void {
+    this.successMessage = message;
+    this.showSuccessMessage = true;
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      this.hideSuccessMessage();
+    }, 3000);
+  }
+
+  // Hide success message
+  hideSuccessMessage(): void {
+    this.showSuccessMessage = false;
+    this.successMessage = '';
   }
 }

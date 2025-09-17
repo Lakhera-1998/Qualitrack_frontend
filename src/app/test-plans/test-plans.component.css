@@ -345,3 +345,65 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Serial number column */
+.col-sno {
+  width: 50px;
+  text-align: center;
+}
+
+/* Form validation styles */
+.error {
+  border-color: #dc3545 !important;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Success notification */
+.success-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #28a745;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10000;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.close-notification {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 15px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .success-notification {
+    left: 20px;
+    right: 20px;
+  }
+}

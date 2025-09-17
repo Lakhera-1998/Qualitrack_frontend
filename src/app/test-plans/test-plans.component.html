@@ -37,6 +37,7 @@
         <table class="styled-table">
           <thead>
             <tr>
+              <th class="col-sno">S. No.</th>
               <th>Test Plan ID</th>
               <th>Title</th>
               <th>Objective</th>
@@ -47,7 +48,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let testPlan of testPlans">
+            <tr *ngFor="let testPlan of testPlans; let i = index">
+              <td class="col-sno">{{ i + 1 }}</td>
               <td>{{ testPlan.test_plan_id }}</td>
               <td>{{ testPlan.title }}</td>
               <td>{{ testPlan.objective | truncate:50 }}</td>
@@ -80,6 +82,12 @@
     </div>
   </div>
 
+  <!-- Success Notification -->
+  <div *ngIf="showSuccessMessage" class="success-notification">
+    <span>{{ successMessage }}</span>
+    <button class="close-notification" (click)="hideSuccessMessage()">×</button>
+  </div>
+
   <!-- Add/Edit Test Plan Popup -->
   <div class="popup" *ngIf="showTestPlanPopup">
     <div class="popup-content large-popup">
@@ -90,18 +98,26 @@
 
       <form (ngSubmit)="saveTestPlan()" class="form-grid">
         <label>Test Plan ID *</label>
-        <input type="text" [(ngModel)]="newTestPlan.test_plan_id" name="test_plan_id" required />
+        <input type="text" [(ngModel)]="newTestPlan.test_plan_id" name="test_plan_id" 
+               [class.error]="formErrors.test_plan_id" required />
+        <div *ngIf="formErrors.test_plan_id" class="error-message">{{ formErrors.test_plan_id }}</div>
 
         <label>Title *</label>
-        <input type="text" [(ngModel)]="newTestPlan.title" name="title" required />
+        <input type="text" [(ngModel)]="newTestPlan.title" name="title" 
+               [class.error]="formErrors.title" required />
+        <div *ngIf="formErrors.title" class="error-message">{{ formErrors.title }}</div>
 
         <label>Objective *</label>
-        <textarea [(ngModel)]="newTestPlan.objective" name="objective" rows="3" required></textarea>
+        <textarea [(ngModel)]="newTestPlan.objective" name="objective" rows="3" 
+                  [class.error]="formErrors.objective" required></textarea>
+        <div *ngIf="formErrors.objective" class="error-message">{{ formErrors.objective }}</div>
 
         <label>Scope *</label>
-        <textarea [(ngModel)]="newTestPlan.scope" name="scope" rows="3" required></textarea>
+        <textarea [(ngModel)]="newTestPlan.scope" name="scope" rows="3" 
+                  [class.error]="formErrors.scope" required></textarea>
+        <div *ngIf="formErrors.scope" class="error-message">{{ formErrors.scope }}</div>
 
-        <!-- Testing Types Section - Updated to match boolean fields style -->
+        <!-- Testing Types Section -->
         <div class="checkbox-section">
           <h4>Testing Types</h4>
           <div class="boolean-fields">
@@ -116,7 +132,7 @@
           </div>
         </div>
 
-        <!-- Technologies Section - Updated to match boolean fields style -->
+        <!-- Technologies Section -->
         <div class="checkbox-section">
           <h4>Technologies</h4>
           <div class="boolean-fields">
