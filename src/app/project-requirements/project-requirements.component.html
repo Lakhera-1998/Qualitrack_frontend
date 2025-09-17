@@ -32,11 +32,31 @@
       <h3>Requirements for {{ project?.project_name }} ({{ selectedClientName }})</h3>
     </div>
 
-    <div class="card">
+
+    <div class="card table-card">
+
+      <!-- Search and Filter Controls -->
+    <div class="search-filter-controls card">
+      <div class="search-box">
+        <input type="text" [(ngModel)]="searchText" (input)="filterRequirements()" placeholder="Search requirements..." class="search-input">
+      </div>
+      <div class="filter-control">
+        <label for="priorityFilter">Priority Filter:</label>
+        <select id="priorityFilter" [(ngModel)]="selectedPriority" (change)="filterRequirements()" class="filter-select">
+          <option value="">All Priorities</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+          <option value="Critical">Critical</option>
+        </select>
+      </div>
+    </div>
+
       <div class="table-container">
         <table class="styled-table">
           <thead>
             <tr>
+              <th class="col-sno">S. No.</th>
               <th class="col-title">Title</th>
               <th>Priority</th>
               <th>Reported Date</th>
@@ -53,7 +73,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let requirement of requirements">
+            <tr *ngFor="let requirement of filteredRequirements; let i = index">
+              <!-- Serial Number -->
+              <td class="col-sno">{{ i + 1 }}</td>
+              
               <!-- Title wider -->
               <td class="col-title">{{ requirement.requirement_title }}</td>
 
@@ -117,8 +140,13 @@
           </tbody>
         </table>
         
-        <div *ngIf="requirements.length === 0 && selectedProjectId" class="no-requirements">
-          No requirements found for this project.
+        <div *ngIf="filteredRequirements.length === 0 && selectedProjectId" class="no-requirements">
+          <div *ngIf="searchText || selectedPriority">
+            No requirements match your search/filter criteria.
+          </div>
+          <div *ngIf="!searchText && !selectedPriority">
+            No requirements found for this project.
+          </div>
         </div>
       </div>
     </div>
@@ -132,6 +160,12 @@
     </div>
   </div>
 
+  <!-- Success Notification -->
+  <div *ngIf="showSuccessMessage" class="success-notification">
+    <span>{{ successMessage }}</span>
+    <button class="close-notification" (click)="hideSuccessMessage()">×</button>
+  </div>
+
   <!-- Add/Edit Requirement Popup -->
   <div class="popup" *ngIf="showRequirementPopup">
     <div class="popup-content">
@@ -143,24 +177,32 @@
       <form (ngSubmit)="saveRequirement()" class="form-grid">
         <!-- Title -->
         <label>Requirement Title *</label>
-        <input type="text" [(ngModel)]="newRequirement.requirement_title" name="requirement_title" required />
+        <input type="text" [(ngModel)]="newRequirement.requirement_title" name="requirement_title" 
+               [class.error]="formErrors.requirement_title" />
+        <div *ngIf="formErrors.requirement_title" class="error-message">{{ formErrors.requirement_title }}</div>
 
         <!-- Description -->
         <label>Requirement Description *</label>
-        <textarea [(ngModel)]="newRequirement.requirement" name="requirement" rows="3" required></textarea>
+        <textarea [(ngModel)]="newRequirement.requirement" name="requirement" rows="3" 
+                  [class.error]="formErrors.requirement"></textarea>
+        <div *ngIf="formErrors.requirement" class="error-message">{{ formErrors.requirement }}</div>
 
         <!-- Priority -->
         <label>Priority *</label>
-        <select [(ngModel)]="newRequirement.priority" name="priority">
+        <select [(ngModel)]="newRequirement.priority" name="priority" [class.error]="formErrors.priority">
+          <option value="">Select Priority</option>
           <option value="Low">Low</option>
           <option value="Medium">Medium</option>
           <option value="High">High</option>
           <option value="Critical">Critical</option>
         </select>
+        <div *ngIf="formErrors.priority" class="error-message">{{ formErrors.priority }}</div>
 
         <!-- Dates -->
         <label>Reported Date *</label>
-        <input type="date" [(ngModel)]="newRequirement.reported_date" name="reported_date" required />
+        <input type="date" [(ngModel)]="newRequirement.reported_date" name="reported_date" 
+               [class.error]="formErrors.reported_date" />
+        <div *ngIf="formErrors.reported_date" class="error-message">{{ formErrors.reported_date }}</div>
 
         <label>Expected Delivery</label>
         <input type="date" [(ngModel)]="newRequirement.expected_delivery" name="expected_delivery" />

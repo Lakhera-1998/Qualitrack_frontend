@@ -21,11 +21,28 @@ export class ProjectRequirementsComponent implements OnInit {
   selectedProjectId: number | null = null;
   project: any = null;
   requirements: any[] = [];
+  filteredRequirements: any[] = [];
+  
+  // Search and filter properties
+  searchText: string = '';
+  selectedPriority: string = '';
+
+  // Form validation
+  formErrors: any = {
+    requirement_title: '',
+    requirement: '',
+    priority: '',
+    reported_date: ''
+  };
+
+  // Success message
+  showSuccessMessage: boolean = false;
+  successMessage: string = '';
 
   newRequirement: any = {
     requirement_title: '',
     requirement: '',
-    priority: 'Medium',
+    priority: '',
     reported_date: '',
     expected_delivery: null,
     actual_delivery: null,
@@ -67,7 +84,10 @@ export class ProjectRequirementsComponent implements OnInit {
     this.selectedProjectId = null;
     this.project = null;
     this.requirements = [];
+    this.filteredRequirements = [];
     this.filteredProjects = [];
+    this.searchText = '';
+    this.selectedPriority = '';
     
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -89,25 +109,29 @@ export class ProjectRequirementsComponent implements OnInit {
   }
 
   onProjectChange(): void {
+    this.searchText = '';
+    this.selectedPriority = '';
+    
     if (this.selectedProjectId) {
       this.loadProjectDetails();
       this.loadRequirements();
     } else {
       this.project = null;
       this.requirements = [];
+      this.filteredRequirements = [];
     }
   }
 
   loadProjectDetails(): void {
-    if (!this.selectedProjectId) return;
-    
-    this.projectService.getProject(this.selectedProjectId).subscribe({
-      next: (data: any) => {
-        this.project = data;
-      },
-      error: (err) => console.error('Error fetching project:', err)
-    });
-  }
+  if (!this.selectedProjectId) return;
+
+  this.projectService.getProject(this.selectedProjectId).subscribe({
+    next: (data: any) => {
+      this.project = data;
+    },
+    error: (err) => console.error('Error fetching project:', err)
+  });
+}
 
   loadRequirements(): void {
     if (!this.selectedProjectId) return;
@@ -115,8 +139,22 @@ export class ProjectRequirementsComponent implements OnInit {
     this.requirementService.getRequirementsByProject(this.selectedProjectId).subscribe({
       next: (data: any[]) => {
         this.requirements = data;
+        this.filteredRequirements = [...this.requirements];
       },
       error: (err) => console.error('Error fetching requirements:', err)
+    });
+  }
+
+  // Filter requirements based on search text and priority
+  filterRequirements(): void {
+    this.filteredRequirements = this.requirements.filter(req => {
+      const matchesSearch = !this.searchText || 
+        req.requirement_title.toLowerCase().includes(this.searchText.toLowerCase()) ||
+        req.requirement.toLowerCase().includes(this.searchText.toLowerCase());
+      
+      const matchesPriority = !this.selectedPriority || req.priority === this.selectedPriority;
+      
+      return matchesSearch && matchesPriority;
     });
   }
 
@@ -131,10 +169,11 @@ export class ProjectRequirementsComponent implements OnInit {
     if (!this.selectedProjectId) return;
     
     this.isEditMode = false;
+    this.clearFormErrors();
     this.newRequirement = {
       requirement_title: '',
       requirement: '',
-      priority: 'Medium',
+      priority: '',
       reported_date: new Date().toISOString().split('T')[0],
       expected_delivery: null,
       actual_delivery: null,
@@ -151,6 +190,7 @@ export class ProjectRequirementsComponent implements OnInit {
 
   editRequirement(requirement: any): void {
     this.isEditMode = true;
+    this.clearFormErrors();
     this.editingRequirementId = requirement.id;
     this.newRequirement = { ...requirement };
     this.showRequirementPopup = true;
@@ -160,11 +200,48 @@ export class ProjectRequirementsComponent implements OnInit {
     this.showRequirementPopup = false;
     this.isEditMode = false;
     this.editingRequirementId = null;
+    this.clearFormErrors();
+  }
+
+  // Validate form fields
+  validateForm(): boolean {
+    let isValid = true;
+    this.clearFormErrors();
+
+    if (!this.newRequirement.requirement_title) {
+      this.formErrors.requirement_title = 'Requirement title is required';
+      isValid = false;
+    }
+
+    if (!this.newRequirement.requirement) {
+      this.formErrors.requirement = 'Requirement description is required';
+      isValid = false;
+    }
+
+    if (!this.newRequirement.priority) {
+      this.formErrors.priority = 'Priority is required';
+      isValid = false;
+    }
+
+    if (!this.newRequirement.reported_date) {
+      this.formErrors.reported_date = 'Reported date is required';
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  clearFormErrors(): void {
+    this.formErrors = {
+      requirement_title: '',
+      requirement: '',
+      priority: '',
+      reported_date: ''
+    };
   }
 
   saveRequirement(): void {
-    if (!this.newRequirement.requirement_title || !this.newRequirement.requirement || !this.newRequirement.reported_date) {
-      alert('Please fill all required fields');
+    if (!this.validateForm()) {
       return;
     }
 
@@ -175,6 +252,7 @@ export class ProjectRequirementsComponent implements OnInit {
         next: () => {
           this.loadRequirements();
           this.closeRequirementPopup();
+          this.showSuccess('Requirement updated successfully!');
         },
         error: (err) => console.error('Error updating requirement:', err)
       });
@@ -183,10 +261,28 @@ export class ProjectRequirementsComponent implements OnInit {
         next: () => {
           this.loadRequirements();
           this.closeRequirementPopup();
+          this.showSuccess('Requirement added successfully!');
         },
         error: (err) => console.error('Error adding requirement:', err)
       });
     }
+  }
+
+  // Show success message
+  showSuccess(message: string): void {
+    this.successMessage = message;
+    this.showSuccessMessage = true;
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      this.hideSuccessMessage();
+    }, 3000);
+  }
+
+  // Hide success message
+  hideSuccessMessage(): void {
+    this.showSuccessMessage = false;
+    this.successMessage = '';
   }
 
   viewTestCases(requirement: any): void {
