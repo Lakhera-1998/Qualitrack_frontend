@@ -6,6 +6,11 @@
 
   <!-- Projects Table with Horizontal Scroll -->
   <div class="card">
+    <!-- Search Field -->
+    <div class="search-container">
+      <input type="text" [(ngModel)]="searchText" placeholder="Search by Project Name or Client" />
+    </div>
+
     <div class="table-vertical-scroll">
       <table class="styled-table">
         <thead>
@@ -28,7 +33,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let project of projects; let i = index">
+          <tr *ngFor="let project of filteredProjects(); let i = index">
             <td>{{ i + 1 }}</td>
             <td>{{ project.project_name }}</td>
             <td>{{ getClientName(project.client) }}</td>

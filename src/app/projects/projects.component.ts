@@ -19,6 +19,7 @@ export class ProjectsComponent implements OnInit {
   clients: any[] = [];
   users: any[] = [];          // ✅ developers & leads
   technologies: any[] = [];   // ✅ technology list
+  searchText: string = '';
 
   newProject: any = {
     project_name: '',
@@ -94,6 +95,18 @@ export class ProjectsComponent implements OnInit {
   getClientName(clientId: number): string {
     const client = this.clients.find(c => c.id === clientId);
     return client ? client.client_name : 'Unknown';
+  }
+
+  // ✅ Filter Projects for Search
+  filteredProjects(): any[] {
+    if (!this.searchText) {
+      return this.projects;
+    }
+    const search = this.searchText.toLowerCase();
+    return this.projects.filter(project =>
+      project.project_name.toLowerCase().includes(search) ||
+      this.getClientName(project.client).toLowerCase().includes(search)
+    );
   }
 
   // --- Helpers ---

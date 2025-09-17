@@ -322,3 +322,31 @@
     transform: scale(0.8);
   }
 }
+
+/* Search Container */
+.search-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.search-container input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 300px;
+  transition: border 0.2s, box-shadow 0.2s;
+  height: 25px;
+}
+
+/* ✅ Highlight border and shadow on hover */
+.search-container input:hover {
+  border-color: #3f51b5;
+  box-shadow: 0 0 5px rgba(63, 81, 181, 0.5);
+}
+
+.search-container input:focus {
+  border-color: #3f51b5;
+  box-shadow: 0 0 5px rgba(63, 81, 181, 0.5);
+  outline: none;
+}

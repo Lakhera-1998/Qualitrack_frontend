@@ -13,6 +13,7 @@ import { ClientsService } from '../clients.service';
 })
 export class ClientsComponent implements OnInit {
   clients: any[] = [];
+  searchText: string = '';
 
   newClient: any = {
     client_name: '',
@@ -31,7 +32,7 @@ export class ClientsComponent implements OnInit {
   submitted = false;
   apiErrorMessage: string = '';
   apiError: boolean = false;
-  successMessage: string = ''; // ✅ Added for success message
+  successMessage: string = '';
 
   constructor(
     private clientsService: ClientsService,
@@ -126,7 +127,7 @@ export class ClientsComponent implements OnInit {
       this.clientsService.updateClient(this.editingClientId, formData).subscribe({
         next: () => {
           this.loadClients();
-          this.successMessage = 'Client updated successfully!'; // ✅ show message
+          this.successMessage = 'Client updated successfully!';
           this.closeAddClientPopup();
           this.clearSuccessMessageAfterTimeout();
         },
@@ -138,7 +139,7 @@ export class ClientsComponent implements OnInit {
       this.clientsService.addClient(formData).subscribe({
         next: () => {
           this.loadClients();
-          this.successMessage = 'Client added successfully!'; // ✅ show message
+          this.successMessage = 'Client added successfully!';
           this.closeAddClientPopup();
           this.clearSuccessMessageAfterTimeout();
         },
@@ -149,7 +150,7 @@ export class ClientsComponent implements OnInit {
     }
   }
 
-  private handleApiError(err: any): void {
+  handleApiError(err: any): void {
     if (err.error) {
       if (err.error.detail) {
         this.apiErrorMessage = err.error.detail;
@@ -183,14 +184,26 @@ export class ClientsComponent implements OnInit {
     );
   }
 
-  private clearSuccessMessageAfterTimeout(): void {
+  clearSuccessMessageAfterTimeout(): void {
     setTimeout(() => {
       this.successMessage = '';
-    }, 3000); // ✅ hide message after 3 seconds
+    }, 3000);
   }
 
   logout(): void {
     sessionStorage.clear();
     this.router.navigate(['/login']);
+  }
+
+  // ✅ Filter Clients for Search
+  filteredClients(): any[] {
+    if (!this.searchText) {
+      return this.clients;
+    }
+    const search = this.searchText.toLowerCase();
+    return this.clients.filter(client =>
+      client.client_name.toLowerCase().includes(search) ||
+      client.contact_person_name.toLowerCase().includes(search)
+    );
   }
 }

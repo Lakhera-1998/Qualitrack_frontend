@@ -4,8 +4,15 @@
   <!-- ✅ Add Client Button -->
   <button class="add-btn" (click)="openAddClientPopup()">+ Add Client</button>
 
+
   <!-- ✅ Clients Table -->
   <div class="card">
+
+    <!-- ✅ Search Field -->
+  <div class="search-container">
+    <input type="text" [(ngModel)]="searchText" placeholder="Search by Client Name or Contact Person" />
+  </div>
+
     <div class="table-vertical-scroll">
       <table class="styled-table">
         <thead>
@@ -23,7 +30,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let client of clients; let i = index">
+          <tr *ngFor="let client of filteredClients(); let i = index">
             <td>{{ i + 1 }}</td>
             <td>{{ client.client_name }}</td>
             <td>{{ client.client_type }}</td>
@@ -31,7 +38,7 @@
             <td>{{ client.contact_person_email }}</td>
             <td>{{ client.contact_person_phone }}</td>
             <td>
-              <a *ngIf="client.website_url" [href]="client.website_url" target="_blank">{{client.website_url}}</a>
+              <a *ngIf="client.website_url" [href]="client.website_url" target="_blank">{{ client.website_url }}</a>
             </td>
             <td>{{ client.created_at | date : 'short' }}</td>
             <td>{{ client.updated_at | date : 'short' }}</td>
