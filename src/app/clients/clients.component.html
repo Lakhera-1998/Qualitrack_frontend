@@ -4,12 +4,13 @@
   <!-- ✅ Add Client Button -->
   <button class="add-btn" (click)="openAddClientPopup()">+ Add Client</button>
 
-  <!-- ✅ Clients Table with horizontal scrolling -->
+  <!-- ✅ Clients Table -->
   <div class="card">
     <div class="table-vertical-scroll">
       <table class="styled-table">
         <thead>
           <tr>
+            <th>S. No.</th>
             <th>Client Name</th>
             <th>Type</th>
             <th>Contact Person</th>
@@ -22,7 +23,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let client of clients">
+          <tr *ngFor="let client of clients; let i = index">
+            <td>{{ i + 1 }}</td>
             <td>{{ client.client_name }}</td>
             <td>{{ client.client_type }}</td>
             <td>{{ client.contact_person_name }}</td>
@@ -53,40 +55,54 @@
       <form (ngSubmit)="saveClient()" class="form-grid" #clientForm="ngForm">
 
         <label>Client Name *</label>
-        <input type="text" [(ngModel)]="newClient.client_name" name="client_name"
-               [ngClass]="{'error': submitted && !newClient.client_name}" required />
+        <input type="text" [(ngModel)]="newClient.client_name" name="client_name" 
+              [ngClass]="{'error-border': submitted && !newClient.client_name}" required />
+        <div *ngIf="submitted && !newClient.client_name" class="field-error">
+          This field is mandatory
+        </div>
 
         <label>Client Type *</label>
-        <select [(ngModel)]="newClient.client_type" name="client_type"
-                [ngClass]="{'error': submitted && !newClient.client_type}" required>
+        <select [(ngModel)]="newClient.client_type" name="client_type" 
+                [ngClass]="{'error-border': submitted && !newClient.client_type}" required>
           <option value="Internal">Internal</option>
           <option value="External">External</option>
         </select>
+        <div *ngIf="submitted && !newClient.client_type" class="field-error">
+          This field is mandatory
+        </div>
 
         <label>Contact Person Name *</label>
-        <input type="text" [(ngModel)]="newClient.contact_person_name" name="contact_person_name"
-               [ngClass]="{'error': submitted && !newClient.contact_person_name}" required />
+        <input type="text" [(ngModel)]="newClient.contact_person_name" name="contact_person_name" 
+              [ngClass]="{'error-border': submitted && !newClient.contact_person_name}" required />
+        <div *ngIf="submitted && !newClient.contact_person_name" class="field-error">
+          This field is mandatory
+        </div>
 
         <label>Contact Person Email *</label>
-        <input type="email" [(ngModel)]="newClient.contact_person_email" name="contact_person_email"
-               [ngClass]="{'error': submitted && !newClient.contact_person_email}" required />
+        <input type="email" [(ngModel)]="newClient.contact_person_email" name="contact_person_email" 
+              [ngClass]="{'error-border': (submitted && !newClient.contact_person_email) || apiError}" required />
+        <div *ngIf="submitted && !newClient.contact_person_email" class="field-error">
+          This field is mandatory
+        </div>
 
         <label>Contact Person Phone *</label>
-        <input type="text" [(ngModel)]="newClient.contact_person_phone" name="contact_person_phone"
-               [ngClass]="{'error': submitted && !newClient.contact_person_phone}" required />
+        <input type="text" [(ngModel)]="newClient.contact_person_phone" name="contact_person_phone" 
+              [ngClass]="{'error-border': submitted && !newClient.contact_person_phone}" required />
+        <div *ngIf="submitted && !newClient.contact_person_phone" class="field-error">
+          This field is mandatory
+        </div>
 
         <label>Company Logo</label>
         <input type="file" (change)="onFileSelected($event)" />
 
         <label>Website URL</label>
-        <input type="text" [(ngModel)]="newClient.website_url" name="website_url" />
+        <input type="text" [(ngModel)]="newClient.website_url" name="website_url" 
+              [ngClass]="{'error-border': apiError}" />
 
-        <!-- ✅ Error Message -->
-        <div *ngIf="submitted && hasErrors()" class="error-message">
-          These input fields are required
+        <div *ngIf="apiErrorMessage" class="api-error-message">
+          {{ apiErrorMessage }}
         </div>
 
-        <!-- ✅ Actions -->
         <div class="form-actions">
           <button type="submit" class="save-btn">
             {{ isEditMode ? 'Update' : 'Save' }}
@@ -95,5 +111,12 @@
         </div>
       </form>
     </div>
+  </div>
+</div>
+
+<!-- ✅ Success Message Overlay -->
+<div *ngIf="successMessage" class="success-overlay">
+  <div class="success-box">
+    {{ successMessage }}
   </div>
 </div>

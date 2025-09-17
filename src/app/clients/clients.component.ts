@@ -20,15 +20,18 @@ export class ClientsComponent implements OnInit {
     contact_person_name: '',
     contact_person_email: '',
     contact_person_phone: '',
-    company_logo: null,   // ✅ will store File reference
+    company_logo: null,
     website_url: ''
   };
 
-  selectedLogoFile: File | null = null; // ✅ hold file reference
+  selectedLogoFile: File | null = null;
   showAddClientPopup = false;
   isEditMode = false;
   editingClientId: number | null = null;
   submitted = false;
+  apiErrorMessage: string = '';
+  apiError: boolean = false;
+  successMessage: string = ''; // ✅ Added for success message
 
   constructor(
     private clientsService: ClientsService,
@@ -39,7 +42,6 @@ export class ClientsComponent implements OnInit {
     this.loadClients();
   }
 
-  // ✅ Fetch all clients
   loadClients(): void {
     this.clientsService.getClients().subscribe({
       next: (data: any[]) => {
@@ -51,7 +53,6 @@ export class ClientsComponent implements OnInit {
     });
   }
 
-  // ✅ Open popup for new client
   openAddClientPopup(): void {
     this.isEditMode = false;
     this.newClient = {
@@ -65,43 +66,48 @@ export class ClientsComponent implements OnInit {
     };
     this.selectedLogoFile = null;
     this.submitted = false;
+    this.apiErrorMessage = '';
+    this.apiError = false;
+    this.successMessage = '';
     this.showAddClientPopup = true;
   }
 
-  // ✅ Open popup for edit client
   editClient(client: any): void {
     this.isEditMode = true;
     this.editingClientId = client.id;
-    this.newClient = { ...client, company_logo: null }; // reset logo file
+    this.newClient = { ...client, company_logo: null };
     this.submitted = false;
+    this.apiErrorMessage = '';
+    this.apiError = false;
+    this.successMessage = '';
     this.showAddClientPopup = true;
   }
 
-  // ✅ Close popup
   closeAddClientPopup(): void {
     this.showAddClientPopup = false;
     this.isEditMode = false;
     this.editingClientId = null;
     this.submitted = false;
     this.selectedLogoFile = null;
+    this.apiErrorMessage = '';
+    this.apiError = false;
   }
 
-  // ✅ Handle file selection
   onFileSelected(event: any): void {
     if (event.target.files.length > 0) {
       this.selectedLogoFile = event.target.files[0];
     }
   }
 
-  // ✅ Save or Update client
   saveClient(): void {
     this.submitted = true;
+    this.apiErrorMessage = '';
+    this.apiError = false;
 
     if (this.hasErrors()) {
       return;
     }
 
-    // ✅ prepare FormData for API
     const formData = new FormData();
     formData.append('client_name', this.newClient.client_name);
     formData.append('client_type', this.newClient.client_type);
@@ -117,31 +123,56 @@ export class ClientsComponent implements OnInit {
     }
 
     if (this.isEditMode && this.editingClientId) {
-      // ✅ Update client
       this.clientsService.updateClient(this.editingClientId, formData).subscribe({
         next: () => {
           this.loadClients();
+          this.successMessage = 'Client updated successfully!'; // ✅ show message
           this.closeAddClientPopup();
+          this.clearSuccessMessageAfterTimeout();
         },
         error: (err) => {
-          console.error('Error updating client:', err);
+          this.handleApiError(err);
         }
       });
     } else {
-      // ✅ Create client
       this.clientsService.addClient(formData).subscribe({
         next: () => {
           this.loadClients();
+          this.successMessage = 'Client added successfully!'; // ✅ show message
           this.closeAddClientPopup();
+          this.clearSuccessMessageAfterTimeout();
         },
         error: (err) => {
-          console.error('Error adding client:', err);
+          this.handleApiError(err);
         }
       });
     }
   }
 
-  // ✅ Validate form fields
+  private handleApiError(err: any): void {
+    if (err.error) {
+      if (err.error.detail) {
+        this.apiErrorMessage = err.error.detail;
+      } else if (err.error.message) {
+        this.apiErrorMessage = err.error.message;
+      } else if (typeof err.error === 'string') {
+        this.apiErrorMessage = err.error;
+      } else if (err.error.non_field_errors) {
+        this.apiErrorMessage = err.error.non_field_errors[0];
+      } else {
+        const firstErrorKey = Object.keys(err.error)[0];
+        if (firstErrorKey && err.error[firstErrorKey]) {
+          this.apiErrorMessage = `${firstErrorKey}: ${err.error[firstErrorKey]}`;
+        } else {
+          this.apiErrorMessage = 'An error occurred. Please try again.';
+        }
+      }
+    } else {
+      this.apiErrorMessage = 'An error occurred. Please try again.';
+    }
+    this.apiError = true;
+  }
+
   hasErrors(): boolean {
     return (
       !this.newClient.client_name ||
@@ -152,7 +183,12 @@ export class ClientsComponent implements OnInit {
     );
   }
 
-  // ✅ Logout
+  private clearSuccessMessageAfterTimeout(): void {
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 3000); // ✅ hide message after 3 seconds
+  }
+
   logout(): void {
     sessionStorage.clear();
     this.router.navigate(['/login']);
