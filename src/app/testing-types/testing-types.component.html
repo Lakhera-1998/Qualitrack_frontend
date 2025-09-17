@@ -1,6 +1,11 @@
 <div class="container">
   <h2>Testing Types</h2>
 
+  <!-- ✅ Success Message -->
+  <div *ngIf="successMessage" class="success-message-top">
+    {{ successMessage }}
+  </div>
+
   <!-- Add Testing Type Button -->
   <button class="add-btn" (click)="openAddTestingTypePopup()">+ Add Testing Type</button>
 
@@ -12,8 +17,6 @@
           <tr>
             <th>Name</th>
             <th>Description</th>
-            <th>Created</th>
-            <th>Updated</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -21,8 +24,6 @@
           <tr *ngFor="let testingType of testingTypes">
             <td>{{ testingType.name }}</td>
             <td>{{ testingType.description | truncate:50 }}</td>
-            <td>{{ testingType.created_at | date : 'short' }}</td>
-            <td>{{ testingType.updated_at | date : 'short' }}</td>
             <td class="actions">
               <button class="edit-btn" (click)="editTestingType(testingType)">✏️</button>
             </td>
@@ -44,18 +45,17 @@
         <label>Name *</label>
         <input type="text" [(ngModel)]="newTestingType.name" name="name"
                [ngClass]="{'error': submitted && !newTestingType.name}" required />
+        <div *ngIf="submitted && !newTestingType.name" class="field-error">
+          This field is required
+        </div>
 
         <label>Description</label>
         <textarea [(ngModel)]="newTestingType.description" name="description" rows="3"></textarea>
 
-        <!-- Error Message -->
-        <div *ngIf="submitted && hasErrors()" class="error-message">
-          These input fields are required
-        </div>
-
-        <!-- Actions -->
         <div class="form-actions">
-          <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
+          <button type="submit" class="save-btn">
+            {{ isEditMode ? 'Update' : 'Save' }}
+          </button>
           <button type="button" class="cancel-btn" (click)="closeTestingTypePopup()">Cancel</button>
         </div>
       </form>

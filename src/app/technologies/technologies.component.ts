@@ -24,6 +24,7 @@ export class TechnologiesComponent implements OnInit {
   isEditMode = false;
   editingTechnologyId: number | null = null;
   submitted = false;
+  successMessage = '';
 
   constructor(private technologyService: TechnologyService) {}
 
@@ -79,6 +80,7 @@ export class TechnologiesComponent implements OnInit {
       this.technologyService.updateTechnology(this.editingTechnologyId, this.newTechnology).subscribe({
         next: () => {
           this.loadTechnologies();
+          this.showSuccessMessage('Technology updated successfully');
           this.closeTechnologyPopup();
         },
         error: (err) => {
@@ -89,6 +91,7 @@ export class TechnologiesComponent implements OnInit {
       this.technologyService.addTechnology(this.newTechnology).subscribe({
         next: () => {
           this.loadTechnologies();
+          this.showSuccessMessage('Technology added successfully');
           this.closeTechnologyPopup();
         },
         error: (err) => {
@@ -98,11 +101,17 @@ export class TechnologiesComponent implements OnInit {
     }
   }
 
-  // ✅ Validate form fields
   hasErrors(): boolean {
     return (
       !this.newTechnology.name ||
       !this.newTechnology.type_name
     );
+  }
+
+  showSuccessMessage(message: string): void {
+    this.successMessage = message;
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 3000);
   }
 }

@@ -165,3 +165,35 @@
 .table-vertical-scroll::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+/* Success message at top right */
+.success-message-top {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #4caf50;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 2000;
+  animation: fadeOut 3s forwards;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Error styling for fields */
+.field-error {
+  color: red;
+  font-size: 13px;
+  margin-top: -8px;
+  margin-bottom: 10px;
+}
+
+.error {
+  border: 2px solid red !important;
+  background-color: #ffe5e5 !important;
+}

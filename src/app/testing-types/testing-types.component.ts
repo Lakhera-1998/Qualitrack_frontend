@@ -23,6 +23,7 @@ export class TestingTypesComponent implements OnInit {
   isEditMode = false;
   editingTestingTypeId: number | null = null;
   submitted = false;
+  successMessage = '';
 
   constructor(private testingTypeService: TestingTypeService) {}
 
@@ -77,6 +78,7 @@ export class TestingTypesComponent implements OnInit {
       this.testingTypeService.updateTestingType(this.editingTestingTypeId, this.newTestingType).subscribe({
         next: () => {
           this.loadTestingTypes();
+          this.showSuccessMessage('Testing type updated successfully');
           this.closeTestingTypePopup();
         },
         error: (err) => {
@@ -87,6 +89,7 @@ export class TestingTypesComponent implements OnInit {
       this.testingTypeService.addTestingType(this.newTestingType).subscribe({
         next: () => {
           this.loadTestingTypes();
+          this.showSuccessMessage('Testing type added successfully');
           this.closeTestingTypePopup();
         },
         error: (err) => {
@@ -96,8 +99,14 @@ export class TestingTypesComponent implements OnInit {
     }
   }
 
-  // ✅ Validate fields
   hasErrors(): boolean {
     return !this.newTestingType.name;
+  }
+
+  showSuccessMessage(message: string): void {
+    this.successMessage = message;
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 3000);
   }
 }

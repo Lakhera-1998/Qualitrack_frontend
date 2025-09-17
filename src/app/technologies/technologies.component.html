@@ -1,6 +1,11 @@
 <div class="container">
   <h2>Technologies</h2>
 
+  <!-- ✅ Success Message -->
+  <div *ngIf="successMessage" class="success-message-top">
+    {{ successMessage }}
+  </div>
+
   <!-- ✅ Add Technology Button -->
   <button class="add-btn" (click)="openAddTechnologyPopup()">+ Add Technology</button>
 
@@ -13,8 +18,6 @@
             <th>Name</th>
             <th>Type</th>
             <th>Description</th>
-            <th>Created</th>
-            <th>Updated</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -27,8 +30,6 @@
               </span>
             </td>
             <td>{{ technology.description | truncate:50 }}</td>
-            <td>{{ technology.created_at | date : 'short' }}</td>
-            <td>{{ technology.updated_at | date : 'short' }}</td>
             <td class="actions">
               <button class="edit-btn" (click)="editTechnology(technology)">✏️</button>
             </td>
@@ -50,6 +51,9 @@
         <label>Name *</label>
         <input type="text" [(ngModel)]="newTechnology.name" name="name"
                [ngClass]="{'error': submitted && !newTechnology.name}" required />
+        <div *ngIf="submitted && !newTechnology.name" class="field-error">
+          This field is required
+        </div>
 
         <label>Type *</label>
         <select [(ngModel)]="newTechnology.type_name" name="type_name"
@@ -60,16 +64,13 @@
           <option value="DevOps">DevOps</option>
           <option value="Other">Other</option>
         </select>
+        <div *ngIf="submitted && !newTechnology.type_name" class="field-error">
+          This field is required
+        </div>
 
         <label>Description</label>
         <textarea [(ngModel)]="newTechnology.description" name="description" rows="3"></textarea>
 
-        <!-- ✅ Error Message -->
-        <div *ngIf="submitted && hasErrors()" class="error-message">
-          These input fields are required
-        </div>
-
-        <!-- ✅ Actions -->
         <div class="form-actions">
           <button type="submit" class="save-btn">
             {{ isEditMode ? 'Update' : 'Save' }}
