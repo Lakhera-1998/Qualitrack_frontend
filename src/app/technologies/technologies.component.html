@@ -15,6 +15,7 @@
       <table class="styled-table">
         <thead>
           <tr>
+            <th class="col-sno">S. No.</th> <!-- Added Serial Number column -->
             <th>Name</th>
             <th>Type</th>
             <th>Description</th>
@@ -22,7 +23,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let technology of technologies">
+          <tr *ngFor="let technology of technologies; let i = index">
+            <td class="col-sno">{{ i + 1 }}</td> <!-- Serial Number -->
             <td>{{ technology.name }}</td>
             <td>
               <span class="type-badge" [class]="technology.type_name.toLowerCase()">

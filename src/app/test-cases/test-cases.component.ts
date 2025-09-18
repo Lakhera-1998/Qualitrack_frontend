@@ -31,6 +31,31 @@ export class TestCasesComponent implements OnInit {
   users: any[] = [];
   currentUser: any = null;
 
+  // Form validation
+  formErrors: any = {
+    title: '',
+    description: '',
+    expected_result: '',
+    test_actions: '',
+    bug_status: ''
+  };
+
+  formTestDataErrors: any = {
+    data_type: '',
+    text_data: '',
+    file_data: '',
+    image_data: ''
+  };
+
+  formExecutionErrors: any = {
+    status: '',
+    bug_status: ''
+  };
+
+  // Success message
+  showSuccessMessage: boolean = false;
+  successMessage: string = '';
+
   newTestCase: any = {
     title: '',
     description: '',
@@ -96,7 +121,6 @@ export class TestCasesComponent implements OnInit {
     this.loadCurrentUser();
     this.loadClients();
     this.loadUsers();
-    // Removed: this.loadTestData(); - Now loaded only when project is selected
   }
 
   // ✅ Loaders
@@ -114,7 +138,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching clients:', error);
-        alert('Error loading clients: ' + (error.error?.message || error.message));
+        this.showError('Error loading clients: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -127,7 +151,7 @@ export class TestCasesComponent implements OnInit {
     this.testCases = [];
     this.filteredProjects = [];
     this.filteredRequirements = [];
-    this.testDataList = []; // Clear test data when client changes
+    this.testDataList = [];
     
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -146,7 +170,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching projects by client:', error);
-        alert('Error loading projects: ' + (error.error?.message || error.message));
+        this.showError('Error loading projects: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -159,13 +183,13 @@ export class TestCasesComponent implements OnInit {
     
     if (this.selectedProjectId) {
       this.loadRequirementsByProject(this.selectedProjectId);
-      this.loadTestData(); // Load test data only when project is selected
+      this.loadTestData();
       
       const selectedProject = this.filteredProjects.find(project => project.id === this.selectedProjectId);
       this.selectedProjectName = selectedProject ? selectedProject.project_name : '';
     } else {
       this.selectedProjectName = '';
-      this.testDataList = []; // Clear test data when no project is selected
+      this.testDataList = [];
     }
   }
 
@@ -176,7 +200,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching requirements by project:', error);
-        alert('Error loading requirements: ' + (error.error?.message || error.message));
+        this.showError('Error loading requirements: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -192,19 +216,18 @@ export class TestCasesComponent implements OnInit {
   }
 
   loadRequirementDetails(): void {
-  if (!this.selectedRequirementId || !this.selectedProjectId) return;
-  
-  // ✅ Updated to pass both projectId and requirementId
-  this.requirementService.getRequirement(this.selectedProjectId, this.selectedRequirementId).subscribe({
-    next: (data: any) => {
-      this.requirement = data;
-    },
-    error: (error: any) => {
-      console.error('Error fetching requirement:', error);
-      alert('Error loading requirement: ' + (error.error?.message || error.message));
-    }
-  });
-}
+    if (!this.selectedRequirementId || !this.selectedProjectId) return;
+    
+    this.requirementService.getRequirement(this.selectedProjectId, this.selectedRequirementId).subscribe({
+      next: (data: any) => {
+        this.requirement = data;
+      },
+      error: (error: any) => {
+        console.error('Error fetching requirement:', error);
+        this.showError('Error loading requirement: ' + (error.error?.message || error.message));
+      }
+    });
+  }
 
   loadTestCases(): void {
     if (!this.selectedRequirementId) return;
@@ -215,7 +238,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching test cases:', error);
-        alert('Error loading test cases: ' + (error.error?.message || error.message));
+        this.showError('Error loading test cases: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -232,11 +255,9 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching test data:', error);
-        // Don't show alert for 403 errors as they're expected when no proper context
         if (error.status !== 403) {
-          alert('Error loading test data: ' + (error.error?.message || error.message));
+          this.showError('Error loading test data: ' + (error.error?.message || error.message));
         } else {
-          // Set empty array for 403 errors (no access to project test data)
           this.testDataList = [];
         }
       }
@@ -244,7 +265,6 @@ export class TestCasesComponent implements OnInit {
   }
 
   loadUsers(): void {
-    // This should come from a UserService in real project
     this.users = [
       { id: 1, username: 'tester1', email: 'tester1@example.com' },
       { id: 2, username: 'tester2', email: 'tester2@example.com' }
@@ -272,11 +292,134 @@ export class TestCasesComponent implements OnInit {
     }
   }
 
+  // ✅ Success/Error Messages
+  showSuccess(message: string): void {
+    this.successMessage = message;
+    this.showSuccessMessage = true;
+    
+    setTimeout(() => {
+      this.hideSuccessMessage();
+    }, 3000);
+  }
+
+  showError(message: string): void {
+    alert(message); // Using alert for errors as before, but you could implement toast notifications
+  }
+
+  hideSuccessMessage(): void {
+    this.showSuccessMessage = false;
+    this.successMessage = '';
+  }
+
+  // ✅ Form Validation
+  validateTestCaseForm(): boolean {
+    let isValid = true;
+    this.clearFormErrors();
+
+    if (!this.newTestCase.title) {
+      this.formErrors.title = 'Title is required';
+      isValid = false;
+    }
+
+    if (!this.newTestCase.description) {
+      this.formErrors.description = 'Description is required';
+      isValid = false;
+    }
+
+    if (!this.newTestCase.expected_result) {
+      this.formErrors.expected_result = 'Expected result is required';
+      isValid = false;
+    }
+
+    if (this.newTestCase.is_executed && !this.newTestCase.test_actions) {
+      this.formErrors.test_actions = 'Test Actions is required when test case is executed';
+      isValid = false;
+    }
+
+    if (this.newTestCase.bug_raised && !this.newTestCase.bug_status) {
+      this.formErrors.bug_status = 'Bug Status is required when bug is raised';
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  validateTestDataForm(): boolean {
+    let isValid = true;
+    this.clearTestDataFormErrors();
+
+    if (!this.newTestData.data_type) {
+      this.formTestDataErrors.data_type = 'Data type is required';
+      isValid = false;
+    }
+
+    if (this.newTestData.data_type === 'text' && !this.newTestData.text_data) {
+      this.formTestDataErrors.text_data = 'Text data is required';
+      isValid = false;
+    }
+
+    if (this.newTestData.data_type === 'file' && !this.newTestData.file_data) {
+      this.formTestDataErrors.file_data = 'File is required';
+      isValid = false;
+    }
+
+    if (this.newTestData.data_type === 'image' && !this.newTestData.image_data) {
+      this.formTestDataErrors.image_data = 'Image is required';
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  validateExecutionForm(): boolean {
+    let isValid = true;
+    this.clearExecutionFormErrors();
+
+    if (!this.executionData.status) {
+      this.formExecutionErrors.status = 'Status is required';
+      isValid = false;
+    }
+
+    if (this.executionData.bug_raised && !this.executionData.bug_status) {
+      this.formExecutionErrors.bug_status = 'Bug Status is required when bug is raised';
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  clearFormErrors(): void {
+    this.formErrors = {
+      title: '',
+      description: '',
+      expected_result: '',
+      test_actions: '',
+      bug_status: ''
+    };
+  }
+
+  clearTestDataFormErrors(): void {
+    this.formTestDataErrors = {
+      data_type: '',
+      text_data: '',
+      file_data: '',
+      image_data: ''
+    };
+  }
+
+  clearExecutionFormErrors(): void {
+    this.formExecutionErrors = {
+      status: '',
+      bug_status: ''
+    };
+  }
+
   // ✅ Test Case CRUD
   openAddTestCasePopup(): void {
     if (!this.selectedRequirementId) return;
     
     this.isEditMode = false;
+    this.clearFormErrors();
     this.newTestCase = {
       title: '',
       description: '',
@@ -304,10 +447,10 @@ export class TestCasesComponent implements OnInit {
     this.isEditMode = true;
     this.editingTestCaseId = testCase.id;
     this.newTestCase = { ...testCase };
-    // Ensure bug_screenshot is properly handled (it might be a string URL from backend)
     if (this.newTestCase.bug_screenshot && typeof this.newTestCase.bug_screenshot === 'string') {
-      this.newTestCase.bug_screenshot = null; // Reset file reference, keep URL for display
+      this.newTestCase.bug_screenshot = null;
     }
+    this.clearFormErrors();
     this.showTestCasePopup = true;
   }
 
@@ -315,21 +458,15 @@ export class TestCasesComponent implements OnInit {
     this.showTestCasePopup = false;
     this.isEditMode = false;
     this.editingTestCaseId = null;
+    this.clearFormErrors();
   }
 
   saveTestCase(): void {
-    if (!this.newTestCase.title || !this.newTestCase.description || 
-        !this.newTestCase.expected_result) {
-      alert('Please fill all required fields');
+    if (!this.validateTestCaseForm()) {
       return;
     }
 
-    // If executed, require test_actions and set executed_by/executed_on
     if (this.newTestCase.is_executed) {
-      if (!this.newTestCase.test_actions) {
-        alert('Test Actions is required when test case is executed');
-        return;
-      }
       this.newTestCase.executed_by = this.currentUser?.id;
       this.newTestCase.executed_on = new Date().toISOString();
     } else {
@@ -339,20 +476,14 @@ export class TestCasesComponent implements OnInit {
       this.newTestCase.actual_result = '';
     }
 
-    // If bug is raised, require bug_status
-    if (this.newTestCase.bug_raised && !this.newTestCase.bug_status) {
-      alert('Bug Status is required when bug is raised');
-      return;
-    } else if (!this.newTestCase.bug_raised) {
+    if (!this.newTestCase.bug_raised) {
       this.newTestCase.bug_status = null;
-      // Remove bug screenshot if bug is not raised
       this.newTestCase.bug_screenshot = null;
     }
 
     this.newTestCase.requirement = this.selectedRequirementId;
     this.newTestCase.created_by = this.currentUser?.id;
 
-    // Convert test_data to number if it's a string
     if (this.newTestCase.test_data) {
       this.newTestCase.test_data = Number(this.newTestCase.test_data);
     }
@@ -362,11 +493,11 @@ export class TestCasesComponent implements OnInit {
         next: () => {
           this.loadTestCases();
           this.closeTestCasePopup();
-          alert('Test case updated successfully!');
+          this.showSuccess('Test case updated successfully!');
         },
         error: (error: any) => {
           console.error('Error updating test case:', error);
-          alert('Error updating test case: ' + (error.error?.message || error.message));
+          this.showError('Error updating test case: ' + (error.error?.message || error.message));
         }
       });
     } else {
@@ -374,11 +505,11 @@ export class TestCasesComponent implements OnInit {
         next: () => {
           this.loadTestCases();
           this.closeTestCasePopup();
-          alert('Test case added successfully!');
+          this.showSuccess('Test case added successfully!');
         },
         error: (error: any) => {
           console.error('Error adding test case:', error);
-          alert('Error adding test case: ' + (error.error?.message || error.message));
+          this.showError('Error adding test case: ' + (error.error?.message || error.message));
         }
       });
     }
@@ -387,6 +518,7 @@ export class TestCasesComponent implements OnInit {
   // ✅ Test Data CRUD
   openAddTestDataPopup(): void {
     this.isEditTestDataMode = false;
+    this.clearTestDataFormErrors();
     this.newTestData = {
       data_type: 'text',
       text_data: '',
@@ -402,6 +534,7 @@ export class TestCasesComponent implements OnInit {
     this.showTestDataPopup = false;
     this.isEditTestDataMode = false;
     this.editingTestDataId = null;
+    this.clearTestDataFormErrors();
   }
 
   onDataTypeChange(): void {
@@ -427,15 +560,13 @@ export class TestCasesComponent implements OnInit {
   }
 
   saveTestData(): void {
-    if (!this.newTestData.data_type) {
-      alert('Please select a data type');
+    if (!this.validateTestDataForm()) {
       return;
     }
 
     const formData = new FormData();
     formData.append('data_type', this.newTestData.data_type);
     
-    // Add project context to the test data if available
     if (this.selectedProjectId) {
       formData.append('project', this.selectedProjectId.toString());
     }
@@ -449,11 +580,11 @@ export class TestCasesComponent implements OnInit {
         next: () => {
           this.loadTestData();
           this.closeTestDataPopup();
-          alert('Test data updated successfully!');
+          this.showSuccess('Test data updated successfully!');
         },
         error: (error: any) => {
           console.error('Error updating test data:', error);
-          alert('Error updating test data: ' + (error.error?.message || error.message));
+          this.showError('Error updating test data: ' + (error.error?.message || error.message));
         }
       });
     } else {
@@ -461,11 +592,11 @@ export class TestCasesComponent implements OnInit {
         next: () => {
           this.loadTestData();
           this.closeTestDataPopup();
-          alert('Test data added successfully!');
+          this.showSuccess('Test data added successfully!');
         },
         error: (error: any) => {
           console.error('Error adding test data:', error);
-          alert('Error adding test data: ' + (error.error?.message || error.message));
+          this.showError('Error adding test data: ' + (error.error?.message || error.message));
         }
       });
     }
@@ -481,17 +612,18 @@ export class TestCasesComponent implements OnInit {
       bug_raised: false,
       bug_status: 'Open'
     };
+    this.clearExecutionFormErrors();
     this.showExecutePopup = true;
   }
 
   closeExecutePopup(): void {
     this.showExecutePopup = false;
     this.executingTestCase = null;
+    this.clearExecutionFormErrors();
   }
 
   saveExecution(): void {
-    if (!this.executionData.status) {
-      alert('Please select a status');
+    if (!this.validateExecutionForm()) {
       return;
     }
 
@@ -511,11 +643,11 @@ export class TestCasesComponent implements OnInit {
       next: () => {
         this.loadTestCases();
         this.closeExecutePopup();
-        alert('Test execution saved successfully!');
+        this.showSuccess('Test execution saved successfully!');
       },
       error: (error: any) => {
         console.error('Error saving test execution:', error);
-        alert('Error saving execution: ' + (error.error?.message || error.message));
+        this.showError('Error saving execution: ' + (error.error?.message || error.message));
       }
     });
   }

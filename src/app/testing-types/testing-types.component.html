@@ -15,13 +15,15 @@
       <table class="styled-table">
         <thead>
           <tr>
+            <th class="col-sno">S. No.</th> <!-- Added Serial Number column -->
             <th>Name</th>
             <th>Description</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let testingType of testingTypes">
+          <tr *ngFor="let testingType of testingTypes; let i = index">
+            <td class="col-sno">{{ i + 1 }}</td> <!-- Serial Number -->
             <td>{{ testingType.name }}</td>
             <td>{{ testingType.description | truncate:50 }}</td>
             <td class="actions">

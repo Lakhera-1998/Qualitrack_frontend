@@ -45,6 +45,7 @@
         <table class="styled-table">
           <thead>
             <tr>
+              <th class="col-sno">S. No.</th>
               <th class="col-title">Title</th>
               <th>Status</th>
               <th>Bug Status</th>
@@ -59,7 +60,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let testCase of testCases">
+            <tr *ngFor="let testCase of testCases; let i = index">
+              <!-- Serial Number -->
+              <td class="col-sno">{{ i + 1 }}</td>
+              
               <td class="col-title">{{ testCase.title }}</td>
 
               <td>
@@ -123,6 +127,12 @@
     </div>
   </div>
 
+  <!-- Success Notification -->
+  <div *ngIf="showSuccessMessage" class="success-notification">
+    <span>{{ successMessage }}</span>
+    <button class="close-notification" (click)="hideSuccessMessage()">×</button>
+  </div>
+
   <!-- Add/Edit Test Case Popup -->
   <div class="popup" *ngIf="showTestCasePopup">
     <div class="popup-content large-popup">
@@ -133,16 +143,22 @@
 
       <form (ngSubmit)="saveTestCase()" class="form-grid" enctype="multipart/form-data">
         <label>Title *</label>
-        <input type="text" [(ngModel)]="newTestCase.title" name="title" required />
+        <input type="text" [(ngModel)]="newTestCase.title" name="title" 
+               [class.error]="formErrors.title" required />
+        <div *ngIf="formErrors.title" class="error-message">{{ formErrors.title }}</div>
 
         <label>Description *</label>
-        <textarea [(ngModel)]="newTestCase.description" name="description" rows="3" required></textarea>
+        <textarea [(ngModel)]="newTestCase.description" name="description" rows="3" 
+                  [class.error]="formErrors.description" required></textarea>
+        <div *ngIf="formErrors.description" class="error-message">{{ formErrors.description }}</div>
 
         <label>Pre Conditions</label>
         <textarea [(ngModel)]="newTestCase.pre_conditions" name="pre_conditions" rows="2"></textarea>
 
         <label>Expected Result *</label>
-        <textarea [(ngModel)]="newTestCase.expected_result" name="expected_result" rows="3" required></textarea>
+        <textarea [(ngModel)]="newTestCase.expected_result" name="expected_result" rows="3" 
+                  [class.error]="formErrors.expected_result" required></textarea>
+        <div *ngIf="formErrors.expected_result" class="error-message">{{ formErrors.expected_result }}</div>
 
         <label>Actual Result</label>
         <textarea [(ngModel)]="newTestCase.actual_result" name="actual_result" rows="3"></textarea>
@@ -156,7 +172,9 @@
         <!-- Show Test Actions & Status only if executed -->
         <ng-container *ngIf="newTestCase.is_executed">
           <label>Test Actions *</label>
-          <textarea [(ngModel)]="newTestCase.test_actions" name="test_actions" rows="3" required></textarea>
+          <textarea [(ngModel)]="newTestCase.test_actions" name="test_actions" rows="3" 
+                    [class.error]="formErrors.test_actions" required></textarea>
+          <div *ngIf="formErrors.test_actions" class="error-message">{{ formErrors.test_actions }}</div>
 
           <label>Status</label>
           <select [(ngModel)]="newTestCase.status" name="status">
@@ -178,12 +196,15 @@
           <input type="file" (change)="onFileSelected($event, 'bug_screenshot')" accept="image/*" />
 
           <label>Bug Status *</label>
-          <select [(ngModel)]="newTestCase.bug_status" name="bug_status" required>
+          <select [(ngModel)]="newTestCase.bug_status" name="bug_status" 
+                  [class.error]="formErrors.bug_status" required>
+            <option value="">Select Bug Status</option>
             <option value="Open">Open</option>
             <option value="In Progress">In Progress</option>
             <option value="Resolved">Resolved</option>
             <option value="Closed">Closed</option>
           </select>
+          <div *ngIf="formErrors.bug_status" class="error-message">{{ formErrors.bug_status }}</div>
         </ng-container>
 
         <!-- Test Data -->
@@ -226,28 +247,37 @@
 
       <form (ngSubmit)="saveTestData()" class="form-grid" enctype="multipart/form-data">
         <label>Data Type *</label>
-        <select [(ngModel)]="newTestData.data_type" name="data_type" required (change)="onDataTypeChange()">
+        <select [(ngModel)]="newTestData.data_type" name="data_type" 
+                [class.error]="formTestDataErrors.data_type" required (change)="onDataTypeChange()">
+          <option value="">Select Data Type</option>
           <option value="text">Text</option>
           <option value="file">File</option>
           <option value="image">Image</option>
           <option value="other">Other</option>
         </select>
+        <div *ngIf="formTestDataErrors.data_type" class="error-message">{{ formTestDataErrors.data_type }}</div>
 
         <div *ngIf="newTestData.data_type === 'text'">
           <label>Text Data *</label>
-          <textarea [(ngModel)]="newTestData.text_data" name="text_data" rows="4" required></textarea>
+          <textarea [(ngModel)]="newTestData.text_data" name="text_data" rows="4" 
+                    [class.error]="formTestDataErrors.text_data" required></textarea>
+          <div *ngIf="formTestDataErrors.text_data" class="error-message">{{ formTestDataErrors.text_data }}</div>
         </div>
 
         <div *ngIf="newTestData.data_type === 'file'">
           <label>File Data *</label>
-          <input type="file" (change)="onFileSelected($event, 'file')" accept="*/*" />
+          <input type="file" (change)="onFileSelected($event, 'file')" accept="*/*" 
+                 [class.error]="formTestDataErrors.file_data" required />
           <span *ngIf="newTestData.file_data_name" class="file-name">{{ newTestData.file_data_name }}</span>
+          <div *ngIf="formTestDataErrors.file_data" class="error-message">{{ formTestDataErrors.file_data }}</div>
         </div>
 
         <div *ngIf="newTestData.data_type === 'image'">
           <label>Image Data *</label>
-          <input type="file" (change)="onFileSelected($event, 'image')" accept="image/*" />
+          <input type="file" (change)="onFileSelected($event, 'image')" accept="image/*" 
+                 [class.error]="formTestDataErrors.image_data" required />
           <span *ngIf="newTestData.image_data_name" class="file-name">{{ newTestData.image_data_name }}</span>
+          <div *ngIf="formTestDataErrors.image_data" class="error-message">{{ formTestDataErrors.image_data }}</div>
         </div>
 
         <div *ngIf="newTestData.data_type === 'other'">
@@ -273,10 +303,13 @@
 
       <form (ngSubmit)="saveExecution()" class="form-grid">
         <label>Status *</label>
-        <select [(ngModel)]="executionData.status" name="status" required>
+        <select [(ngModel)]="executionData.status" name="status" 
+                [class.error]="formExecutionErrors.status" required>
+          <option value="">Select Status</option>
           <option value="Pass">Pass</option>
           <option value="Fail">Fail</option>
         </select>
+        <div *ngIf="formExecutionErrors.status" class="error-message">{{ formExecutionErrors.status }}</div>
 
         <label>Actual Result</label>
         <textarea [(ngModel)]="executionData.actual_result" name="actual_result" rows="3"></textarea>
@@ -291,12 +324,15 @@
 
         <ng-container *ngIf="executionData.bug_raised">
           <label>Bug Status *</label>
-          <select [(ngModel)]="executionData.bug_status" name="bug_status" required>
+          <select [(ngModel)]="executionData.bug_status" name="bug_status" 
+                  [class.error]="formExecutionErrors.bug_status" required>
+            <option value="">Select Bug Status</option>
             <option value="Open">Open</option>
             <option value="In Progress">In Progress</option>
             <option value="Resolved">Resolved</option>
             <option value="Closed">Closed</option>
           </select>
+          <div *ngIf="formExecutionErrors.bug_status" class="error-message">{{ formExecutionErrors.bug_status }}</div>
         </ng-container>
 
         <div class="form-actions">
