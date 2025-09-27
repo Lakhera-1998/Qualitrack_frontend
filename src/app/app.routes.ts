@@ -8,6 +8,7 @@ import { TestPlansComponent } from './test-plans/test-plans.component';
 import { TestCasesComponent } from './test-cases/test-cases.component';
 import { TechnologiesComponent } from './technologies/technologies.component';
 import { TestingTypesComponent } from './testing-types/testing-types.component';
+import { ReportComponent } from './report/report.component';
 import { authGuard } from './guards/auth.guard'; // ✅ Changed from AuthGuard to authGuard
 import { loginGuard } from './guards/login.guard';
 
@@ -29,5 +30,6 @@ export const routes: Routes = [
 
   { path: 'technologies', component: TechnologiesComponent, canActivate: [authGuard] },
   { path: 'testing-types', component: TestingTypesComponent, canActivate: [authGuard] },
+  { path: 'reports', component: ReportComponent, canActivate: [authGuard] },
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' }
 ];

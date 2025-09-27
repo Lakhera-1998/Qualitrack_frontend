@@ -1,0 +1,313 @@
+<div class="reports-container">
+  <div class="header">
+    <h2>Project Reports</h2>
+    <div class="export-buttons">
+      <button class="export-btn" (click)="exportToPDF()" [disabled]="!projectReport">Export PDF</button>
+      <button class="export-btn" (click)="exportToExcel()" [disabled]="!projectReport">Export Excel</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-card card">
+    <h3>Select Project for Report</h3>
+    <div class="filter-form">
+      <div class="form-group">
+        <label for="clientSelect">Client</label>
+        <select id="clientSelect" [(ngModel)]="selectedClientId" (change)="onClientChange()" class="form-control">
+          <option value="">Select Client</option>
+          <option *ngFor="let client of clients" [value]="client.id">{{ client.client_name }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="projectSelect">Project</label>
+        <select id="projectSelect" [(ngModel)]="selectedProjectId" (change)="onProjectChange()" 
+                class="form-control" [disabled]="!selectedClientId">
+          <option value="">Select Project</option>
+          <option *ngFor="let project of filteredProjects" [value]="project.id">{{ project.project_name }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state card">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>Generating report...</p>
+    </div>
+  </div>
+
+  <!-- Report Content -->
+  <div *ngIf="projectReport && !isLoading" class="report-content">
+    <!-- Report Header -->
+    <div class="report-header-section">
+      <div class="project-header">
+        <h3>{{ projectReport.project_name }} - Project Report</h3>
+      </div>
+    </div>
+
+    <div class="report-header card">
+      <div class="project-info">
+        <p class="report-date">Generated on: {{ currentDate | date:'fullDate' }}</p>
+      </div>
+      <div class="project-meta">
+        <div class="meta-item">
+          <span class="meta-label">Status:</span>
+          <span class="meta-value status-{{ projectReport.status?.toLowerCase() }}">{{ projectReport.status }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Project Lead:</span>
+          <span class="meta-value">{{ projectReport.project_lead?.username || 'N/A' }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">QA Lead:</span>
+          <span class="meta-value">{{ projectReport.qa_lead?.username || 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-navigation card">
+      <button class="tab-btn" [class.active]="activeTab === 'summary'" 
+              (click)="switchTab('summary')">Summary Report</button>
+      <button class="tab-btn" [class.active]="activeTab === 'detailed'" 
+              (click)="switchTab('detailed')">Detailed Test Cases</button>
+    </div>
+
+    <!-- Summary Report Tab -->
+    <div *ngIf="activeTab === 'summary'" class="tab-content">
+      
+      <!-- Key Metrics -->
+      <div class="summary-report card">
+        <h4>Summary Report</h4>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-value">{{ projectReport.total_requirements }}</div>
+            <div class="metric-label">Total Requirements</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">{{ projectReport.total_test_cases }}</div>
+            <div class="metric-label">Total Test Cases</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bars -->
+      <div class="progress-section card">
+        <h4>Project Progress</h4>
+        <div class="progress-item">
+          <label>Requirement Completion</label>
+          <div class="progress-bar">
+            <div class="progress-fill {{ getProgressBarClass(projectReport.requirement_completion_percentage) }}" 
+                 [style.width.%]="projectReport.requirement_completion_percentage">
+              {{ projectReport.requirement_completion_percentage }}%
+            </div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <label>Test Coverage</label>
+          <div class="progress-bar">
+            <div class="progress-fill {{ getProgressBarClass(projectReport.test_coverage_percentage) }}" 
+                 [style.width.%]="projectReport.test_coverage_percentage">
+              {{ projectReport.test_coverage_percentage }}%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Test Coverage & Bug Resolution -->
+      <div class="coverage-bug-section">
+        <div class="coverage-card card">
+          <h4>Test Coverage</h4>
+          <div class="coverage-value">{{ projectReport.test_coverage_percentage }}%</div>
+        </div>
+        <div class="bug-card card">
+          <h4>Bug Resolution Rate</h4>
+          <div class="bug-value">{{ projectReport.bug_resolution_rate }}%</div>
+        </div>
+      </div>
+
+      <!-- Requirements Breakdown -->
+      <div class="breakdown-section card">
+        <h4>Requirements Breakdown</h4>
+        <div class="breakdown-grid">
+          <div class="breakdown-item">
+            <span class="breakdown-label">Developed</span>
+            <span class="breakdown-value">{{ projectReport.developed_requirements }} / {{ projectReport.total_requirements }}</span>
+          </div>
+          <div class="breakdown-item">
+            <span class="breakdown-label">Tested</span>
+            <span class="breakdown-value">{{ projectReport.tested_requirements }} / {{ projectReport.total_requirements }}</span>
+          </div>
+          <div class="breakdown-item">
+            <span class="breakdown-label">Delivered</span>
+            <span class="breakdown-value">{{ projectReport.delivered_requirements }} / {{ projectReport.total_requirements }}</span>
+          </div>
+        </div>
+
+        <h5>Priority Distribution</h5>
+        <div class="priority-distribution">
+          <div class="priority-item critical">
+            <span>Critical: {{ projectReport.critical_priority_requirements }}</span>
+          </div>
+          <div class="priority-item high">
+            <span>High: {{ projectReport.high_priority_requirements }}</span>
+          </div>
+          <div class="priority-item medium">
+            <span>Medium: {{ projectReport.medium_priority_requirements }}</span>
+          </div>
+          <div class="priority-item low">
+            <span>Low: {{ projectReport.low_priority_requirements }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Test Case Statistics -->
+      <div class="stats-section card">
+        <h4>Test Case Statistics</h4>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{ projectReport.passed_test_cases }}</div>
+            <div class="stat-label">Passed</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ projectReport.failed_test_cases }}</div>
+            <div class="stat-label">Failed</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ projectReport.not_tested_cases }}</div>
+            <div class="stat-label">Not Tested</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ projectReport.automated_test_cases }}</div>
+            <div class="stat-label">Automated</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ projectReport.manual_test_cases }}</div>
+            <div class="stat-label">Manual</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bug Statistics -->
+      <div class="bugs-section card">
+        <h4>Bug Statistics</h4>
+        <div class="bugs-grid">
+          <div class="bug-item open">
+            <span class="bug-count">{{ projectReport.open_bugs }}</span>
+            <span class="bug-label">Open</span>
+          </div>
+          <div class="bug-item in-progress">
+            <span class="bug-count">{{ projectReport.in_progress_bugs }}</span>
+            <span class="bug-label">In Progress</span>
+          </div>
+          <div class="bug-item resolved">
+            <span class="bug-count">{{ projectReport.resolved_bugs }}</span>
+            <span class="bug-label">Resolved</span>
+          </div>
+          <div class="bug-item closed">
+            <span class="bug-count">{{ projectReport.closed_bugs }}</span>
+            <span class="bug-label">Closed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Execution Stats -->
+      <div class="daily-stats-section card">
+        <h4>Last 7 Days Execution</h4>
+        <div class="daily-stats-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Total Executed</th>
+                <th>Passed</th>
+                <th>Failed</th>
+                <th>Bugs Raised</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let date of getDailyStatsDates()">
+                <td>{{ date | date:'MMM dd' }}</td>
+                <td>{{ projectReport.daily_execution_stats[date]?.total_executed || 0 }}</td>
+                <td class="text-success">{{ projectReport.daily_execution_stats[date]?.passed || 0 }}</td>
+                <td class="text-danger">{{ projectReport.daily_execution_stats[date]?.failed || 0 }}</td>
+                <td class="text-warning">{{ projectReport.daily_execution_stats[date]?.bugs_raised || 0 }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Test Cases Tab -->
+    <div *ngIf="activeTab === 'detailed'" class="tab-content">
+      <div class="detailed-report card">
+        <h4>Detailed Test Cases</h4>
+        <div *ngFor="let requirement of detailedReport" class="requirement-card">
+          <div class="requirement-header" (click)="toggleRequirementExpansion(requirement.requirement_id)">
+            <div class="requirement-title">
+              <h5>{{ requirement.requirement_title }}</h5>
+              <span class="priority-badge {{ getPriorityBadgeClass(requirement.priority) }}">
+                {{ requirement.priority }}
+              </span>
+            </div>
+            <div class="requirement-stats">
+              <span class="stat">Total: {{ requirement.total_test_cases }}</span>
+              <span class="stat passed">Passed: {{ requirement.passed_test_cases }}</span>
+              <span class="stat failed">Failed: {{ requirement.failed_test_cases }}</span>
+              <span class="stat not-tested">Not Tested: {{ requirement.not_tested_cases }}</span>
+            </div>
+            <div class="expand-icon">
+              {{ isRequirementExpanded(requirement.requirement_id) ? '−' : '+' }}
+            </div>
+          </div>
+
+          <div *ngIf="isRequirementExpanded(requirement.requirement_id)" class="test-cases-list">
+            <table class="test-cases-table">
+              <thead>
+                <tr>
+                  <th>Test Case</th>
+                  <th>Status</th>
+                  <th>Bug Status</th>
+                  <th>Automated</th>
+                  <th>Executed By</th>
+                  <th>Executed On</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let testCase of requirement.test_cases">
+                  <td>{{ testCase.title }}</td>
+                  <td>
+                    <span class="status-badge {{ getStatusBadgeClass(testCase.status) }}">
+                      {{ testCase.status || 'Not Tested' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span *ngIf="testCase.bug_status" 
+                          class="status-badge {{ getStatusBadgeClass(testCase.bug_status) }}">
+                      {{ testCase.bug_status }}
+                    </span>
+                    <span *ngIf="!testCase.bug_status">-</span>
+                  </td>
+                  <td>{{ testCase.is_automated ? 'Yes' : 'No' }}</td>
+                  <td>{{ testCase.executed_by || '-' }}</td>
+                  <td>{{ testCase.executed_on ? (testCase.executed_on | date:'short') : '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Project Selected -->
+  <div *ngIf="!selectedProjectId && !isLoading" class="placeholder-message card">
+    <div class="message-content">
+      <h3>Select a Project</h3>
+      <p>Please select a client and project from the dropdown above to generate a report.</p>
+    </div>
+  </div>
+</div>
