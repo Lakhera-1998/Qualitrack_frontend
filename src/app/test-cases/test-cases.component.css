@@ -607,3 +607,12 @@ textarea {
     font-size: 16px;
   }
 }
+
+.general-error {
+  background-color: #fee;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px 0;
+  color: #721c24;
+}

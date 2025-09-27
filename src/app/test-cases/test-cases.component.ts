@@ -44,7 +44,8 @@ export class TestCasesComponent implements OnInit {
     data_type: '',
     text_data: '',
     file_data: '',
-    image_data: ''
+    image_data: '',
+    general: '' // ADDED: General error message for test data form
   };
 
   formExecutionErrors: any = {
@@ -256,7 +257,8 @@ export class TestCasesComponent implements OnInit {
       error: (error: any) => {
         console.error('Error fetching test data:', error);
         if (error.status !== 403) {
-          this.showError('Error loading test data: ' + (error.error?.message || error.message));
+          // REMOVED: Alert box and using form error instead
+          this.formTestDataErrors.general = 'Error loading test data: ' + (error.error?.message || error.message);
         } else {
           this.testDataList = [];
         }
@@ -303,7 +305,8 @@ export class TestCasesComponent implements OnInit {
   }
 
   showError(message: string): void {
-    alert(message); // Using alert for errors as before, but you could implement toast notifications
+    // REMOVED: Alert box - errors will be shown in forms instead
+    console.error('Error:', message);
   }
 
   hideSuccessMessage(): void {
@@ -403,7 +406,8 @@ export class TestCasesComponent implements OnInit {
       data_type: '',
       text_data: '',
       file_data: '',
-      image_data: ''
+      image_data: '',
+      general: '' // ADDED: Clear general error too
     };
   }
 
@@ -497,7 +501,7 @@ export class TestCasesComponent implements OnInit {
         },
         error: (error: any) => {
           console.error('Error updating test case:', error);
-          this.showError('Error updating test case: ' + (error.error?.message || error.message));
+          this.formErrors.general = 'Error updating test case: ' + (error.error?.message || error.message);
         }
       });
     } else {
@@ -509,7 +513,7 @@ export class TestCasesComponent implements OnInit {
         },
         error: (error: any) => {
           console.error('Error adding test case:', error);
-          this.showError('Error adding test case: ' + (error.error?.message || error.message));
+          this.formErrors.general = 'Error adding test case: ' + (error.error?.message || error.message);
         }
       });
     }
@@ -584,7 +588,8 @@ export class TestCasesComponent implements OnInit {
         },
         error: (error: any) => {
           console.error('Error updating test data:', error);
-          this.showError('Error updating test data: ' + (error.error?.message || error.message));
+          // ADDED: Show error in form instead of alert
+          this.formTestDataErrors.general = 'Error updating test data: ' + (error.error?.message || error.message);
         }
       });
     } else {
@@ -596,7 +601,8 @@ export class TestCasesComponent implements OnInit {
         },
         error: (error: any) => {
           console.error('Error adding test data:', error);
-          this.showError('Error adding test data: ' + (error.error?.message || error.message));
+          // ADDED: Show error in form instead of alert
+          this.formTestDataErrors.general = 'Error adding test data: ' + (error.error?.message || error.message);
         }
       });
     }
@@ -647,7 +653,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error saving test execution:', error);
-        this.showError('Error saving execution: ' + (error.error?.message || error.message));
+        this.formExecutionErrors.general = 'Error saving execution: ' + (error.error?.message || error.message);
       }
     });
   }

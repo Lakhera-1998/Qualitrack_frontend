@@ -28,28 +28,27 @@ export class TestDataService {
     };
   }
 
-  // Add this new method to get test data by project
+  // Get test data by project - FIXED URL
   getTestDataByProject(projectId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/test-data/?project=${projectId}`, this.getHeaders());
   }
 
-  // Keep existing methods but update the base URL if needed
-  getAllTestData(): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/test-data/`, this.getHeaders());
-  }
-
+  // Create test data - FIXED URL (changed from /test-data/ to /test-data/create/)
   createTestData(testData: FormData): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/test-data/`, testData, this.getHeadersForFormData());
+    return this.http.post<any>(`${this.baseUrl}/test-data/create/`, testData, this.getHeadersForFormData());
   }
 
+  // Update test data - FIXED URL (changed from /test-data/{id}/ to /test-data/{id}/update/)
   updateTestData(id: number, testData: FormData): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}/test-data/${id}/`, testData, this.getHeadersForFormData());
+    return this.http.put<any>(`${this.baseUrl}/test-data/${id}/update/`, testData, this.getHeadersForFormData());
   }
 
+  // Get specific test data - FIXED URL
   getTestData(id: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/test-data/${id}/`, this.getHeaders());
   }
 
+  // Delete test data - FIXED URL
   deleteTestData(id: number): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}/test-data/${id}/`, this.getHeaders());
   }

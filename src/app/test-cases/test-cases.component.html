@@ -238,59 +238,64 @@
   </div>
 
   <!-- Add/Edit Test Data Popup -->
-  <div class="popup" *ngIf="showTestDataPopup">
-    <div class="popup-content medium-popup">
-      <div class="popup-header">
-        <h3>{{ isEditTestDataMode ? 'Edit Test Data' : 'Add Test Data' }}</h3>
-        <button class="close-btn" (click)="closeTestDataPopup()">✖</button>
+<div class="popup" *ngIf="showTestDataPopup">
+  <div class="popup-content medium-popup">
+    <div class="popup-header">
+      <h3>{{ isEditTestDataMode ? 'Edit Test Data' : 'Add Test Data' }}</h3>
+      <button class="close-btn" (click)="closeTestDataPopup()">✖</button>
+    </div>
+
+    <!-- ADDED: General error message for test data form -->
+    <div *ngIf="formTestDataErrors.general" class="error-message general-error">
+      {{ formTestDataErrors.general }}
+    </div>
+
+    <form (ngSubmit)="saveTestData()" class="form-grid" enctype="multipart/form-data">
+      <label>Data Type *</label>
+      <select [(ngModel)]="newTestData.data_type" name="data_type" 
+              [class.error]="formTestDataErrors.data_type" required (change)="onDataTypeChange()">
+        <option value="">Select Data Type</option>
+        <option value="text">Text</option>
+        <option value="file">File</option>
+        <option value="image">Image</option>
+        <option value="other">Other</option>
+      </select>
+      <div *ngIf="formTestDataErrors.data_type" class="error-message">{{ formTestDataErrors.data_type }}</div>
+
+      <div *ngIf="newTestData.data_type === 'text'">
+        <label>Text Data *</label>
+        <textarea [(ngModel)]="newTestData.text_data" name="text_data" rows="4" 
+                  [class.error]="formTestDataErrors.text_data" required></textarea>
+        <div *ngIf="formTestDataErrors.text_data" class="error-message">{{ formTestDataErrors.text_data }}</div>
       </div>
 
-      <form (ngSubmit)="saveTestData()" class="form-grid" enctype="multipart/form-data">
-        <label>Data Type *</label>
-        <select [(ngModel)]="newTestData.data_type" name="data_type" 
-                [class.error]="formTestDataErrors.data_type" required (change)="onDataTypeChange()">
-          <option value="">Select Data Type</option>
-          <option value="text">Text</option>
-          <option value="file">File</option>
-          <option value="image">Image</option>
-          <option value="other">Other</option>
-        </select>
-        <div *ngIf="formTestDataErrors.data_type" class="error-message">{{ formTestDataErrors.data_type }}</div>
+      <div *ngIf="newTestData.data_type === 'file'">
+        <label>File Data *</label>
+        <input type="file" (change)="onFileSelected($event, 'file')" accept="*/*" 
+               [class.error]="formTestDataErrors.file_data" required />
+        <span *ngIf="newTestData.file_data_name" class="file-name">{{ newTestData.file_data_name }}</span>
+        <div *ngIf="formTestDataErrors.file_data" class="error-message">{{ formTestDataErrors.file_data }}</div>
+      </div>
 
-        <div *ngIf="newTestData.data_type === 'text'">
-          <label>Text Data *</label>
-          <textarea [(ngModel)]="newTestData.text_data" name="text_data" rows="4" 
-                    [class.error]="formTestDataErrors.text_data" required></textarea>
-          <div *ngIf="formTestDataErrors.text_data" class="error-message">{{ formTestDataErrors.text_data }}</div>
-        </div>
+      <div *ngIf="newTestData.data_type === 'image'">
+        <label>Image Data *</label>
+        <input type="file" (change)="onFileSelected($event, 'image')" accept="image/*" 
+               [class.error]="formTestDataErrors.image_data" required />
+        <span *ngIf="newTestData.image_data_name" class="file-name">{{ newTestData.image_data_name }}</span>
+        <div *ngIf="formTestDataErrors.image_data" class="error-message">{{ formTestDataErrors.image_data }}</div>
+      </div>
 
-        <div *ngIf="newTestData.data_type === 'file'">
-          <label>File Data *</label>
-          <input type="file" (change)="onFileSelected($event, 'file')" accept="*/*" 
-                 [class.error]="formTestDataErrors.file_data" required />
-          <span *ngIf="newTestData.file_data_name" class="file-name">{{ newTestData.file_data_name }}</span>
-          <div *ngIf="formTestDataErrors.file_data" class="error-message">{{ formTestDataErrors.file_data }}</div>
-        </div>
+      <div *ngIf="newTestData.data_type === 'other'">
+        <label>Other Data</label>
+        <textarea [(ngModel)]="newTestData.text_data" name="text_data" rows="4"></textarea>
+      </div>
 
-        <div *ngIf="newTestData.data_type === 'image'">
-          <label>Image Data *</label>
-          <input type="file" (change)="onFileSelected($event, 'image')" accept="image/*" 
-                 [class.error]="formTestDataErrors.image_data" required />
-          <span *ngIf="newTestData.image_data_name" class="file-name">{{ newTestData.image_data_name }}</span>
-          <div *ngIf="formTestDataErrors.image_data" class="error-message">{{ formTestDataErrors.image_data }}</div>
-        </div>
-
-        <div *ngIf="newTestData.data_type === 'other'">
-          <label>Other Data</label>
-          <textarea [(ngModel)]="newTestData.text_data" name="text_data" rows="4"></textarea>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="save-btn">{{ isEditTestDataMode ? 'Update' : 'Save' }}</button>
-          <button type="button" class="cancel-btn" (click)="closeTestDataPopup()">Cancel</button>
-        </div>
-      </form>
-    </div>
+      <div class="form-actions">
+        <button type="submit" class="save-btn">{{ isEditTestDataMode ? 'Update' : 'Save' }}</button>
+        <button type="button" class="cancel-btn" (click)="closeTestDataPopup()">Cancel</button>
+      </div>
+    </form>
+  </div>
   </div>
 
   <!-- Execute Test Case Popup -->
