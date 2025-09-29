@@ -2,10 +2,9 @@
 .reports-container {
   margin-left: 80px; /* Sidebar ki actual width ke hisaab se adjust karein */
   padding: 20px;
-  min-height: 100vh;
   background: #f9f9f9;
   overflow-y: auto;
-  height: 100vh;
+  height: 85vh;
   position: relative; /* Fixed ki zarurat nahi hai */
   width: calc(100% - 150px); /* Sidebar ke width ke hisaab se */
 }
@@ -110,9 +109,10 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Report Content */
+/* Report Content - REMOVED FLEX PROPERTIES THAT CREATE NESTED SCROLL */
 .report-content {
   margin-top: 20px;
+  /* Removed flex properties to prevent nested scrolling */
 }
 
 .report-header-section {
@@ -199,9 +199,10 @@
   background: #e9ecef;
 }
 
-/* Tab Content */
+/* Tab Content - REMOVED SCROLL PROPERTIES */
 .tab-content {
   margin-top: 0;
+  /* Removed overflow and flex properties */
 }
 
 /* Summary Report Section */
@@ -489,9 +490,10 @@
 .text-danger { color: #dc3545; font-weight: 500; }
 .text-warning { color: #ffc107; font-weight: 500; }
 
-/* Detailed Report */
+/* Detailed Report - REMOVED NESTED SCROLL */
 .detailed-report {
   margin-bottom: 20px;
+  /* Removed flex and overflow properties */
 }
 
 .detailed-report h4 {
@@ -559,6 +561,7 @@
 .test-cases-list {
   background: white;
   border-top: 1px solid #e9ecef;
+  /* Removed max-height and overflow to prevent nested scrolling */
 }
 
 .test-cases-table {
@@ -698,7 +701,7 @@
   }
 }
 
-/* Custom scrollbar styling */
+/* Custom scrollbar styling - ONLY FOR MAIN CONTAINER */
 .reports-container::-webkit-scrollbar {
   width: 8px;
 }

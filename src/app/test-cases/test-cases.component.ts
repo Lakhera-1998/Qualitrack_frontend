@@ -30,6 +30,7 @@ export class TestCasesComponent implements OnInit {
   testDataList: any[] = [];
   users: any[] = [];
   currentUser: any = null;
+  projectDevelopers: any[] = []; // Store project developers for assignment
 
   // Form validation
   formErrors: any = {
@@ -37,7 +38,8 @@ export class TestCasesComponent implements OnInit {
     description: '',
     expected_result: '',
     test_actions: '',
-    bug_status: ''
+    bug_status: '',
+    assigned_to: '' // Validation for assigned_to field
   };
 
   formTestDataErrors: any = {
@@ -45,7 +47,7 @@ export class TestCasesComponent implements OnInit {
     text_data: '',
     file_data: '',
     image_data: '',
-    general: '' // ADDED: General error message for test data form
+    general: ''
   };
 
   formExecutionErrors: any = {
@@ -67,6 +69,7 @@ export class TestCasesComponent implements OnInit {
     is_automated: false,
     requirement: null,
     created_by: null,
+    assigned_to: null, // assigned_to field
     is_executed: false,
     executed_by: null,
     executed_on: null,
@@ -153,6 +156,7 @@ export class TestCasesComponent implements OnInit {
     this.filteredProjects = [];
     this.filteredRequirements = [];
     this.testDataList = [];
+    this.projectDevelopers = []; // Clear developers when client changes
     
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -181,10 +185,12 @@ export class TestCasesComponent implements OnInit {
     this.requirement = null;
     this.testCases = [];
     this.filteredRequirements = [];
+    this.projectDevelopers = []; // Clear developers when project changes
     
     if (this.selectedProjectId) {
       this.loadRequirementsByProject(this.selectedProjectId);
       this.loadTestData();
+      this.loadProjectDevelopers(); // Load developers for the selected project
       
       const selectedProject = this.filteredProjects.find(project => project.id === this.selectedProjectId);
       this.selectedProjectName = selectedProject ? selectedProject.project_name : '';
@@ -192,6 +198,21 @@ export class TestCasesComponent implements OnInit {
       this.selectedProjectName = '';
       this.testDataList = [];
     }
+  }
+
+  // Method to load project developers
+  loadProjectDevelopers(): void {
+    if (!this.selectedProjectId) return;
+    
+    this.projectService.getProjectDevelopers(this.selectedProjectId).subscribe({
+      next: (data: any[]) => {
+        this.projectDevelopers = data;
+      },
+      error: (error: any) => {
+        console.error('Error fetching project developers:', error);
+        this.showError('Error loading project developers: ' + (error.error?.message || error.message));
+      }
+    });
   }
 
   loadRequirementsByProject(projectId: number): void {
@@ -257,7 +278,6 @@ export class TestCasesComponent implements OnInit {
       error: (error: any) => {
         console.error('Error fetching test data:', error);
         if (error.status !== 403) {
-          // REMOVED: Alert box and using form error instead
           this.formTestDataErrors.general = 'Error loading test data: ' + (error.error?.message || error.message);
         } else {
           this.testDataList = [];
@@ -278,6 +298,13 @@ export class TestCasesComponent implements OnInit {
     if (!userId) return '-';
     const user = this.users.find(u => u.id === userId);
     return user ? (user.username || user.email) : 'Unknown';
+  }
+
+  // Helper to get developer display name
+  getDeveloperDisplay(developerId: number): string {
+    if (!developerId) return '-';
+    const developer = this.projectDevelopers.find(dev => dev.id === developerId);
+    return developer ? developer.name : 'Unknown';
   }
 
   getTestDataDisplay(testData: any): string {
@@ -305,7 +332,6 @@ export class TestCasesComponent implements OnInit {
   }
 
   showError(message: string): void {
-    // REMOVED: Alert box - errors will be shown in forms instead
     console.error('Error:', message);
   }
 
@@ -341,6 +367,12 @@ export class TestCasesComponent implements OnInit {
 
     if (this.newTestCase.bug_raised && !this.newTestCase.bug_status) {
       this.formErrors.bug_status = 'Bug Status is required when bug is raised';
+      isValid = false;
+    }
+
+    // Validate executed_on if test case is executed
+    if (this.newTestCase.is_executed && !this.newTestCase.executed_on) {
+      this.formErrors.executed_on = 'Execution date is required when test case is executed';
       isValid = false;
     }
 
@@ -397,7 +429,9 @@ export class TestCasesComponent implements OnInit {
       description: '',
       expected_result: '',
       test_actions: '',
-      bug_status: ''
+      bug_status: '',
+      assigned_to: '', // Clear assigned_to error
+      executed_on: '' // Clear executed_on error
     };
   }
 
@@ -407,7 +441,7 @@ export class TestCasesComponent implements OnInit {
       text_data: '',
       file_data: '',
       image_data: '',
-      general: '' // ADDED: Clear general error too
+      general: ''
     };
   }
 
@@ -434,6 +468,7 @@ export class TestCasesComponent implements OnInit {
       is_automated: false,
       requirement: this.selectedRequirementId,
       created_by: this.currentUser?.id,
+      assigned_to: null, // Initialize assigned_to
       is_executed: false,
       executed_by: null,
       executed_on: null,
@@ -450,7 +485,19 @@ export class TestCasesComponent implements OnInit {
   editTestCase(testCase: any): void {
     this.isEditMode = true;
     this.editingTestCaseId = testCase.id;
-    this.newTestCase = { ...testCase };
+    
+    // Format the executed_on date for the datetime-local input
+    let formattedExecutedOn = null;
+    if (testCase.executed_on) {
+      const executedDate = new Date(testCase.executed_on);
+      formattedExecutedOn = executedDate.toISOString().slice(0, 16);
+    }
+    
+    this.newTestCase = { 
+      ...testCase,
+      executed_on: formattedExecutedOn
+    };
+    
     if (this.newTestCase.bug_screenshot && typeof this.newTestCase.bug_screenshot === 'string') {
       this.newTestCase.bug_screenshot = null;
     }
@@ -470,14 +517,30 @@ export class TestCasesComponent implements OnInit {
       return;
     }
 
+    // Only set executed_by and status if the test case is executed
     if (this.newTestCase.is_executed) {
       this.newTestCase.executed_by = this.currentUser?.id;
-      this.newTestCase.executed_on = new Date().toISOString();
+      
+      // Convert the datetime-local string to ISO format for backend
+      if (this.newTestCase.executed_on) {
+        // If executed_on is already in correct format (from edit), use it as is
+        if (typeof this.newTestCase.executed_on === 'string' && this.newTestCase.executed_on.includes('T')) {
+          // Convert datetime-local format to ISO string
+          this.newTestCase.executed_on = new Date(this.newTestCase.executed_on).toISOString();
+        }
+        // If it's already a Date object or ISO string, leave it as is
+      }
+      
+      // Ensure status is set if executed
+      if (!this.newTestCase.status) {
+        this.newTestCase.status = 'Not tested yet';
+      }
     } else {
       this.newTestCase.executed_by = null;
       this.newTestCase.executed_on = null;
       this.newTestCase.status = 'Not tested yet';
       this.newTestCase.actual_result = '';
+      this.newTestCase.test_actions = '';
     }
 
     if (!this.newTestCase.bug_raised) {
@@ -490,6 +553,10 @@ export class TestCasesComponent implements OnInit {
 
     if (this.newTestCase.test_data) {
       this.newTestCase.test_data = Number(this.newTestCase.test_data);
+    }
+
+    if (this.newTestCase.assigned_to) {
+      this.newTestCase.assigned_to = Number(this.newTestCase.assigned_to);
     }
 
     if (this.isEditMode && this.editingTestCaseId) {
@@ -588,7 +655,6 @@ export class TestCasesComponent implements OnInit {
         },
         error: (error: any) => {
           console.error('Error updating test data:', error);
-          // ADDED: Show error in form instead of alert
           this.formTestDataErrors.general = 'Error updating test data: ' + (error.error?.message || error.message);
         }
       });
@@ -601,7 +667,6 @@ export class TestCasesComponent implements OnInit {
         },
         error: (error: any) => {
           console.error('Error adding test data:', error);
-          // ADDED: Show error in form instead of alert
           this.formTestDataErrors.general = 'Error adding test data: ' + (error.error?.message || error.message);
         }
       });
@@ -636,7 +701,7 @@ export class TestCasesComponent implements OnInit {
     const updatedTestCase = {
       ...this.executingTestCase,
       is_executed: true,
-      executed_on: new Date().toISOString(),
+      executed_on: new Date().toISOString(), // For execute popup, use current datetime
       executed_by: this.currentUser?.id,
       status: this.executionData.status,
       actual_result: this.executionData.actual_result,

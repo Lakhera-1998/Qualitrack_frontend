@@ -273,6 +273,7 @@
                   <th>Bug Status</th>
                   <th>Automated</th>
                   <th>Executed By</th>
+                  <th>Assigned to</th>
                   <th>Executed On</th>
                 </tr>
               </thead>
@@ -293,6 +294,7 @@
                   </td>
                   <td>{{ testCase.is_automated ? 'Yes' : 'No' }}</td>
                   <td>{{ testCase.executed_by || '-' }}</td>
+                  <td>{{ testCase.assigned_to || '-' }}</td>
                   <td>{{ testCase.executed_on ? (testCase.executed_on | date:'short') : '-' }}</td>
                 </tr>
               </tbody>

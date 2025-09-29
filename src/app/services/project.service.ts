@@ -54,4 +54,10 @@ export class ProjectService {
   getTechnologies(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/technologies/`, this.getHeaders());
   }
+
+  // ✅ UPDATED: Use path param instead of query param
+  getProjectDevelopers(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/projects/${projectId}/developers/`, this.getHeaders());
+  }
+
 }
