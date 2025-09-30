@@ -1,5 +1,6 @@
 <div class="sidebar">
-  <div class="menu-section">
+  <!-- ✅ Show Home/Dashboard only for superadmin or staff -->
+  <div class="menu-section" *ngIf="showAllMenus()">
     <h3>Home</h3>
     <ul>
       <li [class.active]="currentRoute === '/dashboard'">
@@ -11,30 +12,52 @@
   <div class="menu-section">
     <h3>PAGES</h3>
     <ul>
-      <li [class.active]="currentRoute === '/clients'">
-        <a routerLink="/clients">Clients</a>
-      </li>
-      <li [class.active]="currentRoute === '/projects'">
-        <a routerLink="/projects">Projects</a>
-      </li>
-      <li [class.active]="currentRoute === '/requirements'">
-        <a routerLink="/requirements">Requirements</a>
-      </li> 
-      <li [class.active]="currentRoute === '/test-plans'">
-        <a routerLink="/test-plans">Test Plans</a>
-      </li>
-      <li [class.active]="currentRoute === '/test-cases'">
-        <a routerLink="/test-cases">Test Cases</a>
-      </li>
-      <li [class.active]="currentRoute === '/technologies'">
-        <a routerLink="/technologies">Technologies</a>
-      </li>
-      <li [class.active]="currentRoute === '/testing-types'">
-        <a routerLink="/testing-types">Testing Types</a>
-      </li>
-      <li [class.active]="currentRoute === '/reports'">
-        <a routerLink="/reports">Report</a>
-      </li>
+      <!-- ✅ Superadmin & Staff see ALL pages -->
+      <ng-container *ngIf="showAllMenus()">
+        <li [class.active]="currentRoute === '/clients'">
+          <a routerLink="/clients">Clients</a>
+        </li>
+        <li [class.active]="currentRoute === '/projects'">
+          <a routerLink="/projects">Projects</a>
+        </li>
+        <li [class.active]="currentRoute === '/requirements'">
+          <a routerLink="/requirements">Requirements</a>
+        </li> 
+        <li [class.active]="currentRoute === '/test-plans'">
+          <a routerLink="/test-plans">Test Plans</a>
+        </li>
+        <li [class.active]="currentRoute === '/test-cases'">
+          <a routerLink="/test-cases">Test Cases</a>
+        </li>
+        <li [class.active]="currentRoute === '/technologies'">
+          <a routerLink="/technologies">Technologies</a>
+        </li>
+        <li [class.active]="currentRoute === '/testing-types'">
+          <a routerLink="/testing-types">Testing Types</a>
+        </li>
+        <li [class.active]="currentRoute === '/reports'">
+          <a routerLink="/reports">Report</a>
+        </li>
+      </ng-container>
+
+      <!-- ✅ Normal active users -->
+      <ng-container *ngIf="showLimitedMenus()">
+        <li [class.active]="currentRoute === '/projects'">
+          <a routerLink="/projects">Projects</a>
+        </li>
+        <li [class.active]="currentRoute === '/requirements'">
+          <a routerLink="/requirements">Requirements</a>
+        </li> 
+        <li [class.active]="currentRoute === '/test-plans'">
+          <a routerLink="/test-plans">Test Plans</a>
+        </li>
+        <li [class.active]="currentRoute === '/test-cases'">
+          <a routerLink="/test-cases">Test Cases</a>
+        </li>
+        <li [class.active]="currentRoute === '/reports'">
+          <a routerLink="/reports">Report</a>
+        </li>
+      </ng-container>
     </ul>
   </div>
 </div>

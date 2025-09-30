@@ -26,21 +26,20 @@ export class AuthService {
     return !!sessionStorage.getItem('accessToken');
   }
 
-  // Add this method to get current user
   getCurrentUser(): any {
     const userStr = sessionStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   }
 
-  // Update login method to store user data
+  // 🔹 FIXED: use response.token instead of response.access
   loginAndStoreUser(email: string, password: string) {
     return this.http.post<any>(`${this.baseUrl}/login/`, { email, password })
       .pipe(
         catchError(this.handleError)
       ).subscribe({
         next: (response) => {
-          if (response.user && response.access) {
-            sessionStorage.setItem('accessToken', response.access);
+          if (response.user && response.token) {
+            sessionStorage.setItem('accessToken', response.token);
             sessionStorage.setItem('user', JSON.stringify(response.user));
           }
         },
