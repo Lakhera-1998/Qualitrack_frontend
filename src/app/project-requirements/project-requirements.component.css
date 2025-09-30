@@ -2,15 +2,13 @@
 .requirements-container {
   margin-left: 80px; /* adjust according to sidebar width */
   padding: 20px;
-  min-height: 100vh;
+  height: calc(100vh - 60px);  /* 👈 fixed height: screen height - navbar (adjust if needed) */
   background: #f9f9f9;
-  overflow-y: hidden; /* Enable vertical scrolling for the entire page */
+  overflow-y: auto;   /* ✅ poore page ke liye scroll enable */
 }
 
 /* Table container with vertical scroll */
 .table-card {
-  max-height: calc(100vh - 400px);  /*Adjust based on your layout */
-  overflow: auto;
   display: flex;
   flex-direction: column;
   margin-bottom: 20px;   /* ✅ bottom me extra gap */
@@ -134,8 +132,6 @@
 
 .table-container {
   overflow-x: auto;
-  overflow-y: auto;  
-  max-height: calc(100vh - 350px); /* Adjust based on your layout */
   padding-bottom: 20px; /* ✅ last row ke niche extra space */
 }
 
@@ -517,28 +513,8 @@ textarea {
   }
 }
 
-/* Custom scrollbar styling */
-.table-container::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.table-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
 .requirements-container::-webkit-scrollbar {
-  width: 8px;
+  width: 2px;
 }
 
 .requirements-container::-webkit-scrollbar-track {
