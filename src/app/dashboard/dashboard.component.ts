@@ -2,9 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartOptions, ChartType } from 'chart.js';
-import { ClientsService } from '../clients.service';
-import { ProjectService } from '../services/project.service';
-import { UserService } from '../services/user.service';
+import { DashboardService, DashboardCounts, UpcomingDeadline, ProjectStatusOverview } from '../services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -24,9 +22,8 @@ export class DashboardComponent implements OnInit {
   inactiveEmployees = 0;
 
   // ===== Chart Data =====
-  projectStatusLabels: string[] = ['Active Projects', 'Inactive Projects'];
   projectStatusData: ChartData<'pie'> = {
-    labels: this.projectStatusLabels,
+    labels: ['Active Projects', 'Inactive Projects'],
     datasets: [
       {
         data: [0, 0],
@@ -54,82 +51,65 @@ export class DashboardComponent implements OnInit {
   };
 
   // ===== Upcoming Deadlines =====
-  upcomingDeadlines: any[] = [];
+  upcomingDeadlines: UpcomingDeadline[] = [];
 
-  constructor(
-    private clientsService: ClientsService,
-    private projectService: ProjectService,
-    private userService: UserService
-  ) {}
+  constructor(private dashboardService: DashboardService) {}
 
   ngOnInit(): void {
-    this.loadCounts();
-    this.loadUpcomingDeadlines();
+    this.loadDashboardData();
   }
 
-  // ===== Load Counts and Chart =====
+  // ===== Load All Dashboard Data =====
+  loadDashboardData(): void {
+    this.loadCounts();
+    this.loadUpcomingDeadlines();
+    this.loadProjectStatusChart();
+  }
+
+  // ===== Load Counts using new API =====
   loadCounts(): void {
-    this.clientsService.getClients().subscribe({
-      next: (clients) => {
-        this.clientCount = clients.filter(c => c.is_active !== false).length;
-        this.inactiveClients = clients.filter(c => c.is_active === false).length;
+    this.dashboardService.getDashboardCounts().subscribe({
+      next: (data: DashboardCounts) => {
+        this.employeeCount = data.employees.active;
+        this.inactiveEmployees = data.employees.inactive;
+        
+        this.clientCount = data.clients.active;
+        this.inactiveClients = data.clients.inactive;
+        
+        this.projectCount = data.projects.active;
+        this.inactiveProjects = data.projects.inactive;
       },
-      error: (err) => console.error('Error loading clients:', err)
+      error: (err) => console.error('Error loading dashboard counts:', err)
     });
+  }
 
-    this.projectService.getProjects().subscribe({
-      next: (projects) => {
-        const active = projects.filter(p => p.is_active !== false).length;
-        const inactive = projects.filter(p => p.is_active === false).length;
-        this.projectCount = active;
-        this.inactiveProjects = inactive;
-
-        // Update chart data
+  // ===== Load Project Status Chart using new API =====
+  loadProjectStatusChart(): void {
+    this.dashboardService.getProjectStatusOverview().subscribe({
+      next: (data: ProjectStatusOverview) => {
         this.projectStatusData = {
-          ...this.projectStatusData,
+          labels: ['Active Projects', 'Inactive Projects'],
           datasets: [
             {
-              ...this.projectStatusData.datasets[0],
-              data: [active, inactive]
+              data: [data.active_projects, data.inactive_projects],
+              backgroundColor: ['#3f51b5', '#c5cae9'],
+              hoverBackgroundColor: ['#283593', '#9fa8da'],
+              borderWidth: 1,
             }
           ]
         };
       },
-      error: (err) => console.error('Error loading projects:', err)
-    });
-
-    this.userService.getUsers().subscribe({
-      next: (users) => {
-        this.employeeCount = users.filter(u => u.is_active !== false).length;
-        this.inactiveEmployees = users.filter(u => u.is_active === false).length;
-      },
-      error: (err) => console.error('Error loading employees:', err)
+      error: (err) => console.error('Error loading project status:', err)
     });
   }
 
-  // ===== Load Upcoming Deadlines =====
+  // ===== Load Upcoming Deadlines using new API =====
   loadUpcomingDeadlines(): void {
-    this.projectService.getProjects().subscribe({
-      next: (projects) => {
-        // Assuming each project has `end_date` and `client_name`
-        const today = new Date();
-        const next15Days = new Date();
-        next15Days.setDate(today.getDate() + 15);
-
-        this.upcomingDeadlines = projects
-          .filter((p: any) => {
-            if (!p.end_date) return false;
-            const due = new Date(p.end_date);
-            return due >= today && due <= next15Days;
-          })
-          .map((p: any) => ({
-            project_name: p.name,
-            client_name: p.client_name || 'N/A',
-            due_date: p.end_date
-          }))
-          .sort((a: any, b: any) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+    this.dashboardService.getUpcomingDeadlines().subscribe({
+      next: (data) => {
+        this.upcomingDeadlines = data.deadlines;
       },
-      error: (err) => console.error('Error loading deadlines:', err)
+      error: (err) => console.error('Error loading upcoming deadlines:', err)
     });
   }
 }
