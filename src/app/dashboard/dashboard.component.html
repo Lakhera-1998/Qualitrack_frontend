@@ -1,46 +1,63 @@
-<p>dashboard works!</p>
 <div class="dashboard-container">
   <div class="header">
     <h2>Dashboard</h2>
   </div>
 
+  <!-- ===== Stats Section ===== -->
   <div class="stats-grid">
     <div class="stat-card">
       <h3>Active Projects</h3>
       <p class="count">{{ projectCount }}</p>
-      <p>Active {{ projectCount }}, Inactive 0</p>
+      <p>Active {{ projectCount }}, Inactive {{ inactiveProjects }}</p>
     </div>
 
     <div class="stat-card">
       <h3>Employees</h3>
       <p class="count">{{ employeeCount }}</p>
-      <p>Active {{ employeeCount }}, Inactive 0</p>
+      <p>Active {{ employeeCount }}, Inactive {{ inactiveEmployees }}</p>
     </div>
 
     <div class="stat-card">
       <h3>Clients</h3>
       <p class="count">{{ clientCount }}</p>
-      <p>Active {{ clientCount }}, Inactive 0</p>
+      <p>Active {{ clientCount }}, Inactive {{ inactiveClients }}</p>
     </div>
   </div>
 
+  <!-- ===== Chart & Deadlines Section ===== -->
   <div class="chart-section">
-    <div class="card">
-      <h3>Project Status</h3>
-      <div class="chart-placeholder">
-        <!-- Chart would go here in a real implementation -->
-        <p>Project status visualization</p>
+    <!-- Left: Project Status Chart -->
+    <div class="card chart-card">
+      <h3>Project Status Overview</h3>
+      <div class="chart-container">
+        <canvas
+          baseChart
+          [data]="projectStatusData"
+          [labels]="projectStatusLabels"
+          [type]="projectStatusType"
+          [options]="chartOptions">
+        </canvas>
       </div>
     </div>
 
+    <!-- Right: Upcoming Deadlines -->
     <div class="card">
-      <h3>Recent Activity</h3>
-      <div class="activity-list">
-        <div class="activity-item" *ngFor="let activity of recentActivities">
-          <p>{{ activity.message }}</p>
-          <small>{{ activity.time | date:'short' }}</small>
+      <h3>Upcoming Deadlines</h3>
+      <div class="deadline-list" *ngIf="upcomingDeadlines.length > 0; else noDeadlines">
+        <div class="deadline-item" *ngFor="let item of upcomingDeadlines">
+          <div>
+            <p class="project-name">{{ item.project_name }}</p>
+            <small>Client: {{ item.client_name }}</small>
+          </div>
+          <div class="deadline-date">
+            <span>{{ item.due_date | date:'MMM d, y' }}</span>
+          </div>
         </div>
       </div>
+
+      <ng-template #noDeadlines>
+        <p class="no-data">No upcoming deadlines</p>
+      </ng-template>
     </div>
   </div>
 </div>

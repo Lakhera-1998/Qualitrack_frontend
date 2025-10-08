@@ -4,12 +4,13 @@
   </div>
 
   <div class="navbar-right">
-    <span class="user">User</span>
+    <!-- 👇 Dynamically display logged-in user's username -->
+    <span class="user">{{ username }}</span>
     <a class="logout" (click)="openLogoutPopup()">Logout</a>
   </div>
 </nav>
 
-<!-- 🔽 Custom Popup Modal -->
+<!-- 🔽 Custom Logout Popup -->
 <div class="logout-popup-backdrop" *ngIf="showLogoutPopup">
   <div class="logout-popup">
     <!-- ✖ Close Icon -->

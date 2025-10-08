@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError, throwError } from 'rxjs';
+import { catchError, tap, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -10,45 +10,53 @@ export class AuthService {
 
   constructor(private http: HttpClient) { }
 
+  // 🔹 Login and store user + token in localStorage
   login(email: string, password: string) {
-    return this.http.post<any>(`${this.baseUrl}/login/`, { email, password })
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  logout() {
-    sessionStorage.removeItem('accessToken');
-    sessionStorage.removeItem('user');
-  }
-
-  isLoggedIn(): boolean {
-    return !!sessionStorage.getItem('accessToken');
-  }
-
-  getCurrentUser(): any {
-    const userStr = sessionStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
-  }
-
-  // 🔹 FIXED: use response.token instead of response.access
-  loginAndStoreUser(email: string, password: string) {
-    return this.http.post<any>(`${this.baseUrl}/login/`, { email, password })
-      .pipe(
-        catchError(this.handleError)
-      ).subscribe({
-        next: (response) => {
-          if (response.user && response.token) {
-            sessionStorage.setItem('accessToken', response.token);
-            sessionStorage.setItem('user', JSON.stringify(response.user));
-          }
-        },
-        error: (error) => {
-          console.error('Login error:', error);
+    return this.http.post<any>(`${this.baseUrl}/login/`, { email, password }).pipe(
+      tap(response => {
+        if (response && response.user) {
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
         }
-      });
+      }),
+      catchError(this.handleError)
+    );
   }
 
+  // 🔹 Logout user
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }
+
+  // 🔹 Check login status
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('token');
+  }
+
+  /**
+   * 🔹 Updated getCurrentUser:
+   * Returns the current logged-in user data (from localStorage).
+   * Works for all existing components + Navbar username display.
+   */
+  getCurrentUser(): any {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        // Ensure username or email is available for Navbar
+        return {
+          ...user,
+          displayName: user.username || user.email || 'User'
+        };
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  // 🔹 Generic error handler
   private handleError(error: HttpErrorResponse) {
     let errorMsg = 'Something went wrong!';
     if (error.error && error.error.detail) {

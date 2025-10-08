@@ -21,8 +21,9 @@ export class LoginComponent implements OnInit {
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {
+    // 🔹 If user already logged in, redirect to dashboard
     if (this.authService.isLoggedIn()) {
-      this.router.navigate(['/clients'], { replaceUrl: true });
+      this.router.navigate(['/dashboard'], { replaceUrl: true });
     }
   }
 
@@ -36,15 +37,18 @@ export class LoginComponent implements OnInit {
 
     this.authService.login(this.email, this.password).subscribe({
       next: (res) => {
-        sessionStorage.setItem('accessToken', res.token);
-        sessionStorage.setItem('user', JSON.stringify(res.user));
+        // 🔹 Store user + token in localStorage
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('user', JSON.stringify(res.user));
 
         this.isLoading = false;
-        this.router.navigate(['/clients'], { replaceUrl: true });
+
+        // 🔹 Redirect ALL USERS to dashboard page
+        this.router.navigate(['/dashboard'], { replaceUrl: true });
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.detail || 'Login failed!';
+        this.errorMessage = err?.error?.detail || 'Login failed!';
       }
     });
   }
