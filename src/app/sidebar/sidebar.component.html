@@ -1,14 +1,16 @@
 <div class="sidebar">
-  <!-- ✅ Show Home/Dashboard only for superadmin or staff -->
-  <div class="menu-section" *ngIf="showAllMenus()">
+  <!-- ✅ Home Section (Visible for ALL logged-in users) -->
+  <div class="menu-section">
     <h3>Home</h3>
     <ul>
+      <!-- Show Dashboard for all users: superadmin, staff, and active -->
       <li [class.active]="currentRoute === '/dashboard'">
         <a routerLink="/dashboard">Dashboard</a>
       </li>
     </ul>
   </div>
 
+  <!-- ✅ Pages Section -->
   <div class="menu-section">
     <h3>PAGES</h3>
     <ul>
@@ -22,7 +24,7 @@
         </li>
         <li [class.active]="currentRoute === '/requirements'">
           <a routerLink="/requirements">Requirements</a>
-        </li> 
+        </li>
         <li [class.active]="currentRoute === '/test-plans'">
           <a routerLink="/test-plans">Test Plans</a>
         </li>
@@ -40,14 +42,14 @@
         </li>
       </ng-container>
 
-      <!-- ✅ Normal active users -->
+      <!-- ✅ Normal active users (limited pages) -->
       <ng-container *ngIf="showLimitedMenus()">
         <li [class.active]="currentRoute === '/projects'">
           <a routerLink="/projects">Projects</a>
         </li>
         <li [class.active]="currentRoute === '/requirements'">
           <a routerLink="/requirements">Requirements</a>
-        </li> 
+        </li>
         <li [class.active]="currentRoute === '/test-plans'">
           <a routerLink="/test-plans">Test Plans</a>
         </li>
