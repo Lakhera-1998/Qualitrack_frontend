@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, tap, throwError } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -8,15 +9,18 @@ import { catchError, tap, throwError } from 'rxjs';
 export class AuthService {
   private baseUrl = 'http://127.0.0.1:8000';  // Django backend URL
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private router: Router) {}
 
-  // 🔹 Login and store user + token in localStorage
+  // 🔹 Login and store user + token in sessionStorage
   login(email: string, password: string) {
     return this.http.post<any>(`${this.baseUrl}/login/`, { email, password }).pipe(
       tap(response => {
-        if (response && response.user) {
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
+        if (response && response.user && response.token) {
+          sessionStorage.setItem('accessToken', response.token);
+          sessionStorage.setItem('user', JSON.stringify(response.user));
+
+          // 🔹 Redirect to dashboard after successful login
+          this.router.navigate(['/dashboard']);
         }
       }),
       catchError(this.handleError)
@@ -25,38 +29,34 @@ export class AuthService {
 
   // 🔹 Logout user
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('user');
+    this.router.navigate(['/login']); // optional redirect on logout
   }
 
   // 🔹 Check login status
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    return !!sessionStorage.getItem('accessToken');
   }
 
-  /**
-   * 🔹 Updated getCurrentUser:
-   * Returns the current logged-in user data (from localStorage).
-   * Works for all existing components + Navbar username display.
-   */
+  // 🔹 Get current user info
   getCurrentUser(): any {
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
-        // Ensure username or email is available for Navbar
         return {
           ...user,
           displayName: user.username || user.email || 'User'
         };
-      } catch (e) {
+      } catch {
         return null;
       }
     }
     return null;
   }
 
-  // 🔹 Generic error handler
+  // 🔹 Error handler
   private handleError(error: HttpErrorResponse) {
     let errorMsg = 'Something went wrong!';
     if (error.error && error.error.detail) {
