@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -31,6 +31,11 @@ export class TestDataService {
   // Get test data by project - FIXED URL
   getTestDataByProject(projectId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/test-data/?project=${projectId}`, this.getHeaders());
+  }
+
+  // NEW: Get test data by test case
+  getTestDataByTestCase(testCaseId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/test-data/?test_case=${testCaseId}`, this.getHeaders());
   }
 
   // Create test data - FIXED URL (changed from /test-data/ to /test-data/create/)

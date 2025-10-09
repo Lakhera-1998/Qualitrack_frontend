@@ -52,6 +52,7 @@
               <th class="col-boolean">Is Automated</th>
               <th class="col-boolean">Is Executed</th>
               <th class="col-boolean">Bug Raised</th>
+              <th>Bug Screenshot</th>
               <th>Assigned To</th>
               <th>Executed By</th>
               <th>Executed On</th>
@@ -99,6 +100,16 @@
                 </span>
               </td>
 
+              <td>
+                <div *ngIf="testCase.bug_screenshot" class="screenshot-preview">
+                  <img [src]="testCase.bug_screenshot" alt="Bug Screenshot" 
+                       (click)="viewScreenshot(testCase.bug_screenshot)" 
+                       class="screenshot-thumbnail">
+                  <button class="view-btn" (click)="viewScreenshot(testCase.bug_screenshot)">View</button>
+                </div>
+                <span *ngIf="!testCase.bug_screenshot">-</span>
+              </td>
+
               <td>{{ getDeveloperDisplay(testCase.assigned_to) }}</td>
 
               <td>{{ getUsername(testCase.executed_by) }}</td>
@@ -110,6 +121,7 @@
                 <button class="edit-btn" (click)="editTestCase(testCase)" title="Edit Test Case">✏️</button>
                 <button class="execute-btn" (click)="executeTestCase(testCase)"
                         *ngIf="!testCase.is_executed" title="Execute Test Case">▶️</button>
+                <button class="view-details-btn" (click)="viewTestCaseDetails(testCase)" title="View Details">👁️</button>
               </td>
             </tr>
           </tbody>
@@ -200,7 +212,38 @@
         <!-- Show bug fields only if bug raised -->
         <ng-container *ngIf="newTestCase.bug_raised">
           <label>Bug Screenshot</label>
-          <input type="file" (change)="onFileSelected($event, 'bug_screenshot')" accept="image/*" />
+          <div class="screenshot-upload-section">
+            <!-- File upload option -->
+            <div class="file-upload-option">
+              <input type="file" (change)="onFileSelected($event, 'bug_screenshot')" accept="image/*" />
+              <small>Or use clipboard paste below</small>
+            </div>
+            
+            <!-- Clipboard paste option -->
+            <div class="clipboard-upload-option">
+              <div class="clipboard-area" 
+                   [class.active]="isClipboardActive"
+                   (click)="activateClipboard()"
+                   (paste)="onPasteScreenshot($event)"
+                   tabindex="0">
+                <div class="clipboard-placeholder" *ngIf="!clipboardImage">
+                  <span class="clipboard-icon">📋</span>
+                  <p>Click here and press Ctrl+V to paste screenshot</p>
+                  <small>Supports PNG, JPEG, JPG, GIF (max 5MB)</small>
+                </div>
+                <div class="clipboard-preview" *ngIf="clipboardImage">
+                  <img [src]="clipboardImage" alt="Pasted screenshot" class="pasted-screenshot">
+                  <button type="button" class="remove-btn" (click)="removePastedScreenshot($event)">✖</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Current screenshot preview -->
+            <div class="current-screenshot" *ngIf="newTestCase.bug_screenshot && !clipboardImage">
+              <img [src]="newTestCase.bug_screenshot" alt="Current screenshot" class="screenshot-preview-img">
+              <button type="button" class="remove-btn" (click)="removeCurrentScreenshot()">✖</button>
+            </div>
+          </div>
 
           <label>Bug Status *</label>
           <select [(ngModel)]="newTestCase.bug_status" name="bug_status" 
@@ -250,6 +293,115 @@
           <button type="button" class="cancel-btn" (click)="closeTestCasePopup()">Cancel</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Test Case Details Popup -->
+  <div class="popup" *ngIf="showTestCaseDetailsPopup">
+    <div class="popup-content large-popup">
+      <div class="popup-header">
+        <h3>Test Case Details: {{ selectedTestCase?.title }}</h3>
+        <button class="close-btn" (click)="closeTestCaseDetailsPopup()">✖</button>
+      </div>
+
+      <div class="test-case-details">
+        <div class="details-section">
+          <h4>Basic Information</h4>
+          <div class="detail-row">
+            <label>Description:</label>
+            <span>{{ selectedTestCase?.description }}</span>
+          </div>
+          <div class="detail-row">
+            <label>Pre Conditions:</label>
+            <span>{{ selectedTestCase?.pre_conditions || '-' }}</span>
+          </div>
+          <div class="detail-row">
+            <label>Expected Result:</label>
+            <span>{{ selectedTestCase?.expected_result }}</span>
+          </div>
+        </div>
+
+        <div class="details-section" *ngIf="selectedTestCase?.is_executed">
+          <h4>Execution Details</h4>
+          <div class="detail-row">
+            <label>Status:</label>
+            <span class="status-badge {{ selectedTestCase?.status?.toLowerCase()?.replace(' ', '-') }}">
+              {{ selectedTestCase?.status }}
+            </span>
+          </div>
+           <div class="detail-row">
+            <label>Actual Result:</label>
+            <span>{{ selectedTestCase?.actual_result || '-' }}</span>
+          </div>
+          <div class="detail-row">
+            <label>Executed By:</label>
+            <span>{{ getUserDisplay(selectedTestCase?.executed_by) }}</span> <!-- Updated this line -->
+          </div>
+          <div class="detail-row">
+          <label>Executed On:</label>
+          <span>{{ selectedTestCase?.executed_on | date:'medium' }}</span>
+        </div>
+        </div>
+
+        <div class="details-section" *ngIf="selectedTestCase?.bug_raised">
+          <h4>Bug Information</h4>
+          <div class="detail-row">
+            <label>Bug Status:</label>
+            <span class="bug-status-badge {{ selectedTestCase?.bug_status?.toLowerCase().replace(' ', '-') }}">
+              {{ selectedTestCase?.bug_status }}
+            </span>
+          </div>
+          <div class="detail-row" *ngIf="selectedTestCase?.bug_screenshot">
+            <label>Bug Screenshot:</label>
+            <div class="screenshot-detail">
+              <img [src]="selectedTestCase?.bug_screenshot" alt="Bug Screenshot" class="detail-screenshot">
+            </div>
+          </div>
+        </div>
+
+        <div class="details-section">
+          <h4>Associated Test Data</h4>
+          <div *ngIf="testCaseTestData && testCaseTestData.length > 0" class="test-data-list">
+            <div *ngFor="let testData of testCaseTestData" class="test-data-item">
+              <div class="test-data-header">
+                <strong>{{ testData.data_type | titlecase }} Data</strong>
+                <span class="upload-date">{{ testData.uploaded_at | date:'short' }}</span>
+              </div>
+              <div class="test-data-content">
+                <div *ngIf="testData.data_type === 'text'">{{ testData.text_data }}</div>
+                <div *ngIf="testData.data_type === 'file'">
+                  <a [href]="testData.file_data" target="_blank" class="file-link">
+                    📎 {{ testData.file_data_name }}
+                  </a>
+                </div>
+                <div *ngIf="testData.data_type === 'image'">
+                  <img [src]="testData.image_data" [alt]="testData.image_data_name" class="test-data-image">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="!testCaseTestData || testCaseTestData.length === 0" class="no-test-data">
+            No test data associated with this test case.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" (click)="closeTestCaseDetailsPopup()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screenshot Viewer Popup -->
+  <div class="popup" *ngIf="showScreenshotViewer">
+    <div class="popup-content image-viewer">
+      <div class="popup-header">
+        <h3>Bug Screenshot</h3>
+        <button class="close-btn" (click)="closeScreenshotViewer()">✖</button>
+      </div>
+      <div class="image-container">
+        <img [src]="viewingScreenshot" alt="Bug Screenshot" class="full-screenshot">
+      </div>
     </div>
   </div>
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TestCaseService } from '../services/test-case.service';
 import { RequirementService } from '../services/requirement.service';
@@ -8,6 +8,7 @@ import { TestDataService } from '../services/test-data.service';
 import { AuthService } from '../auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-test-cases',
@@ -28,9 +29,19 @@ export class TestCasesComponent implements OnInit {
   requirement: any = null;
   testCases: any[] = [];
   testDataList: any[] = [];
-  users: any[] = [];
+  users: any[] = []; // This will now store actual users from backend
   currentUser: any = null;
-  projectDevelopers: any[] = []; // Store project developers for assignment
+  projectDevelopers: any[] = [];
+
+  // New properties for clipboard functionality and test case details
+  isClipboardActive: boolean = false;
+  clipboardImage: string | null = null;
+  clipboardFile: File | null = null;
+  showTestCaseDetailsPopup: boolean = false;
+  selectedTestCase: any = null;
+  testCaseTestData: any[] = [];
+  showScreenshotViewer: boolean = false;
+  viewingScreenshot: string = '';
 
   // Form validation
   formErrors: any = {
@@ -39,7 +50,7 @@ export class TestCasesComponent implements OnInit {
     expected_result: '',
     test_actions: '',
     bug_status: '',
-    assigned_to: '' // Validation for assigned_to field
+    assigned_to: ''
   };
 
   formTestDataErrors: any = {
@@ -69,7 +80,7 @@ export class TestCasesComponent implements OnInit {
     is_automated: false,
     requirement: null,
     created_by: null,
-    assigned_to: null, // assigned_to field
+    assigned_to: null,
     is_executed: false,
     executed_by: null,
     executed_on: null,
@@ -118,21 +129,39 @@ export class TestCasesComponent implements OnInit {
     private projectService: ProjectService,
     private clientsService: ClientsService,
     private testDataService: TestDataService,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
     this.loadCurrentUser();
     this.loadClients();
-    this.loadUsers();
+    this.loadUsers(); // This will now load actual users from backend
   }
 
   // ✅ Loaders
   loadCurrentUser(): void {
-    this.currentUser = this.authService.getCurrentUser();
-    if (!this.currentUser) {
-      console.warn('No current user found in session storage');
-    }
+  this.currentUser = this.authService.getCurrentUser();
+  if (!this.currentUser) {
+    console.warn('No current user found in session storage');
+  } else {
+    console.log('Current user loaded:', this.currentUser);
+  }
+}
+
+  // ✅ Updated method to load users from backend
+  loadUsers(): void {
+    this.http.get<any[]>('http://127.0.0.1:8000/users/').subscribe({
+      next: (data: any[]) => {
+        this.users = data;
+        console.log('Users loaded:', this.users);
+      },
+      error: (error: any) => {
+        console.error('Error fetching users:', error);
+        // Fallback to empty array if API fails
+        this.users = [];
+      }
+    });
   }
 
   loadClients(): void {
@@ -156,7 +185,7 @@ export class TestCasesComponent implements OnInit {
     this.filteredProjects = [];
     this.filteredRequirements = [];
     this.testDataList = [];
-    this.projectDevelopers = []; // Clear developers when client changes
+    this.projectDevelopers = [];
     
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -185,12 +214,12 @@ export class TestCasesComponent implements OnInit {
     this.requirement = null;
     this.testCases = [];
     this.filteredRequirements = [];
-    this.projectDevelopers = []; // Clear developers when project changes
+    this.projectDevelopers = [];
     
     if (this.selectedProjectId) {
       this.loadRequirementsByProject(this.selectedProjectId);
       this.loadTestData();
-      this.loadProjectDevelopers(); // Load developers for the selected project
+      this.loadProjectDevelopers();
       
       const selectedProject = this.filteredProjects.find(project => project.id === this.selectedProjectId);
       this.selectedProjectName = selectedProject ? selectedProject.project_name : '';
@@ -200,7 +229,6 @@ export class TestCasesComponent implements OnInit {
     }
   }
 
-  // Method to load project developers
   loadProjectDevelopers(): void {
     if (!this.selectedProjectId) return;
     
@@ -251,12 +279,22 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
+  // ✅ Updated method to load test cases with proper screenshot URLs
   loadTestCases(): void {
     if (!this.selectedRequirementId) return;
     
     this.testCaseService.getTestCasesByRequirement(this.selectedRequirementId).subscribe({
       next: (data: any[]) => {
-        this.testCases = data;
+        // Process screenshot URLs
+        this.testCases = data.map(testCase => ({
+          ...testCase,
+          bug_screenshot: testCase.bug_screenshot 
+            ? this.testCaseService.getBugScreenshotUrl(testCase.bug_screenshot)
+            : null
+        }));
+        
+        // Debug: Log the processed URLs to verify they're correct
+        console.log('Processed test cases with screenshot URLs:', this.testCases);
       },
       error: (error: any) => {
         console.error('Error fetching test cases:', error);
@@ -286,25 +324,103 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
-  loadUsers(): void {
-    this.users = [
-      { id: 1, username: 'tester1', email: 'tester1@example.com' },
-      { id: 2, username: 'tester2', email: 'tester2@example.com' }
-    ];
+  // Load test data for a specific test case
+  loadTestCaseTestData(testCaseId: number): void {
+    this.testDataService.getTestDataByTestCase(testCaseId).subscribe({
+      next: (data: any[]) => {
+        this.testCaseTestData = data;
+      },
+      error: (error: any) => {
+        console.error('Error fetching test case test data:', error);
+        this.testCaseTestData = [];
+      }
+    });
   }
 
-  // ✅ Helpers
+  // ✅ Updated method to get user display name
   getUsername(userId: number): string {
-    if (!userId) return '-';
-    const user = this.users.find(u => u.id === userId);
-    return user ? (user.username || user.email) : 'Unknown';
+  if (!userId) return '-';
+  
+  // First, check if it's the current user
+  if (this.currentUser && userId === this.currentUser.id) {
+    return this.currentUser.displayName || this.currentUser.username || this.currentUser.email || 'Current User';
   }
+  
+  // Then check if user exists in the users array from backend
+  const user = this.users.find(u => u.id === userId);
+  if (user) {
+    return user.email || user.username || 'Unknown';
+  }
+  
+  // If user not found in users array, check project developers
+  const developer = this.projectDevelopers.find(dev => dev.id === userId);
+  if (developer) {
+    return developer.email || developer.name || 'Unknown';
+  }
+  
+  return 'Unknown';
+}
 
-  // Helper to get developer display name
+  // ✅ Updated method to get user display name for details popup
+  // getUserDisplay(userId: number): string {
+  //   if (!userId) return '-';
+    
+  //   const user = this.users.find(u => u.id === userId);
+  //   if (user) {
+  //     // Return both name and email if available
+  //     if (user.username && user.email) {
+  //       return `${user.username} (${user.email})`;
+  //     }
+  //     return user.email || user.username || 'Unknown';
+  //   }
+    
+  //   const developer = this.projectDevelopers.find(dev => dev.id === userId);
+  //   if (developer) {
+  //     if (developer.name && developer.email) {
+  //       return `${developer.name} (${developer.email})`;
+  //     }
+  //     return developer.email || developer.name || 'Unknown';
+  //   }
+    
+  //   return 'Unknown';
+  // }
+
+  getUserDisplay(userId: number): string {
+  if (!userId) return '-';
+  
+  console.log('Looking up user with ID:', userId); // Debug log
+  
+  // First, check if it's the current user
+  if (this.currentUser && userId === this.currentUser.id) {
+    const displayName = this.currentUser.displayName || this.currentUser.username || this.currentUser.email;
+    console.log('Found as current user:', displayName); // Debug log
+    return displayName || 'Current User';
+  }
+  
+  // Then check if user exists in the users array from backend
+  const user = this.users.find(u => u.id === userId);
+  if (user) {
+    const displayName = user.email || user.username;
+    console.log('Found in users array:', displayName); // Debug log
+    return displayName || 'Unknown';
+  }
+  
+  // If user not found in users array, check project developers
+  const developer = this.projectDevelopers.find(dev => dev.id === userId);
+  if (developer) {
+    const displayName = developer.email || developer.name;
+    console.log('Found in project developers:', displayName); // Debug log
+    return displayName || 'Unknown';
+  }
+  
+  console.log('User not found in any list'); // Debug log
+  return 'Unknown';
+}
+
   getDeveloperDisplay(developerId: number): string {
     if (!developerId) return '-';
     const developer = this.projectDevelopers.find(dev => dev.id === developerId);
-    return developer ? developer.name : 'Unknown';
+    return developer ? (developer.name || developer.email || 'Unknown') : 'Unknown';
   }
 
   getTestDataDisplay(testData: any): string {
@@ -321,6 +437,100 @@ export class TestCasesComponent implements OnInit {
     }
   }
 
+  // ✅ Clipboard Functionality
+  activateClipboard(): void {
+    this.isClipboardActive = true;
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (this.isClipboardActive && event.ctrlKey && event.key === 'v') {
+      // Let the paste event handle it
+      return;
+    }
+  }
+
+  onPasteScreenshot(event: ClipboardEvent): void {
+    event.preventDefault();
+    
+    const clipboardData = event.clipboardData;
+    if (!clipboardData) return;
+
+    const items = clipboardData.items;
+    
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          this.handlePastedImage(file);
+          break;
+        }
+      }
+    }
+  }
+
+  handlePastedImage(file: File): void {
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      this.showError('Invalid image type. Please paste PNG, JPEG, JPG, or GIF images only.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      this.showError('Image too large. Maximum size is 5MB.');
+      return;
+    }
+
+    this.clipboardFile = file;
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.clipboardImage = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    
+    this.showSuccess('Screenshot pasted successfully! It will be saved when you submit the form.');
+  }
+
+  removePastedScreenshot(event: Event): void {
+    event.stopPropagation();
+    this.clipboardImage = null;
+    this.clipboardFile = null;
+  }
+
+  removeCurrentScreenshot(): void {
+    this.newTestCase.bug_screenshot = null;
+  }
+
+  // ✅ Screenshot Viewer
+  viewScreenshot(screenshotUrl: string): void {
+    this.viewingScreenshot = screenshotUrl;
+    this.showScreenshotViewer = true;
+  }
+
+  closeScreenshotViewer(): void {
+    this.showScreenshotViewer = false;
+    this.viewingScreenshot = '';
+  }
+
+  // ✅ Test Case Details
+  viewTestCaseDetails(testCase: any): void {
+    this.selectedTestCase = testCase;
+    this.loadTestCaseTestData(testCase.id);
+    this.showTestCaseDetailsPopup = true;
+  }
+
+  closeTestCaseDetailsPopup(): void {
+    this.showTestCaseDetailsPopup = false;
+    this.selectedTestCase = null;
+    this.testCaseTestData = [];
+  }
+
   // ✅ Success/Error Messages
   showSuccess(message: string): void {
     this.successMessage = message;
@@ -333,6 +543,7 @@ export class TestCasesComponent implements OnInit {
 
   showError(message: string): void {
     console.error('Error:', message);
+    // You can implement a toast notification here
   }
 
   hideSuccessMessage(): void {
@@ -370,7 +581,6 @@ export class TestCasesComponent implements OnInit {
       isValid = false;
     }
 
-    // Validate executed_on if test case is executed
     if (this.newTestCase.is_executed && !this.newTestCase.executed_on) {
       this.formErrors.executed_on = 'Execution date is required when test case is executed';
       isValid = false;
@@ -430,8 +640,8 @@ export class TestCasesComponent implements OnInit {
       expected_result: '',
       test_actions: '',
       bug_status: '',
-      assigned_to: '', // Clear assigned_to error
-      executed_on: '' // Clear executed_on error
+      assigned_to: '',
+      executed_on: ''
     };
   }
 
@@ -458,6 +668,10 @@ export class TestCasesComponent implements OnInit {
     
     this.isEditMode = false;
     this.clearFormErrors();
+    this.clipboardImage = null;
+    this.clipboardFile = null;
+    this.isClipboardActive = false;
+    
     this.newTestCase = {
       title: '',
       description: '',
@@ -468,7 +682,7 @@ export class TestCasesComponent implements OnInit {
       is_automated: false,
       requirement: this.selectedRequirementId,
       created_by: this.currentUser?.id,
-      assigned_to: null, // Initialize assigned_to
+      assigned_to: null,
       is_executed: false,
       executed_by: null,
       executed_on: null,
@@ -485,6 +699,9 @@ export class TestCasesComponent implements OnInit {
   editTestCase(testCase: any): void {
     this.isEditMode = true;
     this.editingTestCaseId = testCase.id;
+    this.clipboardImage = null;
+    this.clipboardFile = null;
+    this.isClipboardActive = false;
     
     // Format the executed_on date for the datetime-local input
     let formattedExecutedOn = null;
@@ -509,6 +726,9 @@ export class TestCasesComponent implements OnInit {
     this.showTestCasePopup = false;
     this.isEditMode = false;
     this.editingTestCaseId = null;
+    this.clipboardImage = null;
+    this.clipboardFile = null;
+    this.isClipboardActive = false;
     this.clearFormErrors();
   }
 
@@ -517,21 +737,21 @@ export class TestCasesComponent implements OnInit {
       return;
     }
 
+    // Handle clipboard screenshot if available
+    if (this.clipboardFile && this.newTestCase.bug_raised) {
+      this.newTestCase.bug_screenshot = this.clipboardFile;
+    }
+
     // Only set executed_by and status if the test case is executed
     if (this.newTestCase.is_executed) {
       this.newTestCase.executed_by = this.currentUser?.id;
       
-      // Convert the datetime-local string to ISO format for backend
       if (this.newTestCase.executed_on) {
-        // If executed_on is already in correct format (from edit), use it as is
         if (typeof this.newTestCase.executed_on === 'string' && this.newTestCase.executed_on.includes('T')) {
-          // Convert datetime-local format to ISO string
           this.newTestCase.executed_on = new Date(this.newTestCase.executed_on).toISOString();
         }
-        // If it's already a Date object or ISO string, leave it as is
       }
       
-      // Ensure status is set if executed
       if (!this.newTestCase.status) {
         this.newTestCase.status = 'Not tested yet';
       }
@@ -626,6 +846,8 @@ export class TestCasesComponent implements OnInit {
         this.newTestData.image_data_name = file.name;
       } else if (type === 'bug_screenshot') {
         this.newTestCase.bug_screenshot = file;
+        this.clipboardImage = null;
+        this.clipboardFile = null;
       }
     }
   }
@@ -640,6 +862,11 @@ export class TestCasesComponent implements OnInit {
     
     if (this.selectedProjectId) {
       formData.append('project', this.selectedProjectId.toString());
+    }
+    
+    // If we're in edit mode and have a test case selected, associate the test data with it
+    if (this.isEditMode && this.editingTestCaseId) {
+      formData.append('test_case', this.editingTestCaseId.toString());
     }
     
     if (this.newTestData.text_data) formData.append('text_data', this.newTestData.text_data);
@@ -694,32 +921,36 @@ export class TestCasesComponent implements OnInit {
   }
 
   saveExecution(): void {
-    if (!this.validateExecutionForm()) {
-      return;
-    }
-
-    const updatedTestCase = {
-      ...this.executingTestCase,
-      is_executed: true,
-      executed_on: new Date().toISOString(), // For execute popup, use current datetime
-      executed_by: this.currentUser?.id,
-      status: this.executionData.status,
-      actual_result: this.executionData.actual_result,
-      comments: this.executionData.comments,
-      bug_raised: this.executionData.bug_raised,
-      bug_status: this.executionData.bug_raised ? this.executionData.bug_status : null
-    };
-
-    this.testCaseService.updateTestCase(this.executingTestCase.id, updatedTestCase).subscribe({
-      next: () => {
-        this.loadTestCases();
-        this.closeExecutePopup();
-        this.showSuccess('Test execution saved successfully!');
-      },
-      error: (error: any) => {
-        console.error('Error saving test execution:', error);
-        this.formExecutionErrors.general = 'Error saving execution: ' + (error.error?.message || error.message);
-      }
-    });
+  if (!this.validateExecutionForm()) {
+    return;
   }
+
+  const updatedTestCase = {
+    ...this.executingTestCase,
+    is_executed: true,
+    executed_on: new Date().toISOString(),
+    executed_by: this.currentUser?.id, // This should be set correctly
+    status: this.executionData.status,
+    actual_result: this.executionData.actual_result,
+    comments: this.executionData.comments,
+    bug_raised: this.executionData.bug_raised,
+    bug_status: this.executionData.bug_raised ? this.executionData.bug_status : null
+  };
+
+  // Debug log to verify the data
+  console.log('Saving execution with user:', this.currentUser);
+  console.log('Execution data:', updatedTestCase);
+
+  this.testCaseService.updateTestCase(this.executingTestCase.id, updatedTestCase).subscribe({
+    next: () => {
+      this.loadTestCases();
+      this.closeExecutePopup();
+      this.showSuccess('Test execution saved successfully!');
+    },
+    error: (error: any) => {
+      console.error('Error saving test execution:', error);
+      this.formExecutionErrors.general = 'Error saving execution: ' + (error.error?.message || error.message);
+    }
+  });
+ }
 }

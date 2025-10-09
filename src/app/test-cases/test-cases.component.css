@@ -630,3 +630,247 @@ textarea {
   border-color: #007bff;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
+
+/* Clipboard Styles */
+.clipboard-upload-option {
+  margin: 10px 0;
+}
+
+.clipboard-area {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f9f9f9;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clipboard-area.active {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.clipboard-area:hover {
+  border-color: #007bff;
+}
+
+.clipboard-placeholder .clipboard-icon {
+  font-size: 2em;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.clipboard-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.pasted-screenshot {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.remove-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.current-screenshot {
+  position: relative;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.screenshot-preview-img {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+/* Screenshot Thumbnail in Table */
+.screenshot-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.screenshot-thumbnail {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.view-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Test Case Details Styles */
+.test-case-details {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.details-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.details-section h4 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.detail-row label {
+  font-weight: bold;
+  min-width: 150px;
+  margin-right: 10px;
+}
+
+.detail-row span {
+  flex: 1;
+}
+
+.screenshot-detail img {
+  max-width: 300px;
+  max-height: 200px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+/* Test Data List Styles */
+.test-data-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.test-data-item {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.test-data-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.upload-date {
+  font-size: 0.8em;
+  color: #666;
+}
+
+.test-data-content {
+  font-size: 0.9em;
+}
+
+.file-link {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.file-link:hover {
+  text-decoration: underline;
+}
+
+.test-data-image {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.no-test-data {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* Image Viewer Styles */
+.image-viewer .popup-content {
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.image-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.full-screenshot {
+  max-width: 100%;
+  max-height: 70vh;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Form Layout Improvements */
+.screenshot-upload-section {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 15px;
+  background: #fafafa;
+}
+
+.file-upload-option {
+  margin-bottom: 15px;
+}
+
+.file-upload-option small {
+  display: block;
+  margin-top: 5px;
+  color: #666;
+}
+
+/* Action Buttons */
+.view-details-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.view-details-btn:hover {
+  background: #5a6268;
+}

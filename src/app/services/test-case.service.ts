@@ -84,4 +84,23 @@ export class TestCaseService {
   getTestCase(requirementId: number, testCaseId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/requirements/${requirementId}/test-cases/${testCaseId}/`, this.getHeaders());
   }
+
+  // ✅ CORRECTED method to get proper bug screenshot URL
+  getBugScreenshotUrl(screenshotPath: string): string {
+    if (!screenshotPath) return '';
+    
+    // Check if it's already a full URL
+    if (screenshotPath.startsWith('http')) {
+      return screenshotPath;
+    }
+    
+    // If the path already starts with /media/, use it as is
+    if (screenshotPath.startsWith('/media/')) {
+      return `${this.baseUrl}${screenshotPath}`;
+    }
+    
+    // If it's just a filename or relative path, prepend with /media/
+    const cleanPath = screenshotPath.startsWith('/') ? screenshotPath : `/${screenshotPath}`;
+    return `${this.baseUrl}/media${cleanPath}`;
+  }
 }
