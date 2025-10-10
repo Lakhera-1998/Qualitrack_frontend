@@ -26,7 +26,6 @@
 
   <!-- ===== Chart & Deadlines Section ===== -->
   <div class="chart-section">
-    <!-- Left: Project Status Chart -->
     <div class="card chart-card">
       <h3>Project Status Overview</h3>
       <div class="chart-container">
@@ -39,8 +38,7 @@
       </div>
     </div>
 
-    <!-- Right: Upcoming Deadlines -->
-    <div class="card">
+    <div class="card deadlines-card">
       <h3>Upcoming Deadlines</h3>
       <div class="deadline-list" *ngIf="upcomingDeadlines.length > 0; else noDeadlines">
         <div class="deadline-item" *ngFor="let item of upcomingDeadlines">
@@ -53,7 +51,6 @@
           </div>
         </div>
       </div>
-
       <ng-template #noDeadlines>
         <p class="no-data">No upcoming deadlines</p>
       </ng-template>
