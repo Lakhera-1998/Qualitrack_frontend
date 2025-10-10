@@ -1,8 +1,8 @@
-<div class="container">
+<div class="container"> 
   <h2>Projects</h2>
 
   <!-- Add Project Button -->
-  <button class="add-btn" (click)="openAddProjectPopup()">+ Add Project</button>
+  <button class="add-btn" (click)="openAddProjectPopup()" *ngIf="showAddEditButtons">+ Add Project</button>
 
   <!-- Projects Table with Horizontal Scroll -->
   <div class="card">
@@ -42,7 +42,6 @@
                 {{ project.status }}
               </span>
             </td>
-            
 
             <!-- Robust display handling IDs or objects -->
             <td>{{ displayUserList(project.frontend_developers) }}</td>
@@ -58,7 +57,7 @@
             <td>{{ project.delivery_date ? (project.delivery_date | date:'mediumDate') : 'N/A' }}</td>
 
             <td class="actions">
-              <button class="edit-btn" (click)="editProject(project)" title="edit project details">✏️</button>
+              <button class="edit-btn" (click)="editProject(project)" title="edit project details" *ngIf="showAddEditButtons">✏️</button>
               <button class="view-btn" (click)="viewRequirements(project)" title="view project requirements">📋</button>
               <button class="plan-btn" (click)="viewTestPlans(project)" title="view project test plan">📝</button>
             </td>
@@ -184,11 +183,14 @@
         </div>
 
         <!-- Actions -->
-        <div class="form-actions">
+        <div class="form-actions" *ngIf="showAddEditButtons">
           <button type="submit" class="save-btn">
             {{ isEditMode ? 'Update' : 'Save' }}
           </button>
           <button type="button" class="cancel-btn" (click)="closeProjectPopup()">Cancel</button>
+        </div>
+        <div class="form-actions" *ngIf="!showAddEditButtons">
+          <button type="button" class="cancel-btn" (click)="closeProjectPopup()">Close</button>
         </div>
       </form>
     </div>
