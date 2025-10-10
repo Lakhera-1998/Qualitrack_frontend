@@ -20,11 +20,36 @@
   border-radius: 5px;
 }
 
-/* Card */
+/* Main Container with vertical scroll */
 .container {
   margin-left: 80px;
   padding: 20px;
+  height: calc(100vh - 100px);
+  overflow-y: auto;
 }
+
+/* Thin vertical scrollbar for webkit browsers */
+.container::-webkit-scrollbar {
+  width: 6px; /* Same as horizontal scrollbar */
+}
+
+.container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+
+
+/* Card */
 .card {
   background: #fff;
   padding: 20px;
@@ -52,16 +77,40 @@
   background: #2c3e99;
 }
 
-/* Styled Table */
-.table-container {
-  overflow-x: auto; /* Keep this for backward compatibility */
+/* Table Scroll Container - Reduced height horizontal scroll */
+.table-scroll-container {
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 20px;
 }
 
+/* Reduced scrollbar height for webkit browsers */
+.table-scroll-container::-webkit-scrollbar {
+  height: 6px; /* Reduced from 8px */
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Styled table */
 .styled-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
-  min-width: 1000px;
+  margin-top: 0;
 }
 .styled-table th, .styled-table td {
   padding: 12px;
@@ -69,7 +118,6 @@
   text-align: left;
   white-space: nowrap;
 }
-
 .styled-table th {
   background: lightgray;
   font-weight: 600;
@@ -92,10 +140,62 @@
   background: #6c63ff;
   color: white;
 }
-/* .delete-btn {
-  background: #e74c3c;
+
+/* Pagination Styles */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 15px 0;
+  border-top: 1px solid #ddd;
+}
+
+.pagination-summary {
+  color: #666;
+  font-size: 14px;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  min-width: 40px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.pagination-btn.active {
+  background: #3f51b5;
   color: white;
-} */
+  border-color: #3f51b5;
+}
+
+.pagination-btn:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* No records message */
+.no-records {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-style: italic;
+}
 
 /* Popup Form */
 .popup {
@@ -104,6 +204,7 @@
   width: 100%; height: 100%;
   background: rgba(0,0,0,0.5);
   display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
 }
 .popup-content {
   position: relative;
@@ -150,7 +251,6 @@
 }
 
 .close-btn {
-  /* position :absolute; */
   top: 10px;
   right: 5px;
   background: transparent;
@@ -197,86 +297,6 @@
   color: red;
   font-size: 14px;
   margin-bottom: 10px;
-}
-
-/* Table Scroll Container - NEW */
-.table-scroll-container {
-  overflow-x: auto;
-  width: 100%;
-  max-width: 100%;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-
-/* Scrollbar styling for webkit browsers */
-.table-scroll-container::-webkit-scrollbar {
-  height: 8px;
-}
-
-.table-scroll-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.table-scroll-container::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-.table-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Styled table */
-.styled-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 0;
-}
-.styled-table th, .styled-table td {
-  padding: 12px;
-  border: 1px solid #ddd;
-  text-align: left;
-  white-space: nowrap;
-}
-.styled-table th {
-  background: lightgray;
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-}
-
-/* Scrollbar styling */
-.table-vertical-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-.table-vertical-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-.table-vertical-scroll::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-.table-vertical-scroll::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Table Vertical Scroll Container */
-.table-vertical-scroll {
-  max-height: 400px; /* Adjust height as needed */
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding-right: 12px;   /* ✅ space inside container */
-  margin-right: 4px;     /* ✅ space outside container */
-}
-
-/* Ensure table takes full width but respects padding */
-.table-vertical-scroll .styled-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 0;
 }
 
 /* Error border styling */
@@ -341,7 +361,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 1001;
 }
 
 .success-box {
@@ -400,4 +420,3 @@
   box-shadow: 0 0 5px rgba(63, 81, 181, 0.5);
   outline: none;
 }
-

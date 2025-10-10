@@ -4,16 +4,15 @@
   <!-- ✅ Add Client Button -->
   <button class="add-btn" (click)="openAddClientPopup()">+ Add Client</button>
 
-
   <!-- ✅ Clients Table -->
   <div class="card">
-
     <!-- ✅ Search Field -->
-  <div class="search-container">
-    <input type="text" [(ngModel)]="searchText" placeholder="Search by Client Name or Contact Person" />
-  </div>
+    <div class="search-container">
+      <input type="text" [(ngModel)]="searchText" placeholder="Search by Client Name or Contact Person" />
+    </div>
 
-    <div class="table-vertical-scroll">
+    <!-- ✅ Table Container without vertical scroll -->
+    <div class="table-scroll-container">
       <table class="styled-table">
         <thead>
           <tr>
@@ -30,8 +29,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let client of filteredClients(); let i = index">
-            <td>{{ i + 1 }}</td>
+          <tr *ngFor="let client of paginatedClients(); let i = index">
+            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
             <td>{{ client.client_name }}</td>
             <td>{{ client.client_type }}</td>
             <td>{{ client.contact_person_name }}</td>
@@ -48,6 +47,41 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- ✅ Pagination -->
+    <div class="pagination-container" *ngIf="filteredClients().length > 0">
+      <div class="pagination-summary">
+        Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ filteredClients().length }} records
+      </div>
+      <div class="pagination-controls">
+        <button 
+          class="pagination-btn" 
+          [disabled]="currentPage === 1" 
+          (click)="goToPage(currentPage - 1)">
+          Previous
+        </button>
+        
+        <button 
+          *ngFor="let page of getVisiblePages()" 
+          class="pagination-btn" 
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)">
+          {{ page }}
+        </button>
+        
+        <button 
+          class="pagination-btn" 
+          [disabled]="currentPage === totalPages()" 
+          (click)="goToPage(currentPage + 1)">
+          Next
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ No records message -->
+    <div *ngIf="filteredClients().length === 0" class="no-records">
+      No clients found
     </div>
   </div>
 

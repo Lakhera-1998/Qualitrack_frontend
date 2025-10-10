@@ -14,6 +14,11 @@ import { ClientsService } from '../clients.service';
 export class ClientsComponent implements OnInit {
   clients: any[] = [];
   searchText: string = '';
+  
+  // Pagination properties
+  currentPage: number = 1;
+  pageSize: number = 10;
+  visiblePagesCount: number = 3;
 
   newClient: any = {
     client_name: '',
@@ -47,11 +52,76 @@ export class ClientsComponent implements OnInit {
     this.clientsService.getClients().subscribe({
       next: (data: any[]) => {
         this.clients = data;
+        this.currentPage = 1; // Reset to first page when data loads
       },
       error: (err) => {
         console.error('Error fetching clients:', err);
       }
     });
+  }
+
+  // ✅ Filter Clients for Search
+  filteredClients(): any[] {
+    if (!this.searchText) {
+      return this.clients;
+    }
+    const search = this.searchText.toLowerCase();
+    return this.clients.filter(client =>
+      client.client_name.toLowerCase().includes(search) ||
+      client.contact_person_name.toLowerCase().includes(search)
+    );
+  }
+
+  // ✅ Pagination methods
+  paginatedClients(): any[] {
+    const filtered = this.filteredClients();
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return filtered.slice(startIndex, endIndex);
+  }
+
+  totalPages(): number {
+    return Math.ceil(this.filteredClients().length / this.pageSize);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage = page;
+    }
+  }
+
+  getVisiblePages(): number[] {
+    const total = this.totalPages();
+    const pages: number[] = [];
+    
+    if (total <= this.visiblePagesCount) {
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      let start = Math.max(1, this.currentPage - Math.floor(this.visiblePagesCount / 2));
+      let end = start + this.visiblePagesCount - 1;
+      
+      if (end > total) {
+        end = total;
+        start = Math.max(1, end - this.visiblePagesCount + 1);
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  }
+
+  getStartIndex(): number {
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  getEndIndex(): number {
+    const end = this.currentPage * this.pageSize;
+    return Math.min(end, this.filteredClients().length);
   }
 
   openAddClientPopup(): void {
@@ -193,17 +263,5 @@ export class ClientsComponent implements OnInit {
   logout(): void {
     sessionStorage.clear();
     this.router.navigate(['/login']);
-  }
-
-  // ✅ Filter Clients for Search
-  filteredClients(): any[] {
-    if (!this.searchText) {
-      return this.clients;
-    }
-    const search = this.searchText.toLowerCase();
-    return this.clients.filter(client =>
-      client.client_name.toLowerCase().includes(search) ||
-      client.contact_person_name.toLowerCase().includes(search)
-    );
   }
 }
