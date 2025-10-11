@@ -28,31 +28,32 @@
 
   <!-- Requirements Display Area -->
   <div *ngIf="selectedProjectId && project" class="requirements-content">
+    <!-- ✅ Fixed the heading bug - removed extra parentheses -->
     <div class="project-header">
-      <h3>Requirements for {{ project?.project_name }} ({{ selectedClientName }})</h3>
+      <h3>Requirements for {{ project?.project_name }} {{ selectedClientName ? '(' + selectedClientName + ')' : '' }}</h3>
     </div>
-
 
     <div class="card table-card">
 
       <!-- Search and Filter Controls -->
-    <div class="search-filter-controls card">
-      <div class="search-box">
-        <input type="text" [(ngModel)]="searchText" (input)="filterRequirements()" placeholder="Search requirements..." class="search-input">
+      <div class="search-filter-controls card">
+        <div class="search-box">
+          <input type="text" [(ngModel)]="searchText" (input)="filterRequirements()" placeholder="Search requirements..." class="search-input">
+        </div>
+        <div class="filter-control">
+          <label for="priorityFilter">Priority Filter:</label>
+          <select id="priorityFilter" [(ngModel)]="selectedPriority" (change)="filterRequirements()" class="filter-select">
+            <option value="">All Priorities</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+          </select>
+        </div>
       </div>
-      <div class="filter-control">
-        <label for="priorityFilter">Priority Filter:</label>
-        <select id="priorityFilter" [(ngModel)]="selectedPriority" (change)="filterRequirements()" class="filter-select">
-          <option value="">All Priorities</option>
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-          <option value="Critical">Critical</option>
-        </select>
-      </div>
-    </div>
 
-      <div class="table-container">
+      <!-- ✅ Table Container without vertical scroll -->
+      <div class="table-scroll-container">
         <table class="styled-table">
           <thead>
             <tr>
@@ -73,33 +74,28 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let requirement of filteredRequirements; let i = index">
-              <!-- Serial Number -->
-              <td class="col-sno">{{ i + 1 }}</td>
+            <!-- ✅ Updated to use paginatedRequirements with proper serial number -->
+            <tr *ngFor="let requirement of paginatedRequirements(); let i = index">
+              <td class="col-sno">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
               
-              <!-- Title wider -->
               <td class="col-title">{{ requirement.requirement_title }}</td>
 
-              <!-- Priority -->
               <td>
                 <span class="priority-badge {{ requirement.priority.toLowerCase() }}">
                   {{ requirement.priority }}
                 </span>
               </td>
 
-              <!-- Dates -->
               <td>{{ requirement.reported_date | date:'mediumDate' }}</td>
               <td>{{ requirement.expected_delivery | date:'mediumDate' }}</td>
               <td>{{ requirement.actual_delivery ? (requirement.actual_delivery | date:'mediumDate') : 'Pending' }}</td>
 
-              <!-- Status -->
               <td>
                 <span class="status-badge {{ getRequirementStatus(requirement) }}">
                   {{ getRequirementStatus(requirement) }}
                 </span>
               </td>
 
-              <!-- ✅ Boolean fields with icons -->
               <td class="col-boolean">
                 <span [ngClass]="requirement.is_developed ? 'icon-yes' : 'icon-no'">
                   {{ requirement.is_developed ? '✔' : '✖' }}
@@ -131,7 +127,6 @@
                 </span>
               </td>
 
-              <!-- Actions -->
               <td class="actions">
                 <button class="edit-btn" (click)="editRequirement(requirement)" title="Edit Requirement">✏️</button>
                 <button class="test-case-btn" (click)="viewTestCases(requirement)" title="View Test Cases">🧪</button>
@@ -139,14 +134,44 @@
             </tr>
           </tbody>
         </table>
-        
-        <div *ngIf="filteredRequirements.length === 0 && selectedProjectId" class="no-requirements">
-          <div *ngIf="searchText || selectedPriority">
-            No requirements match your search/filter criteria.
-          </div>
-          <div *ngIf="!searchText && !selectedPriority">
-            No requirements found for this project.
-          </div>
+      </div>
+
+      <!-- ✅ Pagination -->
+      <div class="pagination-container" *ngIf="filteredRequirements.length > 0">
+        <div class="pagination-summary">
+          Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ filteredRequirements.length }} records
+        </div>
+        <div class="pagination-controls">
+          <button 
+            class="pagination-btn" 
+            [disabled]="currentPage === 1" 
+            (click)="goToPage(currentPage - 1)">
+            Previous
+          </button>
+          
+          <button 
+            *ngFor="let page of getVisiblePages()" 
+            class="pagination-btn" 
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)">
+            {{ page }}
+          </button>
+          
+          <button 
+            class="pagination-btn" 
+            [disabled]="currentPage === totalPages()" 
+            (click)="goToPage(currentPage + 1)">
+            Next
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="filteredRequirements.length === 0 && selectedProjectId" class="no-requirements">
+        <div *ngIf="searchText || selectedPriority">
+          No requirements match your search/filter criteria.
+        </div>
+        <div *ngIf="!searchText && !selectedPriority">
+          No requirements found for this project.
         </div>
       </div>
     </div>

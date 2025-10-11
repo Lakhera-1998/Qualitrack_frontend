@@ -27,6 +27,11 @@ export class ProjectRequirementsComponent implements OnInit {
   searchText: string = '';
   selectedPriority: string = '';
 
+  // ✅ Pagination properties
+  currentPage: number = 1;
+  pageSize: number = 5; // Only 5 records per page as requested
+  visiblePagesCount: number = 3;
+
   // Form validation
   formErrors: any = {
     requirement_title: '',
@@ -88,6 +93,7 @@ export class ProjectRequirementsComponent implements OnInit {
     this.filteredProjects = [];
     this.searchText = '';
     this.selectedPriority = '';
+    this.currentPage = 1; // ✅ Reset to first page
     
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -111,6 +117,7 @@ export class ProjectRequirementsComponent implements OnInit {
   onProjectChange(): void {
     this.searchText = '';
     this.selectedPriority = '';
+    this.currentPage = 1; // ✅ Reset to first page
     
     if (this.selectedProjectId) {
       this.loadProjectDetails();
@@ -123,15 +130,15 @@ export class ProjectRequirementsComponent implements OnInit {
   }
 
   loadProjectDetails(): void {
-  if (!this.selectedProjectId) return;
+    if (!this.selectedProjectId) return;
 
-  this.projectService.getProject(this.selectedProjectId).subscribe({
-    next: (data: any) => {
-      this.project = data;
-    },
-    error: (err) => console.error('Error fetching project:', err)
-  });
-}
+    this.projectService.getProject(this.selectedProjectId).subscribe({
+      next: (data: any) => {
+        this.project = data;
+      },
+      error: (err) => console.error('Error fetching project:', err)
+    });
+  }
 
   loadRequirements(): void {
     if (!this.selectedProjectId) return;
@@ -140,9 +147,61 @@ export class ProjectRequirementsComponent implements OnInit {
       next: (data: any[]) => {
         this.requirements = data;
         this.filteredRequirements = [...this.requirements];
+        this.currentPage = 1; // ✅ Reset to first page when data loads
       },
       error: (err) => console.error('Error fetching requirements:', err)
     });
+  }
+
+  // ✅ Pagination methods
+  paginatedRequirements(): any[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return this.filteredRequirements.slice(startIndex, endIndex);
+  }
+
+  totalPages(): number {
+    return Math.ceil(this.filteredRequirements.length / this.pageSize);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage = page;
+    }
+  }
+
+  getVisiblePages(): number[] {
+    const total = this.totalPages();
+    const pages: number[] = [];
+    
+    if (total <= this.visiblePagesCount) {
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      let start = Math.max(1, this.currentPage - Math.floor(this.visiblePagesCount / 2));
+      let end = start + this.visiblePagesCount - 1;
+      
+      if (end > total) {
+        end = total;
+        start = Math.max(1, end - this.visiblePagesCount + 1);
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  }
+
+  getStartIndex(): number {
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  getEndIndex(): number {
+    const end = this.currentPage * this.pageSize;
+    return Math.min(end, this.filteredRequirements.length);
   }
 
   // Filter requirements based on search text and priority
@@ -156,6 +215,7 @@ export class ProjectRequirementsComponent implements OnInit {
       
       return matchesSearch && matchesPriority;
     });
+    this.currentPage = 1; // ✅ Reset to first page when filtering
   }
 
   getRequirementStatus(requirement: any): string {
