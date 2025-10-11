@@ -1,18 +1,21 @@
 <div class="container">
   <h2>Projects</h2>
 
-  <!-- Add Project Button -->
-  <button class="add-btn" (click)="openAddProjectPopup()" *ngIf="showAddEditButtons">
-    + Add Project
-  </button>
-
-  <!-- Projects Table -->
+  <!-- ✅ Projects Table -->
   <div class="card">
+
+    <!-- ✅ Add Project Button -->
+    <button class="add-btn" (click)="openAddProjectPopup()" *ngIf="showAddEditButtons">
+      + Add Project
+    </button>
+
+    <!-- ✅ Search Field -->
     <div class="search-container">
       <input type="text" [(ngModel)]="searchText" placeholder="Search by Project Name or Client" />
     </div>
 
-    <div class="table-vertical-scroll">
+    <!-- ✅ Table Container without vertical scroll -->
+    <div class="table-scroll-container">
       <table class="styled-table">
         <thead>
           <tr>
@@ -34,8 +37,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let project of filteredProjects(); let i = index">
-            <td>{{ i + 1 }}</td>
+          <tr *ngFor="let project of paginatedProjects(); let i = index">
+            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
             <td>{{ project.project_name }}</td>
             <td>{{ getClientName(project.client) }}</td>
             <td>
@@ -61,6 +64,41 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- ✅ Pagination -->
+    <div class="pagination-container" *ngIf="filteredProjects().length > 0">
+      <div class="pagination-summary">
+        Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ filteredProjects().length }} records
+      </div>
+      <div class="pagination-controls">
+        <button 
+          class="pagination-btn" 
+          [disabled]="currentPage === 1" 
+          (click)="goToPage(currentPage - 1)">
+          Previous
+        </button>
+        
+        <button 
+          *ngFor="let page of getVisiblePages()" 
+          class="pagination-btn" 
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)">
+          {{ page }}
+        </button>
+        
+        <button 
+          class="pagination-btn" 
+          [disabled]="currentPage === totalPages()" 
+          (click)="goToPage(currentPage + 1)">
+          Next
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ No records message -->
+    <div *ngIf="filteredProjects().length === 0" class="no-records">
+      No projects found
     </div>
   </div>
 

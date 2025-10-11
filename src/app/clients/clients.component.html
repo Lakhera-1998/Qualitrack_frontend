@@ -1,11 +1,12 @@
 <div class="container">
   <h2>Clients</h2>
 
-  <!-- ✅ Add Client Button -->
-  <button class="add-btn" (click)="openAddClientPopup()">+ Add Client</button>
-
   <!-- ✅ Clients Table -->
   <div class="card">
+
+    <!-- ✅ Add Client Button -->
+    <button class="add-btn" (click)="openAddClientPopup()">+ Add Client</button>
+
     <!-- ✅ Search Field -->
     <div class="search-container">
       <input type="text" [(ngModel)]="searchText" placeholder="Search by Client Name or Contact Person" />

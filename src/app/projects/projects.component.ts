@@ -22,6 +22,11 @@ export class ProjectsComponent implements OnInit {
   technologies: any[] = [];
   searchText = '';
 
+  // Pagination properties
+  currentPage: number = 1;
+  pageSize: number = 10;
+  visiblePagesCount: number = 3;
+
   newProject: any = {};
   showProjectPopup = false;
   isEditMode = false;
@@ -54,7 +59,10 @@ export class ProjectsComponent implements OnInit {
 
   loadProjects() {
     this.projectService.getProjects().subscribe({
-      next: (data) => (this.projects = data || []),
+      next: (data) => {
+        this.projects = data || [];
+        this.currentPage = 1; // Reset to first page when data loads
+      },
       error: (err) => console.error('Error loading projects', err)
     });
   }
@@ -93,6 +101,58 @@ export class ProjectsComponent implements OnInit {
         p.project_name.toLowerCase().includes(s) ||
         this.getClientName(p.client).toLowerCase().includes(s)
     );
+  }
+
+  // ✅ Pagination methods
+  paginatedProjects(): any[] {
+    const filtered = this.filteredProjects();
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return filtered.slice(startIndex, endIndex);
+  }
+
+  totalPages(): number {
+    return Math.ceil(this.filteredProjects().length / this.pageSize);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage = page;
+    }
+  }
+
+  getVisiblePages(): number[] {
+    const total = this.totalPages();
+    const pages: number[] = [];
+    
+    if (total <= this.visiblePagesCount) {
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      let start = Math.max(1, this.currentPage - Math.floor(this.visiblePagesCount / 2));
+      let end = start + this.visiblePagesCount - 1;
+      
+      if (end > total) {
+        end = total;
+        start = Math.max(1, end - this.visiblePagesCount + 1);
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  }
+
+  getStartIndex(): number {
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  getEndIndex(): number {
+    const end = this.currentPage * this.pageSize;
+    return Math.min(end, this.filteredProjects().length);
   }
 
   openAddProjectPopup() {
@@ -170,7 +230,7 @@ export class ProjectsComponent implements OnInit {
           this.loadProjects();
           this.successMessage = 'Project updated successfully!';
           this.closeProjectPopup();
-          setTimeout(() => (this.successMessage = ''), 3000);
+          this.clearSuccessMessageAfterTimeout();
         },
         error: (err) => (this.apiErrorMessage = err.error?.detail || 'Error updating project')
       });
@@ -180,11 +240,17 @@ export class ProjectsComponent implements OnInit {
           this.loadProjects();
           this.successMessage = 'Project added successfully!';
           this.closeProjectPopup();
-          setTimeout(() => (this.successMessage = ''), 3000);
+          this.clearSuccessMessageAfterTimeout();
         },
         error: (err) => (this.apiErrorMessage = err.error?.detail || 'Error adding project')
       });
     }
+  }
+
+  clearSuccessMessageAfterTimeout(): void {
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 3000);
   }
 
   viewRequirements(p: any) {
