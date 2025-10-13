@@ -40,8 +40,9 @@
       <h3>Test Cases for {{ requirement?.requirement_title }} ({{ selectedProjectName }} - {{ selectedClientName }})</h3>
     </div>
 
-    <div class="card">
-      <div class="table-container">
+    <div class="card table-card">
+      <!-- ✅ Table Container without vertical scroll -->
+      <div class="table-scroll-container">
         <table class="styled-table">
           <thead>
             <tr>
@@ -62,9 +63,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let testCase of testCases; let i = index">
+            <!-- ✅ Updated to use paginatedTestCases with proper serial number -->
+            <tr *ngFor="let testCase of paginatedTestCases(); let i = index">
               <!-- Serial Number -->
-              <td class="col-sno">{{ i + 1 }}</td>
+              <td class="col-sno">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
               
               <td class="col-title">{{ testCase.title }}</td>
 
@@ -126,10 +128,40 @@
             </tr>
           </tbody>
         </table>
-        
-        <div *ngIf="testCases.length === 0 && selectedRequirementId" class="no-requirements">
-          No test cases found for this requirement.
+      </div>
+
+      <!-- ✅ Pagination -->
+      <div class="pagination-container" *ngIf="testCases.length > 0">
+        <div class="pagination-summary">
+          Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ testCases.length }} records
         </div>
+        <div class="pagination-controls">
+          <button 
+            class="pagination-btn" 
+            [disabled]="currentPage === 1" 
+            (click)="goToPage(currentPage - 1)">
+            Previous
+          </button>
+          
+          <button 
+            *ngFor="let page of getVisiblePages()" 
+            class="pagination-btn" 
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)">
+            {{ page }}
+          </button>
+          
+          <button 
+            class="pagination-btn" 
+            [disabled]="currentPage === totalPages()" 
+            (click)="goToPage(currentPage + 1)">
+            Next
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="testCases.length === 0 && selectedRequirementId" class="no-requirements">
+        No test cases found for this requirement.
       </div>
     </div>
   </div>
@@ -335,7 +367,7 @@
           </div>
           <div class="detail-row">
             <label>Executed By:</label>
-            <span>{{ getUserDisplay(selectedTestCase?.executed_by) }}</span> <!-- Updated this line -->
+            <span>{{ getUserDisplay(selectedTestCase?.executed_by) }}</span>
           </div>
           <div class="detail-row">
           <label>Executed On:</label>

@@ -29,9 +29,14 @@ export class TestCasesComponent implements OnInit {
   requirement: any = null;
   testCases: any[] = [];
   testDataList: any[] = [];
-  users: any[] = []; // This will now store actual users from backend
+  users: any[] = [];
   currentUser: any = null;
   projectDevelopers: any[] = [];
+
+  // ✅ Pagination properties
+  currentPage: number = 1;
+  pageSize: number = 5; // Only 5 records per page as requested
+  visiblePagesCount: number = 3;
 
   // New properties for clipboard functionality and test case details
   isClipboardActive: boolean = false;
@@ -136,20 +141,70 @@ export class TestCasesComponent implements OnInit {
   ngOnInit(): void {
     this.loadCurrentUser();
     this.loadClients();
-    this.loadUsers(); // This will now load actual users from backend
+    this.loadUsers();
+  }
+
+  // ✅ Pagination methods
+  paginatedTestCases(): any[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return this.testCases.slice(startIndex, endIndex);
+  }
+
+  totalPages(): number {
+    return Math.ceil(this.testCases.length / this.pageSize);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage = page;
+    }
+  }
+
+  getVisiblePages(): number[] {
+    const total = this.totalPages();
+    const pages: number[] = [];
+    
+    if (total <= this.visiblePagesCount) {
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      let start = Math.max(1, this.currentPage - Math.floor(this.visiblePagesCount / 2));
+      let end = start + this.visiblePagesCount - 1;
+      
+      if (end > total) {
+        end = total;
+        start = Math.max(1, end - this.visiblePagesCount + 1);
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  }
+
+  getStartIndex(): number {
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  getEndIndex(): number {
+    const end = this.currentPage * this.pageSize;
+    return Math.min(end, this.testCases.length);
   }
 
   // ✅ Loaders
   loadCurrentUser(): void {
-  this.currentUser = this.authService.getCurrentUser();
-  if (!this.currentUser) {
-    console.warn('No current user found in session storage');
-  } else {
-    console.log('Current user loaded:', this.currentUser);
+    this.currentUser = this.authService.getCurrentUser();
+    if (!this.currentUser) {
+      console.warn('No current user found in session storage');
+    } else {
+      console.log('Current user loaded:', this.currentUser);
+    }
   }
-}
 
-  // ✅ Updated method to load users from backend
   loadUsers(): void {
     this.http.get<any[]>('http://127.0.0.1:8000/users/').subscribe({
       next: (data: any[]) => {
@@ -158,7 +213,6 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching users:', error);
-        // Fallback to empty array if API fails
         this.users = [];
       }
     });
@@ -186,6 +240,7 @@ export class TestCasesComponent implements OnInit {
     this.filteredRequirements = [];
     this.testDataList = [];
     this.projectDevelopers = [];
+    this.currentPage = 1; // ✅ Reset to first page
     
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -215,6 +270,7 @@ export class TestCasesComponent implements OnInit {
     this.testCases = [];
     this.filteredRequirements = [];
     this.projectDevelopers = [];
+    this.currentPage = 1; // ✅ Reset to first page
     
     if (this.selectedProjectId) {
       this.loadRequirementsByProject(this.selectedProjectId);
@@ -256,6 +312,8 @@ export class TestCasesComponent implements OnInit {
   }
 
   onRequirementChange(): void {
+    this.currentPage = 1; // ✅ Reset to first page
+    
     if (this.selectedRequirementId) {
       this.loadRequirementDetails();
       this.loadTestCases();
@@ -279,7 +337,6 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
-  // ✅ Updated method to load test cases with proper screenshot URLs
   loadTestCases(): void {
     if (!this.selectedRequirementId) return;
     
@@ -293,7 +350,7 @@ export class TestCasesComponent implements OnInit {
             : null
         }));
         
-        // Debug: Log the processed URLs to verify they're correct
+        this.currentPage = 1; // ✅ Reset to first page when data loads
         console.log('Processed test cases with screenshot URLs:', this.testCases);
       },
       error: (error: any) => {
@@ -337,85 +394,54 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
-  // ✅ Updated method to get user display name
   getUsername(userId: number): string {
-  if (!userId) return '-';
-  
-  // First, check if it's the current user
-  if (this.currentUser && userId === this.currentUser.id) {
-    return this.currentUser.displayName || this.currentUser.username || this.currentUser.email || 'Current User';
-  }
-  
-  // Then check if user exists in the users array from backend
-  const user = this.users.find(u => u.id === userId);
-  if (user) {
-    return user.email || user.username || 'Unknown';
-  }
-  
-  // If user not found in users array, check project developers
-  const developer = this.projectDevelopers.find(dev => dev.id === userId);
-  if (developer) {
-    return developer.email || developer.name || 'Unknown';
-  }
-  
-  return 'Unknown';
-}
-
-  // ✅ Updated method to get user display name for details popup
-  // getUserDisplay(userId: number): string {
-  //   if (!userId) return '-';
+    if (!userId) return '-';
     
-  //   const user = this.users.find(u => u.id === userId);
-  //   if (user) {
-  //     // Return both name and email if available
-  //     if (user.username && user.email) {
-  //       return `${user.username} (${user.email})`;
-  //     }
-  //     return user.email || user.username || 'Unknown';
-  //   }
+    if (this.currentUser && userId === this.currentUser.id) {
+      return this.currentUser.displayName || this.currentUser.username || this.currentUser.email || 'Current User';
+    }
     
-  //   const developer = this.projectDevelopers.find(dev => dev.id === userId);
-  //   if (developer) {
-  //     if (developer.name && developer.email) {
-  //       return `${developer.name} (${developer.email})`;
-  //     }
-  //     return developer.email || developer.name || 'Unknown';
-  //   }
+    const user = this.users.find(u => u.id === userId);
+    if (user) {
+      return user.email || user.username || 'Unknown';
+    }
     
-  //   return 'Unknown';
-  // }
+    const developer = this.projectDevelopers.find(dev => dev.id === userId);
+    if (developer) {
+      return developer.email || developer.name || 'Unknown';
+    }
+    
+    return 'Unknown';
+  }
 
   getUserDisplay(userId: number): string {
-  if (!userId) return '-';
-  
-  console.log('Looking up user with ID:', userId); // Debug log
-  
-  // First, check if it's the current user
-  if (this.currentUser && userId === this.currentUser.id) {
-    const displayName = this.currentUser.displayName || this.currentUser.username || this.currentUser.email;
-    console.log('Found as current user:', displayName); // Debug log
-    return displayName || 'Current User';
+    if (!userId) return '-';
+    
+    console.log('Looking up user with ID:', userId);
+    
+    if (this.currentUser && userId === this.currentUser.id) {
+      const displayName = this.currentUser.displayName || this.currentUser.username || this.currentUser.email;
+      console.log('Found as current user:', displayName);
+      return displayName || 'Current User';
+    }
+    
+    const user = this.users.find(u => u.id === userId);
+    if (user) {
+      const displayName = user.email || user.username;
+      console.log('Found in users array:', displayName);
+      return displayName || 'Unknown';
+    }
+    
+    const developer = this.projectDevelopers.find(dev => dev.id === userId);
+    if (developer) {
+      const displayName = developer.email || developer.name;
+      console.log('Found in project developers:', displayName);
+      return displayName || 'Unknown';
+    }
+    
+    console.log('User not found in any list');
+    return 'Unknown';
   }
-  
-  // Then check if user exists in the users array from backend
-  const user = this.users.find(u => u.id === userId);
-  if (user) {
-    const displayName = user.email || user.username;
-    console.log('Found in users array:', displayName); // Debug log
-    return displayName || 'Unknown';
-  }
-  
-  // If user not found in users array, check project developers
-  const developer = this.projectDevelopers.find(dev => dev.id === userId);
-  if (developer) {
-    const displayName = developer.email || developer.name;
-    console.log('Found in project developers:', displayName); // Debug log
-    return displayName || 'Unknown';
-  }
-  
-  console.log('User not found in any list'); // Debug log
-  return 'Unknown';
-}
 
   getDeveloperDisplay(developerId: number): string {
     if (!developerId) return '-';
@@ -445,7 +471,6 @@ export class TestCasesComponent implements OnInit {
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
     if (this.isClipboardActive && event.ctrlKey && event.key === 'v') {
-      // Let the paste event handle it
       return;
     }
   }
@@ -472,14 +497,12 @@ export class TestCasesComponent implements OnInit {
   }
 
   handlePastedImage(file: File): void {
-    // Validate file type
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
       this.showError('Invalid image type. Please paste PNG, JPEG, JPG, or GIF images only.');
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       this.showError('Image too large. Maximum size is 5MB.');
       return;
@@ -487,7 +510,6 @@ export class TestCasesComponent implements OnInit {
 
     this.clipboardFile = file;
     
-    // Create preview
     const reader = new FileReader();
     reader.onload = (e: any) => {
       this.clipboardImage = e.target.result;
@@ -543,7 +565,6 @@ export class TestCasesComponent implements OnInit {
 
   showError(message: string): void {
     console.error('Error:', message);
-    // You can implement a toast notification here
   }
 
   hideSuccessMessage(): void {
@@ -703,7 +724,6 @@ export class TestCasesComponent implements OnInit {
     this.clipboardFile = null;
     this.isClipboardActive = false;
     
-    // Format the executed_on date for the datetime-local input
     let formattedExecutedOn = null;
     if (testCase.executed_on) {
       const executedDate = new Date(testCase.executed_on);
@@ -737,12 +757,10 @@ export class TestCasesComponent implements OnInit {
       return;
     }
 
-    // Handle clipboard screenshot if available
     if (this.clipboardFile && this.newTestCase.bug_raised) {
       this.newTestCase.bug_screenshot = this.clipboardFile;
     }
 
-    // Only set executed_by and status if the test case is executed
     if (this.newTestCase.is_executed) {
       this.newTestCase.executed_by = this.currentUser?.id;
       
@@ -864,7 +882,6 @@ export class TestCasesComponent implements OnInit {
       formData.append('project', this.selectedProjectId.toString());
     }
     
-    // If we're in edit mode and have a test case selected, associate the test data with it
     if (this.isEditMode && this.editingTestCaseId) {
       formData.append('test_case', this.editingTestCaseId.toString());
     }
@@ -921,36 +938,35 @@ export class TestCasesComponent implements OnInit {
   }
 
   saveExecution(): void {
-  if (!this.validateExecutionForm()) {
-    return;
-  }
-
-  const updatedTestCase = {
-    ...this.executingTestCase,
-    is_executed: true,
-    executed_on: new Date().toISOString(),
-    executed_by: this.currentUser?.id, // This should be set correctly
-    status: this.executionData.status,
-    actual_result: this.executionData.actual_result,
-    comments: this.executionData.comments,
-    bug_raised: this.executionData.bug_raised,
-    bug_status: this.executionData.bug_raised ? this.executionData.bug_status : null
-  };
-
-  // Debug log to verify the data
-  console.log('Saving execution with user:', this.currentUser);
-  console.log('Execution data:', updatedTestCase);
-
-  this.testCaseService.updateTestCase(this.executingTestCase.id, updatedTestCase).subscribe({
-    next: () => {
-      this.loadTestCases();
-      this.closeExecutePopup();
-      this.showSuccess('Test execution saved successfully!');
-    },
-    error: (error: any) => {
-      console.error('Error saving test execution:', error);
-      this.formExecutionErrors.general = 'Error saving execution: ' + (error.error?.message || error.message);
+    if (!this.validateExecutionForm()) {
+      return;
     }
-  });
- }
+
+    const updatedTestCase = {
+      ...this.executingTestCase,
+      is_executed: true,
+      executed_on: new Date().toISOString(),
+      executed_by: this.currentUser?.id,
+      status: this.executionData.status,
+      actual_result: this.executionData.actual_result,
+      comments: this.executionData.comments,
+      bug_raised: this.executionData.bug_raised,
+      bug_status: this.executionData.bug_raised ? this.executionData.bug_status : null
+    };
+
+    console.log('Saving execution with user:', this.currentUser);
+    console.log('Execution data:', updatedTestCase);
+
+    this.testCaseService.updateTestCase(this.executingTestCase.id, updatedTestCase).subscribe({
+      next: () => {
+        this.loadTestCases();
+        this.closeExecutePopup();
+        this.showSuccess('Test execution saved successfully!');
+      },
+      error: (error: any) => {
+        console.error('Error saving test execution:', error);
+        this.formExecutionErrors.general = 'Error saving execution: ' + (error.error?.message || error.message);
+      }
+    });
+  }
 }

@@ -2,9 +2,17 @@
 .testcases-container {
   margin-left: 80px; /* adjust according to sidebar width */
   padding: 20px;
-  min-height: 100vh;
+  height: calc(100vh - 60px);  /* 👈 fixed height: screen height - navbar */
   background: #f9f9f9;
-  overflow-y: hidden; /* Enable vertical scrolling for the entire page */
+  overflow-y: auto;   /* ✅ poore page ke liye scroll enable */
+}
+
+/* Table container with vertical scroll removed */
+.table-card {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;   /* ✅ bottom me extra gap */
+  padding-bottom: 10px;  /* ✅ content thoda upar rahe */
 }
 
 .header {
@@ -122,11 +130,20 @@
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.table-container {
+/* ✅ Table Scroll Container - Horizontal scroll only */
+.table-scroll-container {
   overflow-x: auto;
-  overflow-y: auto;  
-  max-height: calc(100vh - 350px); /* Adjust based on your layout */
-  padding-bottom: 20px; /* ✅ last row ke niche extra space */
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+/* Remove old table container styles that had vertical scroll */
+.table-container {
+  /* Remove any max-height or overflow-y properties */
+  padding-bottom: 0;
 }
 
 .styled-table thead {
@@ -146,11 +163,14 @@
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
+  white-space: nowrap;
 }
 
 .styled-table th {
   background: #f5f5f5;
   font-weight: bold;
+  position: sticky;
+  top: 0;
 }
 
 /* Serial number column */
@@ -251,6 +271,96 @@
 }
 .execute-btn:hover {
   background: #388e3c;
+}
+
+/* ✅ Pagination Styles */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 15px 0;
+  border-top: 1px solid #ddd;
+}
+
+.pagination-summary {
+  color: #666;
+  font-size: 14px;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  min-width: 40px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.pagination-btn.active {
+  background: #3f51b5;
+  color: white;
+  border-color: #3f51b5;
+}
+
+.pagination-btn:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Reduced scrollbar height for webkit browsers */
+.table-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Page scrollbar styling */
+.testcases-container::-webkit-scrollbar {
+  width: 2px;
+}
+
+.testcases-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.testcases-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.testcases-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.styled-table tbody tr:last-child td {
+  padding-bottom: 30px; /* extra bottom space */
 }
 
 /* Popup */
@@ -461,151 +571,6 @@ textarea {
   font-size: 18px;
   cursor: pointer;
   margin-left: 15px;
-}
-
-/* Custom scrollbar styling */
-.table-container::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.table-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-.testcases-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.testcases-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.testcases-container::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.testcases-container::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-.styled-table tbody tr:last-child td {
-  padding-bottom: 30px; /* extra bottom space */
-}
-
-/* Responsive design */
-@media (max-width: 1024px) {
-  .filter-form {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .filter-form {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-  
-  .testcases-container {
-    margin-left: 0;
-    padding: 15px;
-  }
-  
-  .header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  
-  .popup-content {
-    width: 90%;
-    padding: 15px;
-  }
-  
-  .large-popup {
-    width: 90%;
-  }
-  
-  .medium-popup {
-    width: 90%;
-  }
-  
-  .styled-table th,
-  .styled-table td {
-    padding: 8px 10px;
-    font-size: 14px;
-  }
-  
-  .col-title {
-    min-width: 200px;
-    max-width: 300px;
-  }
-  
-  .actions {
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  .test-data-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .add-test-data-btn {
-    margin-top: 5px;
-  }
-
-  .success-notification {
-    left: 20px;
-    right: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .testcases-container {
-    padding: 10px;
-  }
-  
-  .card {
-    padding: 10px;
-  }
-  
-  .styled-table {
-    font-size: 12px;
-  }
-  
-  .styled-table th,
-  .styled-table td {
-    padding: 6px 8px;
-  }
-  
-  .col-title {
-    min-width: 150px;
-    max-width: 200px;
-  }
-  
-  .status-badge,
-  .bug-status-badge {
-    font-size: 10px;
-    padding: 2px 6px;
-  }
-  
-  .icon-yes,
-  .icon-no {
-    font-size: 16px;
-  }
 }
 
 .general-error {
@@ -873,4 +838,128 @@ textarea {
 
 .view-details-btn:hover {
   background: #5a6268;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .filter-form {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-form {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .testcases-container {
+    margin-left: 0;
+    padding: 15px;
+    max-height: none; /* Allow natural scrolling on mobile */
+  }
+
+  .table-card {
+    max-height: none; /* Allow natural scrolling on mobile */
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .popup-content {
+    width: 90%;
+    padding: 15px;
+  }
+  
+  .large-popup {
+    width: 90%;
+  }
+  
+  .medium-popup {
+    width: 90%;
+  }
+  
+  .styled-table th,
+  .styled-table td {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  
+  .col-title {
+    min-width: 200px;
+    max-width: 300px;
+  }
+  
+  .actions {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .test-data-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .add-test-data-btn {
+    margin-top: 5px;
+  }
+
+  .success-notification {
+    left: 20px;
+    right: 20px;
+  }
+
+  .pagination-container {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .pagination-controls {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .testcases-container {
+    padding: 10px;
+  }
+  
+  .card {
+    padding: 10px;
+  }
+  
+  .styled-table {
+    font-size: 12px;
+  }
+  
+  .styled-table th,
+  .styled-table td {
+    padding: 6px 8px;
+  }
+  
+  .col-title {
+    min-width: 150px;
+    max-width: 200px;
+  }
+  
+  .status-badge,
+  .bug-status-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  
+  .icon-yes,
+  .icon-no {
+    font-size: 16px;
+  }
+
+  .pagination-btn {
+    padding: 6px 8px;
+    min-width: 35px;
+    font-size: 12px;
+  }
 }
