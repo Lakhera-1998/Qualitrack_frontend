@@ -19,6 +19,7 @@ export class RequirementService {
     };
   }
 
+  // Existing methods - URLs remain unchanged
   getRequirementsByProject(projectId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/projects/${projectId}/requirements/`, this.getHeaders());
   }
@@ -34,5 +35,26 @@ export class RequirementService {
   // ✅ CORRECTED: Get requirement with both projectId and requirementId
   getRequirement(projectId: number, id: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/projects/${projectId}/requirements/${id}/`, this.getHeaders());
+  }
+
+  // ✅ NEW: Download Excel Template
+  downloadTemplate(projectId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/requirements/download-template/${projectId}/`, {
+      ...this.getHeaders(),
+      responseType: 'blob'
+    });
+  }
+
+  // ✅ NEW: Import Requirements from Excel
+  importRequirements(projectId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('excel_file', file);
+    
+    const token = sessionStorage.getItem('accessToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<any>(`${this.baseUrl}/requirements/import/${projectId}/`, formData, { headers });
   }
 }

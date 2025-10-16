@@ -37,7 +37,13 @@
   <!-- Test Cases Display Area -->
   <div *ngIf="selectedRequirementId && requirement" class="requirements-content">
     <div class="project-header">
-      <h3>Test Cases for {{ requirement?.requirement_title }} ({{ selectedProjectName }} - {{ selectedClientName }})</h3>
+      <!-- ✅ Fixed heading display to avoid showing (-) unnecessarily -->
+      <h3>
+        Test Cases for {{ requirement?.requirement_title }}
+        <span *ngIf="selectedProjectName || selectedClientName">
+          ({{ selectedProjectName }}<span *ngIf="selectedProjectName && selectedClientName"> - </span>{{ selectedClientName }})
+        </span>
+      </h3>
     </div>
 
     <div class="card table-card">

@@ -1,7 +1,18 @@
 <div class="requirements-container">
   <div class="header">
     <h2>Project Requirements</h2>
-    <button class="add-btn" (click)="openAddRequirementPopup()" [disabled]="!selectedProjectId">+ Add Requirement</button>
+    <div class="action-buttons">
+      <!-- New buttons for Excel functionality -->
+      <button class="download-template-btn" (click)="downloadTemplate()" [disabled]="!selectedProjectId">
+        📥 Download Template
+      </button>
+      <button class="import-requirements-btn" (click)="openImportPopup()" [disabled]="!selectedProjectId">
+        📤 Import Requirements
+      </button>
+      <button class="add-btn" (click)="openAddRequirementPopup()" [disabled]="!selectedProjectId">
+        + Add Requirement
+      </button>
+    </div>
   </div>
 
   <!-- Client and Project Filters -->
@@ -28,7 +39,6 @@
 
   <!-- Requirements Display Area -->
   <div *ngIf="selectedProjectId && project" class="requirements-content">
-    <!-- ✅ Fixed the heading bug - removed extra parentheses -->
     <div class="project-header">
       <h3>Requirements for {{ project?.project_name }} {{ selectedClientName ? '(' + selectedClientName + ')' : '' }}</h3>
     </div>
@@ -191,6 +201,12 @@
     <button class="close-notification" (click)="hideSuccessMessage()">×</button>
   </div>
 
+  <!-- Error Notification -->
+  <div *ngIf="showErrorMessage" class="error-notification">
+    <span>{{ errorMessage }}</span>
+    <button class="close-notification" (click)="hideErrorMessage()">×</button>
+  </div>
+
   <!-- Add/Edit Requirement Popup -->
   <div class="popup" *ngIf="showRequirementPopup">
     <div class="popup-content">
@@ -269,6 +285,90 @@
           <button type="button" class="cancel-btn" (click)="closeRequirementPopup()">Cancel</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Import Requirements Popup -->
+  <div class="popup" *ngIf="showImportPopup">
+    <div class="popup-content">
+      <div class="popup-header">
+        <h3>Import Requirements from Excel</h3>
+        <button class="close-btn" (click)="closeImportPopup()">✖</button>
+      </div>
+
+      <div class="import-instructions">
+        <h4>Instructions:</h4>
+        <ul>
+          <li>Download the template first to ensure correct format</li>
+          <li>Fill in the required fields marked with *</li>
+          <li>For boolean fields, use TRUE or FALSE only</li>
+          <li>Date format must be YYYY-MM-DD</li>
+          <li>Priority must be one of: Low, Medium, High, Critical</li>
+        </ul>
+      </div>
+
+      <div class="file-upload-area" [class.drag-over]="isDragOver" 
+           (drop)="onFileDrop($event)" 
+           (dragover)="onDragOver($event)" 
+           (dragleave)="onDragLeave($event)">
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx,.xls" hidden>
+        
+        <div class="upload-content" *ngIf="!selectedFile">
+          <div class="upload-icon">📁</div>
+          <p>Drag & drop your Excel file here</p>
+          <p class="upload-or">or</p>
+          <button class="browse-btn" (click)="fileInput.click()">Browse Files</button>
+          <p class="file-types">Supported formats: .xlsx, .xls</p>
+        </div>
+
+        <div class="file-selected" *ngIf="selectedFile">
+          <div class="file-info">
+            <div class="file-icon">📄</div>
+            <div class="file-details">
+              <p class="file-name">{{ selectedFile.name }}</p>
+              <p class="file-size">{{ getFileSize(selectedFile.size) }}</p>
+            </div>
+            <button class="remove-file" (click)="removeFile()">✖</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Validation Errors -->
+      <div *ngIf="importErrors.length > 0" class="import-errors">
+        <h4>Validation Errors:</h4>
+        <div class="error-list">
+          <div *ngFor="let error of importErrors" class="error-item">
+            {{ error }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="save-btn" (click)="confirmImport()" [disabled]="!selectedFile || importErrors.length > 0">
+          Import Requirements
+        </button>
+        <button type="button" class="cancel-btn" (click)="closeImportPopup()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Confirmation Popup -->
+  <div class="popup" *ngIf="showImportConfirmation">
+    <div class="popup-content">
+      <div class="popup-header">
+        <h3>Confirm Import</h3>
+        <button class="close-btn" (click)="closeImportConfirmation()">✖</button>
+      </div>
+
+      <div class="confirmation-message">
+        <p>Are you sure you want to import {{ getRequirementCount() }} requirements?</p>
+        <p class="warning-text">This action cannot be undone.</p>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="save-btn" (click)="importRequirements()">Yes, Import</button>
+        <button type="button" class="cancel-btn" (click)="closeImportConfirmation()">Cancel</button>
+      </div>
     </div>
   </div>
 </div>

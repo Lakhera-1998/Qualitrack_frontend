@@ -44,6 +44,18 @@ export class ProjectRequirementsComponent implements OnInit {
   showSuccessMessage: boolean = false;
   successMessage: string = '';
 
+  // Error message
+  showErrorMessage: boolean = false;
+  errorMessage: string = '';
+
+  // Import functionality
+  showImportPopup: boolean = false;
+  showImportConfirmation: boolean = false;
+  selectedFile: File | null = null;
+  isDragOver: boolean = false;
+  importErrors: string[] = [];
+  requirementCount: number = 0;
+
   newRequirement: any = {
     requirement_title: '',
     requirement: '',
@@ -150,6 +162,171 @@ export class ProjectRequirementsComponent implements OnInit {
         this.currentPage = 1; // ✅ Reset to first page when data loads
       },
       error: (err) => console.error('Error fetching requirements:', err)
+    });
+  }
+
+  // ✅ Excel Template Download
+  downloadTemplate(): void {
+    if (!this.selectedProjectId) return;
+
+    this.requirementService.downloadTemplate(this.selectedProjectId).subscribe({
+      next: (response: any) => {
+        // Create blob from response
+        const blob = new Blob([response], { 
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        });
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `requirement_template_${this.project?.project_name || 'project'}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        this.showSuccess('Template downloaded successfully!');
+      },
+      error: (err) => {
+        console.error('Error downloading template:', err);
+        this.showError('Failed to download template. Please try again.');
+      }
+    });
+  }
+
+  // ✅ Import Requirements Functionality
+  openImportPopup(): void {
+    if (!this.selectedProjectId) return;
+    
+    this.showImportPopup = true;
+    this.selectedFile = null;
+    this.importErrors = [];
+    this.isDragOver = false;
+  }
+
+  closeImportPopup(): void {
+    this.showImportPopup = false;
+    this.selectedFile = null;
+    this.importErrors = [];
+    this.isDragOver = false;
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
+
+  onFileDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+    
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.handleFileSelection(files[0]);
+    }
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.handleFileSelection(file);
+    }
+  }
+
+  handleFileSelection(file: File): void {
+    // Validate file type
+    const validExtensions = ['.xlsx', '.xls'];
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    
+    if (!validExtensions.includes(fileExtension || '')) {
+      this.showError('Please select a valid Excel file (.xlsx or .xls)');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      this.showError('File size should be less than 10MB');
+      return;
+    }
+
+    this.selectedFile = file;
+    this.importErrors = [];
+    
+    // Pre-validate file structure
+    this.preValidateExcelFile(file);
+  }
+
+  preValidateExcelFile(file: File): void {
+    // Basic validation - in a real app, you might want to parse the Excel file
+    // and validate its structure before uploading
+    this.requirementCount = 1; // Default assumption
+  }
+
+  getFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  removeFile(): void {
+    this.selectedFile = null;
+    this.importErrors = [];
+  }
+
+  getRequirementCount(): number {
+    return this.requirementCount;
+  }
+
+  confirmImport(): void {
+    if (!this.selectedFile) {
+      this.showError('Please select a file to import');
+      return;
+    }
+
+    this.showImportConfirmation = true;
+  }
+
+  closeImportConfirmation(): void {
+    this.showImportConfirmation = false;
+  }
+
+  importRequirements(): void {
+    if (!this.selectedFile || !this.selectedProjectId) return;
+
+    this.requirementService.importRequirements(this.selectedProjectId, this.selectedFile).subscribe({
+      next: (response: any) => {
+        this.showImportConfirmation = false;
+        this.closeImportPopup();
+        
+        if (response.errors && response.errors.length > 0) {
+          this.showError(`Import completed with ${response.errors.length} errors. ${response.message}`);
+          this.importErrors = response.errors;
+        } else {
+          this.showSuccess(response.message || 'Requirements imported successfully!');
+          this.loadRequirements(); // Refresh the requirements list
+        }
+      },
+      error: (err) => {
+        console.error('Error importing requirements:', err);
+        
+        if (err.error && err.error.details) {
+          this.importErrors = err.error.details;
+          this.showError('Validation errors found in Excel file. Please check the errors below.');
+        } else {
+          this.showError(err.error?.error || 'Failed to import requirements. Please check the file format.');
+        }
+      }
     });
   }
 
@@ -343,6 +520,23 @@ export class ProjectRequirementsComponent implements OnInit {
   hideSuccessMessage(): void {
     this.showSuccessMessage = false;
     this.successMessage = '';
+  }
+
+  // Show error message
+  showError(message: string): void {
+    this.errorMessage = message;
+    this.showErrorMessage = true;
+    
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+      this.hideErrorMessage();
+    }, 5000);
+  }
+
+  // Hide error message
+  hideErrorMessage(): void {
+    this.showErrorMessage = false;
+    this.errorMessage = '';
   }
 
   viewTestCases(requirement: any): void {
