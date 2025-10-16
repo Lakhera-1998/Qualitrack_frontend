@@ -1,7 +1,16 @@
 <div class="testcases-container">
   <div class="header">
     <h2>Test Cases</h2>
-    <button class="add-btn" (click)="openAddTestCasePopup()" [disabled]="!selectedRequirementId">+ Add Test Case</button>
+    <div class="header-buttons">
+      <!-- New buttons for template download and bulk import -->
+      <button class="template-btn" (click)="downloadTemplate()" [disabled]="!selectedRequirementId">
+        📥 Download Template
+      </button>
+      <button class="import-btn" (click)="openImportPopup()" [disabled]="!selectedRequirementId">
+        📤 Import Test Cases
+      </button>
+      <button class="add-btn" (click)="openAddTestCasePopup()" [disabled]="!selectedRequirementId">+ Add Test Case</button>
+    </div>
   </div>
 
   <!-- Client, Project, and Requirement Filters -->
@@ -186,6 +195,117 @@
     <button class="close-notification" (click)="hideSuccessMessage()">×</button>
   </div>
 
+  <!-- Error Notification -->
+  <div *ngIf="showErrorMessage" class="error-notification">
+    <span>{{ errorMessage }}</span>
+    <button class="close-notification" (click)="hideErrorMessage()">×</button>
+  </div>
+
+  <!-- Import Test Cases Popup -->
+  <div class="popup" *ngIf="showImportPopup">
+    <div class="popup-content large-popup">
+      <div class="popup-header">
+        <h3>Import Test Cases</h3>
+        <button class="close-btn" (click)="closeImportPopup()">✖</button>
+      </div>
+
+      <div class="import-instructions">
+        <h4>Instructions:</h4>
+        <ul>
+          <li>Download the template first and fill in your test case data</li>
+          <li>Only Excel files (.xlsx, .xls) are accepted</li>
+          <li>Required fields: Title, Description, Expected Result</li>
+          <li>For test data, you can either provide an existing test data ID or new text test data</li>
+          <li>Boolean fields (is_automated, is_executed, bug_raised) must be TRUE or FALSE</li>
+          <li>Status must be: Pass, Fail, or Not tested yet</li>
+          <li>Bug status must be: Open, In Progress, Resolved, or Closed</li>
+        </ul>
+      </div>
+
+      <div class="file-upload-section">
+        <div class="upload-area" 
+             [class.active]="isDragOver"
+             (drop)="onFileDrop($event)"
+             (dragover)="onDragOver($event)"
+             (dragleave)="onDragLeave($event)"
+             (click)="fileInput.click()">
+          <div class="upload-placeholder" *ngIf="!importFile">
+            <span class="upload-icon">📁</span>
+            <p>Click to browse or drag and drop Excel file here</p>
+            <small>Supports .xlsx, .xls files only</small>
+          </div>
+          <div class="file-preview" *ngIf="importFile">
+            <span class="file-icon">📄</span>
+            <div class="file-info">
+              <strong>{{ importFile.name }}</strong>
+              <small>Size: {{ getFileSize(importFile.size) }}</small>
+            </div>
+            <button type="button" class="remove-btn" (click)="removeImportFile($event)">✖</button>
+          </div>
+        </div>
+        <input #fileInput type="file" (change)="onImportFileSelected($event)" accept=".xlsx,.xls" hidden>
+      </div>
+
+      <!-- Validation Results -->
+      <div *ngIf="importResults" class="validation-results">
+        <div class="result-summary" [class.success]="importResults.success_count > 0 && importResults.error_count === 0"
+             [class.warning]="importResults.error_count > 0">
+          <strong>
+            {{ importResults.success_count }} test cases imported successfully, 
+            {{ importResults.error_count }} errors found
+          </strong>
+        </div>
+
+        <div *ngIf="importResults.errors && importResults.errors.length > 0" class="error-details">
+          <h5>Errors:</h5>
+          <div *ngFor="let error of importResults.errors" class="error-item">
+            <strong>Row {{ error.row }}:</strong>
+            <ul>
+              <li *ngFor="let err of error.errors">{{ err }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div *ngIf="importResults.imported_test_cases && importResults.imported_test_cases.length > 0" class="success-details">
+          <h5>Imported Test Cases:</h5>
+          <div *ngFor="let testCase of importResults.imported_test_cases" class="success-item">
+            <strong>ID {{ testCase.id }}:</strong> {{ testCase.title }} ({{ testCase.status }})
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="save-btn" (click)="confirmImport()" 
+                [disabled]="!importFile || isImporting">
+          {{ isImporting ? 'Importing...' : 'Import Test Cases' }}
+        </button>
+        <button type="button" class="cancel-btn" (click)="closeImportPopup()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Popup for Import -->
+  <div class="popup" *ngIf="showImportConfirmation">
+    <div class="popup-content medium-popup">
+      <div class="popup-header">
+        <h3>Confirm Import</h3>
+        <button class="close-btn" (click)="closeImportConfirmation()">✖</button>
+      </div>
+
+      <div class="confirmation-content">
+        <p>Are you sure you want to import <strong>{{ importResults?.success_count }}</strong> test cases?</p>
+        <p *ngIf="importResults?.error_count > 0" class="warning-text">
+          Note: {{ importResults.error_count }} rows have errors and will be skipped.
+        </p>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="save-btn" (click)="proceedWithImport()">Yes, Import</button>
+        <button type="button" class="cancel-btn" (click)="closeImportConfirmation()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Add/Edit Test Case Popup -->
   <div class="popup" *ngIf="showTestCasePopup">
     <div class="popup-content large-popup">
@@ -253,7 +373,7 @@
           <div class="screenshot-upload-section">
             <!-- File upload option -->
             <div class="file-upload-option">
-              <input type="file" (change)="onFileSelected($event, 'bug_screenshot')" accept="image/*" />
+              <input type="file" (change)="onTestCaseFileSelected($event, 'bug_screenshot')" accept="image/*" />
               <small>Or use clipboard paste below</small>
             </div>
             
@@ -477,7 +597,7 @@
 
         <div *ngIf="newTestData.data_type === 'file'">
           <label>File Data *</label>
-          <input type="file" (change)="onFileSelected($event, 'file')" accept="*/*" 
+          <input type="file" (change)="onTestDataFileSelected($event, 'file')" accept="*/*" 
                  [class.error]="formTestDataErrors.file_data" required />
           <span *ngIf="newTestData.file_data_name" class="file-name">{{ newTestData.file_data_name }}</span>
           <div *ngIf="formTestDataErrors.file_data" class="error-message">{{ formTestDataErrors.file_data }}</div>
@@ -485,7 +605,7 @@
 
         <div *ngIf="newTestData.data_type === 'image'">
           <label>Image Data *</label>
-          <input type="file" (change)="onFileSelected($event, 'image')" accept="image/*" 
+          <input type="file" (change)="onTestDataFileSelected($event, 'image')" accept="image/*" 
                  [class.error]="formTestDataErrors.image_data" required />
           <span *ngIf="newTestData.image_data_name" class="file-name">{{ newTestData.image_data_name }}</span>
           <div *ngIf="formTestDataErrors.image_data" class="error-message">{{ formTestDataErrors.image_data }}</div>

@@ -103,4 +103,20 @@ export class TestCaseService {
     const cleanPath = screenshotPath.startsWith('/') ? screenshotPath : `/${screenshotPath}`;
     return `${this.baseUrl}/media${cleanPath}`;
   }
+
+  // ✅ New methods for template download and bulk import
+  downloadTemplate(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/test-cases/download-template/`, {
+      ...this.getHeaders(),
+      responseType: 'blob'
+    });
+  }
+
+  bulkImportTestCases(requirementId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('requirement_id', requirementId.toString());
+    
+    return this.http.post<any>(`${this.baseUrl}/test-cases/bulk-import/`, formData, this.getHeadersForFormData());
+  }
 }

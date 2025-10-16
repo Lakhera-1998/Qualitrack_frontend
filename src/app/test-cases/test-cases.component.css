@@ -963,3 +963,279 @@ textarea {
     font-size: 12px;
   }
 }
+
+/* ... existing styles ... */
+
+/* Header buttons layout */
+.header-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Template and Import buttons */
+.template-btn, .import-btn {
+  background: #28a745;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.template-btn {
+  background: #17a2b8;
+}
+
+.template-btn:hover:not(:disabled) {
+  background: #138496;
+}
+
+.import-btn:hover:not(:disabled) {
+  background: #218838;
+}
+
+.template-btn:disabled, .import-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Import Popup Styles */
+.import-instructions {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.import-instructions h4 {
+  margin-top: 0;
+  color: #495057;
+}
+
+.import-instructions ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.import-instructions li {
+  margin-bottom: 5px;
+  color: #6c757d;
+}
+
+/* File Upload Section */
+.file-upload-section {
+  margin: 20px 0;
+}
+
+.upload-area {
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.upload-area.active {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.upload-area:hover {
+  border-color: #007bff;
+}
+
+.upload-placeholder .upload-icon {
+  font-size: 2em;
+  margin-bottom: 10px;
+  display: block;
+  color: #6c757d;
+}
+
+.upload-placeholder p {
+  margin: 10px 0;
+  color: #495057;
+  font-weight: 500;
+}
+
+.upload-placeholder small {
+  color: #6c757d;
+}
+
+/* File Preview */
+.file-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+}
+
+.file-icon {
+  font-size: 1.5em;
+}
+
+.file-info {
+  flex: 1;
+  text-align: left;
+}
+
+.file-info strong {
+  display: block;
+  color: #495057;
+}
+
+.file-info small {
+  color: #6c757d;
+}
+
+/* Validation Results */
+.validation-results {
+  margin: 20px 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.result-summary {
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.result-summary.success {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.result-summary.warning {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+.error-details, .success-details {
+  margin-top: 15px;
+}
+
+.error-details h5, .success-details h5 {
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.error-item {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.error-item strong {
+  color: #721c24;
+}
+
+.error-item ul {
+  margin: 5px 0 0 0;
+  padding-left: 20px;
+}
+
+.error-item li {
+  color: #721c24;
+}
+
+.success-item {
+  background: #d1ecf1;
+  border: 1px solid #bee5eb;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  color: #0c5460;
+}
+
+/* Confirmation Content */
+.confirmation-content {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.confirmation-content p {
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.warning-text {
+  color: #856404;
+  background: #fff3cd;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ffeaa7;
+}
+
+/* Error Notification */
+.error-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #dc3545;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10000;
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header-buttons {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+  
+  .template-btn, .import-btn, .add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .upload-area {
+    padding: 20px;
+  }
+  
+  .file-preview {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .file-info {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .import-instructions {
+    padding: 10px;
+  }
+  
+  .upload-area {
+    padding: 15px;
+  }
+  
+  .validation-results {
+    max-height: 200px;
+  }
+}

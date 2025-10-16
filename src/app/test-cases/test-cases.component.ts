@@ -33,6 +33,16 @@ export class TestCasesComponent implements OnInit {
   currentUser: any = null;
   projectDevelopers: any[] = [];
 
+  // New properties for import functionality
+  showImportPopup: boolean = false;
+  showImportConfirmation: boolean = false;
+  importFile: File | null = null;
+  isDragOver: boolean = false;
+  importResults: any = null;
+  isImporting: boolean = false;
+  showErrorMessage: boolean = false;
+  errorMessage: string = '';
+
   // ✅ Pagination properties
   currentPage: number = 1;
   pageSize: number = 5; // Only 5 records per page as requested
@@ -55,7 +65,9 @@ export class TestCasesComponent implements OnInit {
     expected_result: '',
     test_actions: '',
     bug_status: '',
-    assigned_to: ''
+    assigned_to: '',
+    executed_on: '',
+    general: ''
   };
 
   formTestDataErrors: any = {
@@ -68,7 +80,8 @@ export class TestCasesComponent implements OnInit {
 
   formExecutionErrors: any = {
     status: '',
-    bug_status: ''
+    bug_status: '',
+    general: ''
   };
 
   // Success message
@@ -225,7 +238,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching clients:', error);
-        this.showError('Error loading clients: ' + (error.error?.message || error.message));
+        this.displayError('Error loading clients: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -259,7 +272,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching projects by client:', error);
-        this.showError('Error loading projects: ' + (error.error?.message || error.message));
+        this.displayError('Error loading projects: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -294,7 +307,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching project developers:', error);
-        this.showError('Error loading project developers: ' + (error.error?.message || error.message));
+        this.displayError('Error loading project developers: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -306,7 +319,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching requirements by project:', error);
-        this.showError('Error loading requirements: ' + (error.error?.message || error.message));
+        this.displayError('Error loading requirements: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -332,7 +345,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching requirement:', error);
-        this.showError('Error loading requirement: ' + (error.error?.message || error.message));
+        this.displayError('Error loading requirement: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -355,7 +368,7 @@ export class TestCasesComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error fetching test cases:', error);
-        this.showError('Error loading test cases: ' + (error.error?.message || error.message));
+        this.displayError('Error loading test cases: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -499,12 +512,12 @@ export class TestCasesComponent implements OnInit {
   handlePastedImage(file: File): void {
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
-      this.showError('Invalid image type. Please paste PNG, JPEG, JPG, or GIF images only.');
+      this.displayError('Invalid image type. Please paste PNG, JPEG, JPG, or GIF images only.');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      this.showError('Image too large. Maximum size is 5MB.');
+      this.displayError('Image too large. Maximum size is 5MB.');
       return;
     }
 
@@ -563,13 +576,24 @@ export class TestCasesComponent implements OnInit {
     }, 3000);
   }
 
-  showError(message: string): void {
+  displayError(message: string): void {
+    this.errorMessage = message;
+    this.showErrorMessage = true;
     console.error('Error:', message);
+    
+    setTimeout(() => {
+      this.hideErrorMessage();
+    }, 5000);
   }
 
   hideSuccessMessage(): void {
     this.showSuccessMessage = false;
     this.successMessage = '';
+  }
+
+  hideErrorMessage(): void {
+    this.showErrorMessage = false;
+    this.errorMessage = '';
   }
 
   // ✅ Form Validation
@@ -662,7 +686,8 @@ export class TestCasesComponent implements OnInit {
       test_actions: '',
       bug_status: '',
       assigned_to: '',
-      executed_on: ''
+      executed_on: '',
+      general: ''
     };
   }
 
@@ -679,7 +704,8 @@ export class TestCasesComponent implements OnInit {
   clearExecutionFormErrors(): void {
     this.formExecutionErrors = {
       status: '',
-      bug_status: ''
+      bug_status: '',
+      general: ''
     };
   }
 
@@ -853,7 +879,19 @@ export class TestCasesComponent implements OnInit {
     this.newTestData.image_data_name = '';
   }
 
-  onFileSelected(event: any, type: string): void {
+  // ✅ Separate file selection methods to avoid conflicts
+  onTestCaseFileSelected(event: any, type: string): void {
+    const file = event.target.files[0];
+    if (file) {
+      if (type === 'bug_screenshot') {
+        this.newTestCase.bug_screenshot = file;
+        this.clipboardImage = null;
+        this.clipboardFile = null;
+      }
+    }
+  }
+
+  onTestDataFileSelected(event: any, type: string): void {
     const file = event.target.files[0];
     if (file) {
       if (type === 'file') {
@@ -862,10 +900,6 @@ export class TestCasesComponent implements OnInit {
       } else if (type === 'image') {
         this.newTestData.image_data = file;
         this.newTestData.image_data_name = file.name;
-      } else if (type === 'bug_screenshot') {
-        this.newTestCase.bug_screenshot = file;
-        this.clipboardImage = null;
-        this.clipboardFile = null;
       }
     }
   }
@@ -968,5 +1002,160 @@ export class TestCasesComponent implements OnInit {
         this.formExecutionErrors.general = 'Error saving execution: ' + (error.error?.message || error.message);
       }
     });
+  }
+
+  // ✅ Template Download and Import Functionality
+  downloadTemplate(): void {
+    if (!this.selectedRequirementId) {
+      this.displayError('Please select a requirement first');
+      return;
+    }
+
+    this.testCaseService.downloadTemplate().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'test_case_template.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.showSuccess('Template downloaded successfully!');
+      },
+      error: (error: any) => {
+        console.error('Error downloading template:', error);
+        this.displayError('Error downloading template: ' + (error.error?.message || error.message));
+      }
+    });
+  }
+
+  openImportPopup(): void {
+    if (!this.selectedRequirementId) {
+      this.displayError('Please select a requirement first');
+      return;
+    }
+    this.showImportPopup = true;
+    this.importFile = null;
+    this.importResults = null;
+    this.isDragOver = false;
+  }
+
+  closeImportPopup(): void {
+    this.showImportPopup = false;
+    this.importFile = null;
+    this.importResults = null;
+    this.isDragOver = false;
+  }
+
+  onImportFileSelected(event: any): void {
+    const file = event.target.files[0];
+    this.handleFileSelection(file);
+  }
+
+  onFileDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+    
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.handleFileSelection(files[0]);
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+  }
+
+  handleFileSelection(file: File): void {
+    if (!file) return;
+
+    // Validate file type
+    const allowedExtensions = ['.xlsx', '.xls'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    if (!allowedExtensions.includes(fileExtension)) {
+      this.displayError('Only Excel files (.xlsx, .xls) are allowed');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      this.displayError('File size too large. Maximum 10MB allowed.');
+      return;
+    }
+
+    this.importFile = file;
+    this.importResults = null;
+  }
+
+  removeImportFile(event: Event): void {
+    event.stopPropagation();
+    this.importFile = null;
+    this.importResults = null;
+  }
+
+  getFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  confirmImport(): void {
+    if (!this.importFile || !this.selectedRequirementId) {
+      this.displayError('Please select a file to import');
+      return;
+    }
+
+    this.isImporting = true;
+    
+    this.testCaseService.bulkImportTestCases(this.selectedRequirementId, this.importFile).subscribe({
+      next: (results: any) => {
+        this.importResults = results;
+        this.isImporting = false;
+        
+        if (results.error_count === 0) {
+          // No errors, proceed directly
+          this.proceedWithImport();
+        } else {
+          // Show errors and ask for confirmation
+          this.showImportConfirmation = true;
+        }
+      },
+      error: (error: any) => {
+        this.isImporting = false;
+        console.error('Error during import validation:', error);
+        
+        if (error.status === 207) {
+          // Multi-status response with errors
+          this.importResults = error.error;
+          this.showImportConfirmation = true;
+        } else {
+          this.displayError('Error validating import file: ' + (error.error?.message || error.message));
+        }
+      }
+    });
+  }
+
+  closeImportConfirmation(): void {
+    this.showImportConfirmation = false;
+  }
+
+  proceedWithImport(): void {
+    if (this.importResults && this.importResults.success_count > 0) {
+      this.showSuccess(`Successfully imported ${this.importResults.success_count} test cases!`);
+      this.loadTestCases(); // Refresh the test cases list
+    }
+    
+    this.closeImportConfirmation();
+    this.closeImportPopup();
   }
 }
