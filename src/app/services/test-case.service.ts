@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TestCaseService {
-  private baseUrl = 'http://127.0.0.1:8000';
+  private baseUrl = environment.apiBaseUrl;
 
   constructor(private http: HttpClient) {}
 
@@ -105,9 +107,15 @@ export class TestCaseService {
   }
 
   // ✅ New methods for template download and bulk import
-  downloadTemplate(): Observable<any> {
+  downloadTemplate(projectId?: number): Observable<any> {
+    let params = new HttpParams();
+    if (projectId) {
+      params = params.set('project_id', projectId.toString());
+    }
+    
     return this.http.get(`${this.baseUrl}/test-cases/download-template/`, {
       ...this.getHeaders(),
+      params: params,
       responseType: 'blob'
     });
   }

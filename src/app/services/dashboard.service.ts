@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface DashboardCounts {
   employees: {
@@ -32,7 +33,7 @@ export interface ProjectStatusOverview {
   providedIn: 'root'
 })
 export class DashboardService {
-  private baseUrl = 'http://localhost:8000'; // Remove /api from base URL
+  private baseUrl = environment.apiBaseUrl; // Remove /api from base URL
 
   constructor(private http: HttpClient) {}
 

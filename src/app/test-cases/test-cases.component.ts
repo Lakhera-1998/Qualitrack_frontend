@@ -10,6 +10,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
+import { environment } from '../../environments/environment';
+
 @Component({
   selector: 'app-test-cases',
   templateUrl: './test-cases.component.html',
@@ -219,7 +221,7 @@ export class TestCasesComponent implements OnInit {
   }
 
   loadUsers(): void {
-    this.http.get<any[]>('http://127.0.0.1:8000/users/').subscribe({
+    this.http.get<any[]>(`${environment.apiBaseUrl}/users/`).subscribe({
       next: (data: any[]) => {
         this.users = data;
         console.log('Users loaded:', this.users);
@@ -355,16 +357,20 @@ export class TestCasesComponent implements OnInit {
     
     this.testCaseService.getTestCasesByRequirement(this.selectedRequirementId).subscribe({
       next: (data: any[]) => {
-        // Process screenshot URLs
+        // Process screenshot URLs and ensure all data is properly loaded
         this.testCases = data.map(testCase => ({
           ...testCase,
           bug_screenshot: testCase.bug_screenshot 
             ? this.testCaseService.getBugScreenshotUrl(testCase.bug_screenshot)
-            : null
+            : null,
+          // Ensure created_by and executed_by are properly handled
+          created_by: testCase.created_by || null,
+          executed_by: testCase.executed_by || null,
+          test_data: testCase.test_data || null
         }));
         
         this.currentPage = 1; // ✅ Reset to first page when data loads
-        console.log('Processed test cases with screenshot URLs:', this.testCases);
+        console.log('Processed test cases with all data:', this.testCases);
       },
       error: (error: any) => {
         console.error('Error fetching test cases:', error);
@@ -1006,29 +1012,33 @@ export class TestCasesComponent implements OnInit {
 
   // ✅ Template Download and Import Functionality
   downloadTemplate(): void {
-    if (!this.selectedRequirementId) {
-      this.displayError('Please select a requirement first');
-      return;
-    }
-
-    this.testCaseService.downloadTemplate().subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'test_case_template.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        this.showSuccess('Template downloaded successfully!');
-      },
-      error: (error: any) => {
-        console.error('Error downloading template:', error);
-        this.displayError('Error downloading template: ' + (error.error?.message || error.message));
-      }
-    });
+  if (!this.selectedRequirementId) {
+    this.displayError('Please select a requirement first');
+    return;
   }
+
+  // Pass project ID to get relevant developers in the template
+  // Convert null to undefined to fix the TypeScript error
+  const projectId = this.selectedProjectId || undefined;
+  
+  this.testCaseService.downloadTemplate(projectId).subscribe({
+    next: (blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'test_case_template.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      this.showSuccess('Template downloaded successfully! Check the Developers sheet for available developers.');
+    },
+    error: (error: any) => {
+      console.error('Error downloading template:', error);
+      this.displayError('Error downloading template: ' + (error.error?.message || error.message));
+    }
+  });
+}
 
   openImportPopup(): void {
     if (!this.selectedRequirementId) {
@@ -1153,6 +1163,7 @@ export class TestCasesComponent implements OnInit {
     if (this.importResults && this.importResults.success_count > 0) {
       this.showSuccess(`Successfully imported ${this.importResults.success_count} test cases!`);
       this.loadTestCases(); // Refresh the test cases list
+      this.loadTestData(); // Refresh test data list as new test data might be created
     }
     
     this.closeImportConfirmation();

@@ -3,11 +3,13 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 
+import { environment } from '../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = 'http://127.0.0.1:8000';  // Django backend URL
+  private baseUrl = environment.apiBaseUrl;  // Django backend URL
 
   constructor(private http: HttpClient, private router: Router) {}
 
