@@ -170,6 +170,7 @@ export class ProjectsComponent implements OnInit {
       backend_developers: [],
       project_lead: null,
       qa_lead: null,
+      qa_team: [], // Initialize QA Team as empty array
       frontend_technologies: [],
       backend_technologies: [],
       other_technologies: []
@@ -181,7 +182,10 @@ export class ProjectsComponent implements OnInit {
     if (!this.showAddEditButtons) return;
     this.isEditMode = true;
     this.editingProjectId = project.id;
-    this.newProject = { ...project };
+    this.newProject = { 
+      ...project,
+      qa_team: project.qa_team || [] // Ensure qa_team is always an array
+    };
     this.showProjectPopup = true;
   }
 
@@ -222,7 +226,10 @@ export class ProjectsComponent implements OnInit {
       return;
     }
 
-    const payload = { ...this.newProject };
+    const payload = { 
+      ...this.newProject,
+      qa_team: this.newProject.qa_team || [] // Ensure qa_team is always sent
+    };
 
     if (this.isEditMode && this.editingProjectId) {
       this.projectService.updateProject(this.editingProjectId, payload).subscribe({

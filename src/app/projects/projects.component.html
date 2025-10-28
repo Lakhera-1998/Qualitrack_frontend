@@ -27,6 +27,7 @@
             <th>Backend Devs</th>
             <th>Project Lead</th>
             <th>QA Lead</th>
+            <th>QA Team</th> <!-- New QA Team Column -->
             <th>Frontend Tech</th>
             <th>Backend Tech</th>
             <th>Other Tech</th>
@@ -50,6 +51,7 @@
             <td>{{ displayUserList(project.backend_developers) }}</td>
             <td>{{ displayUser(project.project_lead) }}</td>
             <td>{{ displayUser(project.qa_lead) }}</td>
+            <td>{{ displayUserList(project.qa_team) }}</td> <!-- New QA Team Data -->
             <td>{{ displayTechList(project.frontend_technologies) }}</td>
             <td>{{ displayTechList(project.backend_technologies) }}</td>
             <td>{{ displayTechList(project.other_technologies) }}</td>
@@ -159,6 +161,12 @@
         <label>QA Lead</label>
         <select [(ngModel)]="newProject.qa_lead" name="qa_lead">
           <option [ngValue]="null" disabled>Select QA Lead</option>
+          <option *ngFor="let u of users" [ngValue]="u.id">{{ u.email }}</option>
+        </select>
+
+        <!-- New QA Team Field -->
+        <label>QA Team</label>
+        <select multiple [(ngModel)]="newProject.qa_team" name="qa_team">
           <option *ngFor="let u of users" [ngValue]="u.id">{{ u.email }}</option>
         </select>
 
