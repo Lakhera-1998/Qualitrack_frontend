@@ -1,0 +1,89 @@
+<div class="dashboard-container">
+  <!-- ===== User Stats Section ===== -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>My Projects</h3>
+      <p class="count">{{ myProjectCount }}</p>
+      <p>Active {{ activeMyProjects }}, Completed {{ completedMyProjects }}</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>My Clients</h3>
+      <p class="count">{{ myClientCount }}</p>
+      <p>Active {{ myClientCount }}</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Tasks Due</h3>
+      <p class="count">{{ pendingTasksCount }}</p>
+      <p>Overdue {{ overdueTasksCount }}, Upcoming {{ upcomingTasksCount }}</p>
+    </div>
+  </div>
+
+  <!-- ===== Pending & Overdue Deadlines Section ===== -->
+  <div class="deadlines-section">
+    <div class="card pending-deadlines-card">
+      <h3>Upcoming Deadlines</h3>
+      <div class="deadline-list" *ngIf="upcomingDeadlines.length > 0; else noUpcomingDeadlines">
+        <div class="deadline-item" *ngFor="let item of upcomingDeadlines">
+          <div class="deadline-info">
+            <p class="project-name">{{ item.project_name }}</p>
+            <small>Client: {{ item.client_name }}</small>
+            <small class="deadline-days" *ngIf="getDaysUntilDeadline(item.due_date) > 0">
+              Due in {{ getDaysUntilDeadline(item.due_date) }} days
+            </small>
+            <small class="deadline-today" *ngIf="getDaysUntilDeadline(item.due_date) === 0">
+              Due today
+            </small>
+          </div>
+          <div class="deadline-date">
+            <span>{{ item.due_date | date:'MMM d, y' }}</span>
+          </div>
+        </div>
+      </div>
+      <ng-template #noUpcomingDeadlines>
+        <p class="no-data">No upcoming deadlines</p>
+      </ng-template>
+    </div>
+
+    <div class="card overdue-deadlines-card">
+      <h3>Overdue Projects</h3>
+      <div class="deadline-list" *ngIf="overdueProjects.length > 0; else noOverdueProjects">
+        <div class="deadline-item overdue-item" *ngFor="let item of overdueProjects">
+          <div class="deadline-info">
+            <p class="project-name">{{ item.project_name }}</p>
+            <small>Client: {{ item.client_name }}</small>
+            <small class="overdue-days">
+              Overdue by {{ getOverdueDays(item.due_date) }} days
+            </small>
+          </div>
+          <div class="deadline-date overdue-date">
+            <span>{{ item.due_date | date:'MMM d, y' }}</span>
+          </div>
+        </div>
+      </div>
+      <ng-template #noOverdueProjects>
+        <p class="no-data">No overdue projects</p>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- ===== Recent Activity Section ===== -->
+  <div class="card recent-activity-card">
+    <h3>Recent Activity</h3>
+    <div class="activity-list" *ngIf="recentActivities.length > 0; else noActivity">
+      <div class="activity-item" *ngFor="let activity of recentActivities">
+        <div class="activity-icon">
+          <span>📋</span>
+        </div>
+        <div class="activity-content">
+          <p class="activity-text">{{ activity.description }}</p>
+          <small class="activity-time">{{ activity.timestamp | date:'MMM d, h:mm a' }}</small>
+        </div>
+      </div>
+    </div>
+    <ng-template #noActivity>
+      <p class="no-data">No recent activity</p>
+    </ng-template>
+  </div>
+</div>

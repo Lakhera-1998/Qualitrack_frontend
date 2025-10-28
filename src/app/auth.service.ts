@@ -21,8 +21,8 @@ export class AuthService {
           sessionStorage.setItem('accessToken', response.token);
           sessionStorage.setItem('user', JSON.stringify(response.user));
 
-          // 🔹 Redirect to dashboard after successful login
-          this.router.navigate(['/dashboard']);
+          // 🔹 Redirect to appropriate dashboard based on user role
+          this.redirectBasedOnRole(response.user);
         }
       }),
       catchError(this.handleError)
@@ -56,6 +56,54 @@ export class AuthService {
       }
     }
     return null;
+  }
+
+  // 🔹 Get user role based on backend flags
+  getUserRole(): string {
+    const user = this.getCurrentUser();
+    if (!user) return '';
+    
+    if (user.is_superuser) {
+      return 'admin';
+    } else if (user.is_staff) {
+      return 'staff';
+    } else {
+      return 'user';
+    }
+  }
+
+  // 🔹 Check if user is admin
+  isAdmin(): boolean {
+    const user = this.getCurrentUser();
+    return user ? user.is_superuser : false;
+  }
+
+  // 🔹 Check if user is staff
+  isStaff(): boolean {
+    const user = this.getCurrentUser();
+    return user ? user.is_staff : false;
+  }
+
+  // 🔹 Check if user is regular user
+  isRegularUser(): boolean {
+    const user = this.getCurrentUser();
+    return user ? (!user.is_superuser && !user.is_staff) : false;
+  }
+
+  // 🔹 Redirect based on user role using backend flags
+  private redirectBasedOnRole(user: any): void {
+    if (!user) {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
+    if (user.is_superuser || user.is_staff) {
+      // For admin and staff users - redirect to admin dashboard
+      this.router.navigate(['/dashboard']);
+    } else {
+      // For regular users - redirect to user dashboard
+      this.router.navigate(['/user-dashboard']);
+    }
   }
 
   // 🔹 Error handler

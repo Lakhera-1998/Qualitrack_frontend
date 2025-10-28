@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { ClientsComponent } from './clients/clients.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { UserDashboardComponent } from './user-dashboard/user-dashboard.component';
 import { ProjectsComponent } from './projects/projects.component';
 import { ProjectRequirementsComponent } from './project-requirements/project-requirements.component';
 import { TestPlansComponent } from './test-plans/test-plans.component';
@@ -15,6 +16,7 @@ import { loginGuard } from './guards/login.guard';
 export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [loginGuard] },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'user-dashboard', component: UserDashboardComponent, canActivate: [authGuard] },
   { path: 'clients', component: ClientsComponent, canActivate: [authGuard] },
   { path: 'projects', component: ProjectsComponent, canActivate: [authGuard] },
 
