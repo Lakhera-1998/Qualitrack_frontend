@@ -48,4 +48,14 @@ export class SidebarComponent implements OnInit {
   showLimitedMenus(): boolean {
     return this.isActiveUser;
   }
+
+  // 🔹 Get the appropriate dashboard route based on user role
+  getDashboardRoute(): string {
+    if (this.isSuperAdmin || this.isStaff) {
+      return '/dashboard';
+    } else if (this.isActiveUser) {
+      return '/user-dashboard';
+    }
+    return '/dashboard'; // fallback
+  }
 }

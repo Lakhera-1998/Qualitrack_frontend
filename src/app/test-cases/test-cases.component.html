@@ -62,7 +62,9 @@
           <thead>
             <tr>
               <th class="col-sno">S. No.</th>
+              <th class="col-test-case-id">Test Case ID</th>
               <th class="col-title">Title</th>
+              <th class="col-page-name">Page Name</th>
               <th>Status</th>
               <th>Bug Status</th>
               <th class="col-boolean">Is Automated</th>
@@ -83,7 +85,13 @@
               <!-- Serial Number -->
               <td class="col-sno">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
               
+              <!-- Test Case ID -->
+              <td class="col-test-case-id">{{ testCase.test_case_id || '-' }}</td>
+              
               <td class="col-title">{{ testCase.title }}</td>
+
+              <!-- Page Name -->
+              <td class="col-page-name">{{ testCase.page_name || '-' }}</td>
 
               <td>
                 <span class="status-badge {{ testCase.status?.toLowerCase()?.replace(' ', '-') || 'pending' }}">
@@ -214,7 +222,7 @@
         <ul>
           <li>Download the template first and fill in your test case data</li>
           <li>Only Excel files (.xlsx, .xls) are accepted</li>
-          <li>Required fields: Title, Description, Expected Result</li>
+          <li>Required fields: Test Case ID, Title, Page Name, Description, Expected Result</li>
           <li>For test data, you can either provide an existing test data ID or new text test data</li>
           <li>Boolean fields (is_automated, is_executed, bug_raised) must be TRUE or FALSE</li>
           <li>Status must be: Pass, Fail, or Not tested yet</li>
@@ -269,7 +277,7 @@
         <div *ngIf="importResults.imported_test_cases && importResults.imported_test_cases.length > 0" class="success-details">
           <h5>Imported Test Cases:</h5>
           <div *ngFor="let testCase of importResults.imported_test_cases" class="success-item">
-            <strong>ID {{ testCase.id }}:</strong> {{ testCase.title }} ({{ testCase.status }})
+            <strong>ID {{ testCase.id }}:</strong> {{ testCase.test_case_id }} - {{ testCase.title }} ({{ testCase.status }})
           </div>
         </div>
       </div>
@@ -315,10 +323,23 @@
       </div>
 
       <form (ngSubmit)="saveTestCase()" class="form-grid" enctype="multipart/form-data">
+        <!-- Test Case ID - First Field -->
+        <label>Test Case ID *</label>
+        <input type="text" [(ngModel)]="newTestCase.test_case_id" name="test_case_id" 
+               [class.error]="formErrors.test_case_id" required />
+        <div *ngIf="formErrors.test_case_id" class="error-message">{{ formErrors.test_case_id }}</div>
+
         <label>Title *</label>
         <input type="text" [(ngModel)]="newTestCase.title" name="title" 
                [class.error]="formErrors.title" required />
         <div *ngIf="formErrors.title" class="error-message">{{ formErrors.title }}</div>
+
+        <!-- ✅ CRITICAL FIX: Page Name field with proper binding -->
+        <label>Page Name *</label>
+        <input type="text" [(ngModel)]="newTestCase.page_name" name="page_name" 
+               [class.error]="formErrors.page_name" required 
+               placeholder="Enter page name (e.g., Login, Dashboard, Profile)" />
+        <div *ngIf="formErrors.page_name" class="error-message">{{ formErrors.page_name }}</div>
 
         <label>Description *</label>
         <textarea [(ngModel)]="newTestCase.description" name="description" rows="3" 
@@ -458,13 +479,21 @@
   <div class="popup" *ngIf="showTestCaseDetailsPopup">
     <div class="popup-content large-popup">
       <div class="popup-header">
-        <h3>Test Case Details: {{ selectedTestCase?.title }}</h3>
+        <h3>Test Case Details: {{ selectedTestCase?.test_case_id }} - {{ selectedTestCase?.title }}</h3>
         <button class="close-btn" (click)="closeTestCaseDetailsPopup()">✖</button>
       </div>
 
       <div class="test-case-details">
         <div class="details-section">
           <h4>Basic Information</h4>
+          <div class="detail-row">
+            <label>Test Case ID:</label>
+            <span>{{ selectedTestCase?.test_case_id || '-' }}</span>
+          </div>
+          <div class="detail-row">
+            <label>Page Name:</label>
+            <span>{{ selectedTestCase?.page_name || '-' }}</span>
+          </div>
           <div class="detail-row">
             <label>Description:</label>
             <span>{{ selectedTestCase?.description }}</span>
@@ -628,7 +657,7 @@
   <div class="popup" *ngIf="showExecutePopup">
     <div class="popup-content medium-popup">
       <div class="popup-header">
-        <h3>Execute Test Case: {{ executingTestCase?.title }}</h3>
+        <h3>Execute Test Case: {{ executingTestCase?.test_case_id }} - {{ executingTestCase?.title }}</h3>
         <button class="close-btn" (click)="closeExecutePopup()">✖</button>
       </div>
 

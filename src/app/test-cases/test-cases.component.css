@@ -1238,4 +1238,36 @@ textarea {
   .validation-results {
     max-height: 200px;
   }
+
+  /* New column styles for the additional fields */
+.col-test-case-id {
+  width: 120px;
+  min-width: 120px;
+}
+
+.col-page-name {
+  width: 150px;
+  min-width: 150px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .col-test-case-id {
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  .col-page-name {
+    width: 120px;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .col-test-case-id,
+  .col-page-name {
+    width: 80px;
+    min-width: 80px;
+  }
+}
 }

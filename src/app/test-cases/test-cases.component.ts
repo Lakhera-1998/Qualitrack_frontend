@@ -62,7 +62,9 @@ export class TestCasesComponent implements OnInit {
 
   // Form validation
   formErrors: any = {
+    test_case_id: '',
     title: '',
+    page_name: '',
     description: '',
     expected_result: '',
     test_actions: '',
@@ -91,6 +93,8 @@ export class TestCasesComponent implements OnInit {
   successMessage: string = '';
 
   newTestCase: any = {
+    test_case_id: '',
+    page_name: '', // ✅ Ensure page_name is included
     title: '',
     description: '',
     pre_conditions: '',
@@ -99,6 +103,7 @@ export class TestCasesComponent implements OnInit {
     test_data: null,
     is_automated: false,
     requirement: null,
+    project: null, // Will be set automatically from selected project
     created_by: null,
     assigned_to: null,
     is_executed: false,
@@ -366,7 +371,9 @@ export class TestCasesComponent implements OnInit {
           // Ensure created_by and executed_by are properly handled
           created_by: testCase.created_by || null,
           executed_by: testCase.executed_by || null,
-          test_data: testCase.test_data || null
+          test_data: testCase.test_data || null,
+          // Ensure page_name is properly handled
+          page_name: testCase.page_name || ''
         }));
         
         this.currentPage = 1; // ✅ Reset to first page when data loads
@@ -607,8 +614,18 @@ export class TestCasesComponent implements OnInit {
     let isValid = true;
     this.clearFormErrors();
 
+    if (!this.newTestCase.test_case_id) {
+      this.formErrors.test_case_id = 'Test Case ID is required';
+      isValid = false;
+    }
+
     if (!this.newTestCase.title) {
       this.formErrors.title = 'Title is required';
+      isValid = false;
+    }
+
+    if (!this.newTestCase.page_name) {
+      this.formErrors.page_name = 'Page Name is required';
       isValid = false;
     }
 
@@ -686,7 +703,9 @@ export class TestCasesComponent implements OnInit {
 
   clearFormErrors(): void {
     this.formErrors = {
+      test_case_id: '',
       title: '',
+      page_name: '',
       description: '',
       expected_result: '',
       test_actions: '',
@@ -715,9 +734,9 @@ export class TestCasesComponent implements OnInit {
     };
   }
 
-  // ✅ Test Case CRUD
+  // ✅ Test Case CRUD - UPDATED saveTestCase method
   openAddTestCasePopup(): void {
-    if (!this.selectedRequirementId) return;
+    if (!this.selectedRequirementId || !this.selectedProjectId) return;
     
     this.isEditMode = false;
     this.clearFormErrors();
@@ -726,6 +745,8 @@ export class TestCasesComponent implements OnInit {
     this.isClipboardActive = false;
     
     this.newTestCase = {
+      test_case_id: '',
+      page_name: '', // ✅ Initialize page_name
       title: '',
       description: '',
       pre_conditions: '',
@@ -734,6 +755,7 @@ export class TestCasesComponent implements OnInit {
       test_data: null,
       is_automated: false,
       requirement: this.selectedRequirementId,
+      project: this.selectedProjectId, // Set project automatically
       created_by: this.currentUser?.id,
       assigned_to: null,
       is_executed: false,
@@ -764,7 +786,9 @@ export class TestCasesComponent implements OnInit {
     
     this.newTestCase = { 
       ...testCase,
-      executed_on: formattedExecutedOn
+      executed_on: formattedExecutedOn,
+      // ✅ Ensure page_name is properly set when editing
+      page_name: testCase.page_name || ''
     };
     
     if (this.newTestCase.bug_screenshot && typeof this.newTestCase.bug_screenshot === 'string') {
@@ -819,7 +843,13 @@ export class TestCasesComponent implements OnInit {
     }
 
     this.newTestCase.requirement = this.selectedRequirementId;
+    this.newTestCase.project = this.selectedProjectId; // Ensure project is set
     this.newTestCase.created_by = this.currentUser?.id;
+
+    // ✅ CRITICAL FIX: Ensure page_name is included and properly formatted in the payload
+    if (!this.newTestCase.page_name) {
+      this.newTestCase.page_name = ''; // Set default if empty
+    }
 
     if (this.newTestCase.test_data) {
       this.newTestCase.test_data = Number(this.newTestCase.test_data);
@@ -828,6 +858,9 @@ export class TestCasesComponent implements OnInit {
     if (this.newTestCase.assigned_to) {
       this.newTestCase.assigned_to = Number(this.newTestCase.assigned_to);
     }
+
+    console.log('Saving test case with data:', this.newTestCase);
+    console.log('Page name being sent:', this.newTestCase.page_name); // Debug log
 
     if (this.isEditMode && this.editingTestCaseId) {
       this.testCaseService.updateTestCase(this.editingTestCaseId, this.newTestCase).subscribe({
@@ -991,7 +1024,9 @@ export class TestCasesComponent implements OnInit {
       actual_result: this.executionData.actual_result,
       comments: this.executionData.comments,
       bug_raised: this.executionData.bug_raised,
-      bug_status: this.executionData.bug_raised ? this.executionData.bug_status : null
+      bug_status: this.executionData.bug_raised ? this.executionData.bug_status : null,
+      // ✅ Ensure page_name is preserved during execution
+      page_name: this.executingTestCase.page_name || ''
     };
 
     console.log('Saving execution with user:', this.currentUser);
