@@ -840,131 +840,113 @@ textarea {
   background: #5a6268;
 }
 
-/* Responsive design */
-@media (max-width: 1024px) {
-  .filter-form {
-    grid-template-columns: 1fr 1fr;
-  }
+/* New column styles for the additional fields */
+.col-test-case-id {
+  width: 120px;
+  min-width: 120px;
 }
 
-@media (max-width: 768px) {
-  .filter-form {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-  
-  .testcases-container {
-    margin-left: 0;
-    padding: 15px;
-    max-height: none; /* Allow natural scrolling on mobile */
-  }
-
-  .table-card {
-    max-height: none; /* Allow natural scrolling on mobile */
-  }
-  
-  .header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  
-  .popup-content {
-    width: 90%;
-    padding: 15px;
-  }
-  
-  .large-popup {
-    width: 90%;
-  }
-  
-  .medium-popup {
-    width: 90%;
-  }
-  
-  .styled-table th,
-  .styled-table td {
-    padding: 8px 10px;
-    font-size: 14px;
-  }
-  
-  .col-title {
-    min-width: 200px;
-    max-width: 300px;
-  }
-  
-  .actions {
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  .test-data-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .add-test-data-btn {
-    margin-top: 5px;
-  }
-
-  .success-notification {
-    left: 20px;
-    right: 20px;
-  }
-
-  .pagination-container {
-    flex-direction: column;
-    gap: 10px;
-    align-items: stretch;
-  }
-
-  .pagination-controls {
-    justify-content: center;
-  }
+.col-page-name {
+  width: 150px;
+  min-width: 150px;
 }
 
-@media (max-width: 480px) {
-  .testcases-container {
-    padding: 10px;
-  }
-  
-  .card {
-    padding: 10px;
-  }
-  
-  .styled-table {
-    font-size: 12px;
-  }
-  
-  .styled-table th,
-  .styled-table td {
-    padding: 6px 8px;
-  }
-  
-  .col-title {
-    min-width: 150px;
-    max-width: 200px;
-  }
-  
-  .status-badge,
-  .bug-status-badge {
-    font-size: 10px;
-    padding: 2px 6px;
-  }
-  
-  .icon-yes,
-  .icon-no {
-    font-size: 16px;
-  }
-
-  .pagination-btn {
-    padding: 6px 8px;
-    min-width: 35px;
-    font-size: 12px;
-  }
+/* DateTime columns - NO WRAPPING */
+.col-datetime {
+  width: 180px;
+  min-width: 180px;
+  white-space: nowrap !important;
+  text-align: center;
 }
 
-/* ... existing styles ... */
+/* ========== UPDATED TEXT WRAPPING STYLES ========== */
+/* Remove all fixed height constraints and allow automatic row height */
+
+.styled-table td {
+  white-space: normal !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+  padding: 12px 8px;
+  vertical-align: top;
+  height: auto; /* Ensure height is automatic */
+}
+
+/* Simple wrapped text without height restrictions */
+.wrapped-text {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
+  /* Remove fixed height, overflow hidden, and line clamping */
+}
+
+/* Ensure table rows expand to fit content */
+.styled-table tbody tr {
+  height: auto;
+  min-height: auto; /* Remove fixed min-height */
+}
+
+/* Ensure table headers also have proper spacing */
+.styled-table th {
+  white-space: normal;
+  word-wrap: break-word;
+  padding: 12px 8px;
+  vertical-align: top;
+}
+
+/* Specific column adjustments for better wrapping */
+.col-title {
+  min-width: 200px;
+  max-width: 300px;
+  white-space: normal !important;
+}
+
+.col-page-name {
+  min-width: 120px;
+  max-width: 180px;
+  white-space: normal !important;
+}
+
+.col-test-case-id {
+  min-width: 100px;
+  max-width: 150px;
+  white-space: normal !important;
+}
+
+/* Status badges with wrapping */
+.status-badge, .bug-status-badge {
+  white-space: normal;
+  word-wrap: break-word;
+  text-align: center;
+  display: inline-block;
+  max-width: 120px;
+  line-height: 1.2;
+}
+
+/* Boolean columns */
+.col-boolean {
+  text-align: center;
+  width: 80px;
+  white-space: nowrap; /* Keep boolean icons on one line */
+}
+
+/* Actions column */
+.actions {
+  white-space: nowrap; /* Keep action buttons on one line */
+  min-width: 120px;
+}
+
+/* Screenshot column */
+.screenshot-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ========== END UPDATED TEXT WRAPPING STYLES ========== */
 
 /* Header buttons layout */
 .header-buttons {
@@ -1199,8 +1181,155 @@ textarea {
   animation: slideIn 0.3s ease-out;
 }
 
-/* Responsive Design */
+/* Responsive design */
+@media (max-width: 1024px) {
+  .filter-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .col-test-case-id {
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  .col-page-name {
+    width: 120px;
+    min-width: 120px;
+  }
+  
+  .col-datetime {
+    width: 160px;
+    min-width: 160px;
+  }
+  
+  .col-title {
+    min-width: 180px;
+    max-width: 250px;
+  }
+  
+  .col-page-name {
+    min-width: 100px;
+    max-width: 150px;
+  }
+  
+  .col-test-case-id {
+    min-width: 80px;
+    max-width: 120px;
+  }
+}
+
 @media (max-width: 768px) {
+  .filter-form {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .testcases-container {
+    margin-left: 0;
+    padding: 15px;
+    max-height: none; /* Allow natural scrolling on mobile */
+  }
+
+  .table-card {
+    max-height: none; /* Allow natural scrolling on mobile */
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .popup-content {
+    width: 90%;
+    padding: 15px;
+  }
+  
+  .large-popup {
+    width: 90%;
+  }
+  
+  .medium-popup {
+    width: 90%;
+  }
+  
+  .styled-table th,
+  .styled-table td {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  
+  .col-title {
+    min-width: 200px;
+    max-width: 300px;
+  }
+  
+  .col-datetime {
+    width: 140px;
+    min-width: 140px;
+    font-size: 12px;
+  }
+  
+  .actions {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .test-data-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .add-test-data-btn {
+    margin-top: 5px;
+  }
+
+  .success-notification {
+    left: 20px;
+    right: 20px;
+  }
+
+  .pagination-container {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .pagination-controls {
+    justify-content: center;
+  }
+  
+  .col-test-case-id,
+  .col-page-name {
+    width: 80px;
+    min-width: 80px;
+  }
+  
+  .col-title {
+    min-width: 150px;
+    max-width: 200px;
+  }
+  
+  .col-page-name {
+    min-width: 80px;
+    max-width: 120px;
+  }
+  
+  .col-test-case-id {
+    min-width: 70px;
+    max-width: 100px;
+  }
+  
+  .wrapped-text {
+    font-size: 14px;
+  }
+  
+  .styled-table td,
+  .styled-table th {
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+  
   .header-buttons {
     flex-direction: column;
     width: 100%;
@@ -1227,6 +1356,71 @@ textarea {
 }
 
 @media (max-width: 480px) {
+  .testcases-container {
+    padding: 10px;
+  }
+  
+  .card {
+    padding: 10px;
+  }
+  
+  .styled-table {
+    font-size: 12px;
+  }
+  
+  .styled-table th,
+  .styled-table td {
+    padding: 6px 8px;
+  }
+  
+  .col-title {
+    min-width: 150px;
+    max-width: 200px;
+  }
+  
+  .col-datetime {
+    width: 120px;
+    min-width: 120px;
+    font-size: 11px;
+  }
+  
+  .status-badge,
+  .bug-status-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  
+  .icon-yes,
+  .icon-no {
+    font-size: 16px;
+  }
+
+  .pagination-btn {
+    padding: 6px 8px;
+    min-width: 35px;
+    font-size: 12px;
+  }
+  
+  .col-title {
+    min-width: 120px;
+    max-width: 150px;
+  }
+  
+  .col-page-name {
+    min-width: 60px;
+    max-width: 100px;
+  }
+  
+  .wrapped-text {
+    font-size: 12px;
+  }
+  
+  .styled-table td,
+  .styled-table th {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+  
   .import-instructions {
     padding: 10px;
   }
@@ -1238,36 +1432,4 @@ textarea {
   .validation-results {
     max-height: 200px;
   }
-
-  /* New column styles for the additional fields */
-.col-test-case-id {
-  width: 120px;
-  min-width: 120px;
-}
-
-.col-page-name {
-  width: 150px;
-  min-width: 150px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .col-test-case-id {
-    width: 100px;
-    min-width: 100px;
-  }
-  
-  .col-page-name {
-    width: 120px;
-    min-width: 120px;
-  }
-}
-
-@media (max-width: 768px) {
-  .col-test-case-id,
-  .col-page-name {
-    width: 80px;
-    min-width: 80px;
-  }
-}
 }

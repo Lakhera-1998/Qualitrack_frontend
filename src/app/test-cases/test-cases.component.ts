@@ -47,7 +47,7 @@ export class TestCasesComponent implements OnInit {
 
   // ✅ Pagination properties
   currentPage: number = 1;
-  pageSize: number = 5; // Only 5 records per page as requested
+  pageSize: number = 10; // Only 5 records per page as requested
   visiblePagesCount: number = 3;
 
   // New properties for clipboard functionality and test case details

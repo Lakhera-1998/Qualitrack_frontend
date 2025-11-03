@@ -73,9 +73,9 @@
               <th>Bug Screenshot</th>
               <th>Assigned To</th>
               <th>Executed By</th>
-              <th>Executed On</th>
+              <th class="col-datetime">Executed On</th>
               <th>Created By</th>
-              <th>Created At</th>
+              <th class="col-datetime">Created At</th>
               <th class="actions-header">Actions</th>
             </tr>
           </thead>
@@ -86,19 +86,28 @@
               <td class="col-sno">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
               
               <!-- Test Case ID -->
-              <td class="col-test-case-id">{{ testCase.test_case_id || '-' }}</td>
+              <td class="col-test-case-id">
+                <div class="wrapped-text">{{ testCase.test_case_id || '-' }}</div>
+              </td>
               
-              <td class="col-title">{{ testCase.title }}</td>
+              <!-- Title with wrapping -->
+              <td class="col-title">
+                <div class="wrapped-text">{{ testCase.title }}</div>
+              </td>
 
-              <!-- Page Name -->
-              <td class="col-page-name">{{ testCase.page_name || '-' }}</td>
+              <!-- Page Name with wrapping -->
+              <td class="col-page-name">
+                <div class="wrapped-text">{{ testCase.page_name || '-' }}</div>
+              </td>
 
+              <!-- Status -->
               <td>
                 <span class="status-badge {{ testCase.status?.toLowerCase()?.replace(' ', '-') || 'pending' }}">
                   {{ testCase.status || 'Not tested yet' }}
                 </span>
               </td>
 
+              <!-- Bug Status -->
               <td>
                 <span *ngIf="testCase.bug_status"
                       class="bug-status-badge {{ testCase.bug_status?.toLowerCase().replace(' ', '-') }}">
@@ -107,41 +116,53 @@
                 <span *ngIf="!testCase.bug_status">-</span>
               </td>
 
+              <!-- Is Automated -->
               <td class="col-boolean">
                 <span [ngClass]="testCase.is_automated ? 'icon-yes' : 'icon-no'">
                   {{ testCase.is_automated ? '✔' : '✖' }}
                 </span>
               </td>
 
+              <!-- Is Executed -->
               <td class="col-boolean">
                 <span [ngClass]="testCase.is_executed ? 'icon-yes' : 'icon-no'">
                   {{ testCase.is_executed ? '✔' : '✖' }}
                 </span>
               </td>
 
+              <!-- Bug Raised -->
               <td class="col-boolean">
                 <span [ngClass]="testCase.bug_raised ? 'icon-yes' : 'icon-no'">
                   {{ testCase.bug_raised ? '✔' : '✖' }}
                 </span>
               </td>
 
+              <!-- Bug Screenshot -->
               <td>
                 <div *ngIf="testCase.bug_screenshot" class="screenshot-preview">
                   <img [src]="testCase.bug_screenshot" alt="Bug Screenshot" 
                        (click)="viewScreenshot(testCase.bug_screenshot)" 
                        class="screenshot-thumbnail">
-                  <button class="view-btn" (click)="viewScreenshot(testCase.bug_screenshot)">View</button>
                 </div>
                 <span *ngIf="!testCase.bug_screenshot">-</span>
               </td>
 
+              <!-- Assigned To with wrapping -->
               <td>{{ getDeveloperDisplay(testCase.assigned_to) }}</td>
 
+              <!-- Executed By with wrapping -->
               <td>{{ getUsername(testCase.executed_by) }}</td>
-              <td>{{ testCase.executed_on ? (testCase.executed_on | date:'medium') : '-' }}</td>
+              
+              <!-- Executed On - NO WRAPPING -->
+              <td class="col-datetime">{{ testCase.executed_on ? (testCase.executed_on | date:'medium') : '-' }}</td>
+              
+              <!-- Created By with wrapping -->
               <td>{{ getUsername(testCase.created_by) }}</td>
-              <td>{{ testCase.created_at ? (testCase.created_at | date:'medium') : '-' }}</td>
+              
+              <!-- Created At - NO WRAPPING -->
+              <td class="col-datetime">{{ testCase.created_at ? (testCase.created_at | date:'medium') : '-' }}</td>
 
+              <!-- Actions -->
               <td class="actions">
                 <button class="edit-btn" (click)="editTestCase(testCase)" title="Edit Test Case">✏️</button>
                 <button class="execute-btn" (click)="executeTestCase(testCase)"
