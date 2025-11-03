@@ -6,9 +6,9 @@ import { ProjectService } from '../services/project.service';
 import { ClientsService } from '../clients.service';
 import { TestDataService } from '../services/test-data.service';
 import { AuthService } from '../auth.service';
+import { UserService } from '../services/user.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 
 import { environment } from '../../environments/environment';
 
@@ -59,6 +59,9 @@ export class TestCasesComponent implements OnInit {
   testCaseTestData: any[] = [];
   showScreenshotViewer: boolean = false;
   viewingScreenshot: string = '';
+
+  // Store the original screenshot URL when editing to prevent loss
+  originalBugScreenshotUrl: string | null = null;
 
   // Form validation
   formErrors: any = {
@@ -155,7 +158,7 @@ export class TestCasesComponent implements OnInit {
     private clientsService: ClientsService,
     private testDataService: TestDataService,
     private authService: AuthService,
-    private http: HttpClient
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -226,13 +229,13 @@ export class TestCasesComponent implements OnInit {
   }
 
   loadUsers(): void {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/users/`).subscribe({
+    this.userService.getUsers().subscribe({
       next: (data: any[]) => {
         this.users = data;
-        console.log('Users loaded:', this.users);
+        console.log('Users loaded via UserService:', this.users);
       },
       error: (error: any) => {
-        console.error('Error fetching users:', error);
+        console.error('Error fetching users via UserService:', error);
         this.users = [];
       }
     });
@@ -376,7 +379,6 @@ export class TestCasesComponent implements OnInit {
           page_name: testCase.page_name || ''
         }));
         
-        this.currentPage = 1; // ✅ Reset to first page when data loads
         console.log('Processed test cases with all data:', this.testCases);
       },
       error: (error: any) => {
@@ -553,6 +555,7 @@ export class TestCasesComponent implements OnInit {
 
   removeCurrentScreenshot(): void {
     this.newTestCase.bug_screenshot = null;
+    this.originalBugScreenshotUrl = null;
   }
 
   // ✅ Screenshot Viewer
@@ -743,6 +746,7 @@ export class TestCasesComponent implements OnInit {
     this.clipboardImage = null;
     this.clipboardFile = null;
     this.isClipboardActive = false;
+    this.originalBugScreenshotUrl = null;
     
     this.newTestCase = {
       test_case_id: '',
@@ -784,16 +788,18 @@ export class TestCasesComponent implements OnInit {
       formattedExecutedOn = executedDate.toISOString().slice(0, 16);
     }
     
+    // ✅ FIX 1: Store the original screenshot URL to prevent loss
+    this.originalBugScreenshotUrl = testCase.bug_screenshot || null;
+    
     this.newTestCase = { 
       ...testCase,
       executed_on: formattedExecutedOn,
       // ✅ Ensure page_name is properly set when editing
-      page_name: testCase.page_name || ''
+      page_name: testCase.page_name || '',
+      // ✅ Preserve the existing screenshot URL
+      bug_screenshot: testCase.bug_screenshot || null
     };
     
-    if (this.newTestCase.bug_screenshot && typeof this.newTestCase.bug_screenshot === 'string') {
-      this.newTestCase.bug_screenshot = null;
-    }
     this.clearFormErrors();
     this.showTestCasePopup = true;
   }
@@ -805,6 +811,7 @@ export class TestCasesComponent implements OnInit {
     this.clipboardImage = null;
     this.clipboardFile = null;
     this.isClipboardActive = false;
+    this.originalBugScreenshotUrl = null;
     this.clearFormErrors();
   }
 
@@ -813,79 +820,165 @@ export class TestCasesComponent implements OnInit {
       return;
     }
 
-    if (this.clipboardFile && this.newTestCase.bug_raised) {
-      this.newTestCase.bug_screenshot = this.clipboardFile;
-    }
+    // ✅ FIX 2: Store current page before saving to maintain position
+    const currentPageBeforeSave = this.currentPage;
 
-    if (this.newTestCase.is_executed) {
-      this.newTestCase.executed_by = this.currentUser?.id;
+    // Prepare the data for saving
+    const testCaseData = { ...this.newTestCase };
+
+    // Handle execution data
+    if (testCaseData.is_executed) {
+      testCaseData.executed_by = this.currentUser?.id;
       
-      if (this.newTestCase.executed_on) {
-        if (typeof this.newTestCase.executed_on === 'string' && this.newTestCase.executed_on.includes('T')) {
-          this.newTestCase.executed_on = new Date(this.newTestCase.executed_on).toISOString();
+      if (testCaseData.executed_on) {
+        if (typeof testCaseData.executed_on === 'string' && testCaseData.executed_on.includes('T')) {
+          testCaseData.executed_on = new Date(testCaseData.executed_on).toISOString();
         }
       }
       
-      if (!this.newTestCase.status) {
-        this.newTestCase.status = 'Not tested yet';
+      if (!testCaseData.status) {
+        testCaseData.status = 'Not tested yet';
       }
     } else {
-      this.newTestCase.executed_by = null;
-      this.newTestCase.executed_on = null;
-      this.newTestCase.status = 'Not tested yet';
-      this.newTestCase.actual_result = '';
-      this.newTestCase.test_actions = '';
+      testCaseData.executed_by = null;
+      testCaseData.executed_on = null;
+      testCaseData.status = 'Not tested yet';
+      testCaseData.actual_result = '';
+      testCaseData.test_actions = '';
     }
 
-    if (!this.newTestCase.bug_raised) {
-      this.newTestCase.bug_status = null;
-      this.newTestCase.bug_screenshot = null;
+    // Handle bug data
+    if (!testCaseData.bug_raised) {
+      testCaseData.bug_status = null;
+      testCaseData.bug_screenshot = null;
     }
 
-    this.newTestCase.requirement = this.selectedRequirementId;
-    this.newTestCase.project = this.selectedProjectId; // Ensure project is set
-    this.newTestCase.created_by = this.currentUser?.id;
+    // Set required fields
+    testCaseData.requirement = this.selectedRequirementId;
+    testCaseData.project = this.selectedProjectId;
+    testCaseData.created_by = this.currentUser?.id;
 
-    // ✅ CRITICAL FIX: Ensure page_name is included and properly formatted in the payload
-    if (!this.newTestCase.page_name) {
-      this.newTestCase.page_name = ''; // Set default if empty
+    // Ensure page_name is included
+    if (!testCaseData.page_name) {
+      testCaseData.page_name = '';
     }
 
-    if (this.newTestCase.test_data) {
-      this.newTestCase.test_data = Number(this.newTestCase.test_data);
+    // Convert IDs to numbers
+    if (testCaseData.test_data) {
+      testCaseData.test_data = Number(testCaseData.test_data);
     }
 
-    if (this.newTestCase.assigned_to) {
-      this.newTestCase.assigned_to = Number(this.newTestCase.assigned_to);
+    if (testCaseData.assigned_to) {
+      testCaseData.assigned_to = Number(testCaseData.assigned_to);
     }
 
-    console.log('Saving test case with data:', this.newTestCase);
-    console.log('Page name being sent:', this.newTestCase.page_name); // Debug log
+    console.log('Saving test case with data:', testCaseData);
+    console.log('Page name being sent:', testCaseData.page_name);
+    console.log('Bug screenshot being sent:', testCaseData.bug_screenshot);
 
+    // ✅ CRITICAL FIX: Handle screenshot properly based on whether it's a new file or existing URL
     if (this.isEditMode && this.editingTestCaseId) {
-      this.testCaseService.updateTestCase(this.editingTestCaseId, this.newTestCase).subscribe({
-        next: () => {
-          this.loadTestCases();
-          this.closeTestCasePopup();
-          this.showSuccess('Test case updated successfully!');
-        },
-        error: (error: any) => {
-          console.error('Error updating test case:', error);
-          this.formErrors.general = 'Error updating test case: ' + (error.error?.message || error.message);
-        }
-      });
+      // For updates, we need to handle the screenshot carefully
+      if (this.clipboardFile && testCaseData.bug_raised) {
+        // New file from clipboard - use FormData
+        const formData = new FormData();
+        
+        // Append all fields to FormData
+        Object.keys(testCaseData).forEach(key => {
+          if (key === 'bug_screenshot' && this.clipboardFile instanceof File) {
+            formData.append(key, this.clipboardFile);
+          } else if (testCaseData[key] !== null && testCaseData[key] !== undefined) {
+            // Convert to string for FormData
+            const value = typeof testCaseData[key] === 'object' ? JSON.stringify(testCaseData[key]) : testCaseData[key];
+            formData.append(key, value.toString());
+          }
+        });
+
+        this.testCaseService.updateTestCaseWithFormData(this.editingTestCaseId, formData).subscribe({
+          next: () => {
+            this.loadTestCases();
+            this.closeTestCasePopup();
+            this.currentPage = currentPageBeforeSave;
+            this.showSuccess('Test case updated successfully!');
+          },
+          error: (error: any) => {
+            console.error('Error updating test case with file:', error);
+            this.formErrors.general = 'Error updating test case: ' + (error.error?.message || error.message);
+          }
+        });
+      } else if (testCaseData.bug_raised && testCaseData.bug_screenshot && typeof testCaseData.bug_screenshot === 'string') {
+        // Existing screenshot URL - remove the screenshot field from the data to avoid the validation error
+        const { bug_screenshot, ...dataWithoutScreenshot } = testCaseData;
+        
+        this.testCaseService.updateTestCase(this.editingTestCaseId, dataWithoutScreenshot).subscribe({
+          next: () => {
+            this.loadTestCases();
+            this.closeTestCasePopup();
+            this.currentPage = currentPageBeforeSave;
+            this.showSuccess('Test case updated successfully!');
+          },
+          error: (error: any) => {
+            console.error('Error updating test case without file:', error);
+            this.formErrors.general = 'Error updating test case: ' + (error.error?.message || error.message);
+          }
+        });
+      } else {
+        // No screenshot or bug not raised - send regular JSON
+        this.testCaseService.updateTestCase(this.editingTestCaseId, testCaseData).subscribe({
+          next: () => {
+            this.loadTestCases();
+            this.closeTestCasePopup();
+            this.currentPage = currentPageBeforeSave;
+            this.showSuccess('Test case updated successfully!');
+          },
+          error: (error: any) => {
+            console.error('Error updating test case:', error);
+            this.formErrors.general = 'Error updating test case: ' + (error.error?.message || error.message);
+          }
+        });
+      }
     } else {
-      this.testCaseService.addTestCase(this.newTestCase).subscribe({
-        next: () => {
-          this.loadTestCases();
-          this.closeTestCasePopup();
-          this.showSuccess('Test case added successfully!');
-        },
-        error: (error: any) => {
-          console.error('Error adding test case:', error);
-          this.formErrors.general = 'Error adding test case: ' + (error.error?.message || error.message);
-        }
-      });
+      // For new test cases
+      if (this.clipboardFile && testCaseData.bug_raised) {
+        // New file from clipboard - use FormData
+        const formData = new FormData();
+        
+        // Append all fields to FormData
+        Object.keys(testCaseData).forEach(key => {
+          if (key === 'bug_screenshot' && this.clipboardFile instanceof File) {
+            formData.append(key, this.clipboardFile);
+          } else if (testCaseData[key] !== null && testCaseData[key] !== undefined) {
+            // Convert to string for FormData
+            const value = typeof testCaseData[key] === 'object' ? JSON.stringify(testCaseData[key]) : testCaseData[key];
+            formData.append(key, value.toString());
+          }
+        });
+
+        this.testCaseService.addTestCaseWithFormData(formData).subscribe({
+          next: () => {
+            this.loadTestCases();
+            this.closeTestCasePopup();
+            this.showSuccess('Test case added successfully!');
+          },
+          error: (error: any) => {
+            console.error('Error adding test case with file:', error);
+            this.formErrors.general = 'Error adding test case: ' + (error.error?.message || error.message);
+          }
+        });
+      } else {
+        // No file - send regular JSON
+        this.testCaseService.addTestCase(testCaseData).subscribe({
+          next: () => {
+            this.loadTestCases();
+            this.closeTestCasePopup();
+            this.showSuccess('Test case added successfully!');
+          },
+          error: (error: any) => {
+            console.error('Error adding test case:', error);
+            this.formErrors.general = 'Error adding test case: ' + (error.error?.message || error.message);
+          }
+        });
+      }
     }
   }
 
@@ -926,6 +1019,7 @@ export class TestCasesComponent implements OnInit {
         this.newTestCase.bug_screenshot = file;
         this.clipboardImage = null;
         this.clipboardFile = null;
+        this.originalBugScreenshotUrl = null; // Clear original URL when new file is selected
       }
     }
   }
@@ -1032,10 +1126,16 @@ export class TestCasesComponent implements OnInit {
     console.log('Saving execution with user:', this.currentUser);
     console.log('Execution data:', updatedTestCase);
 
+    // ✅ FIX 2: Store current page before saving execution
+    const currentPageBeforeSave = this.currentPage;
+
+    // For execution, we don't need to handle screenshots, so use regular update
     this.testCaseService.updateTestCase(this.executingTestCase.id, updatedTestCase).subscribe({
       next: () => {
         this.loadTestCases();
         this.closeExecutePopup();
+        // ✅ FIX 2: Restore the current page after execution
+        this.currentPage = currentPageBeforeSave;
         this.showSuccess('Test execution saved successfully!');
       },
       error: (error: any) => {
@@ -1047,33 +1147,33 @@ export class TestCasesComponent implements OnInit {
 
   // ✅ Template Download and Import Functionality
   downloadTemplate(): void {
-  if (!this.selectedRequirementId) {
-    this.displayError('Please select a requirement first');
-    return;
-  }
-
-  // Pass project ID to get relevant developers in the template
-  // Convert null to undefined to fix the TypeScript error
-  const projectId = this.selectedProjectId || undefined;
-  
-  this.testCaseService.downloadTemplate(projectId).subscribe({
-    next: (blob: Blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'test_case_template.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      this.showSuccess('Template downloaded successfully! Check the Developers sheet for available developers.');
-    },
-    error: (error: any) => {
-      console.error('Error downloading template:', error);
-      this.displayError('Error downloading template: ' + (error.error?.message || error.message));
+    if (!this.selectedRequirementId) {
+      this.displayError('Please select a requirement first');
+      return;
     }
-  });
-}
+
+    // Pass project ID to get relevant developers in the template
+    // Convert null to undefined to fix the TypeScript error
+    const projectId = this.selectedProjectId || undefined;
+    
+    this.testCaseService.downloadTemplate(projectId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'test_case_template.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.showSuccess('Template downloaded successfully! Check the Developers sheet for available developers.');
+      },
+      error: (error: any) => {
+        console.error('Error downloading template:', error);
+        this.displayError('Error downloading template: ' + (error.error?.message || error.message));
+      }
+    });
+  }
 
   openImportPopup(): void {
     if (!this.selectedRequirementId) {

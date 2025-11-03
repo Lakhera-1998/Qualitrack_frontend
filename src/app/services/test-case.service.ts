@@ -38,7 +38,7 @@ export class TestCaseService {
   addTestCase(testCaseData: any): Observable<any> {
     // Check if we have file data (bug_screenshot)
     if (testCaseData.bug_screenshot instanceof File) {
-      return this.addTestCaseWithFormData(testCaseData);
+      return this.addTestCaseWithFormDataFromObject(testCaseData);
     } else {
       return this.http.post<any>(`${this.baseUrl}/test-cases/create/`, testCaseData, this.getHeaders());
     }
@@ -47,13 +47,14 @@ export class TestCaseService {
   updateTestCase(id: number, testCaseData: any): Observable<any> {
     // Check if we have file data (bug_screenshot)
     if (testCaseData.bug_screenshot instanceof File) {
-      return this.updateTestCaseWithFormData(id, testCaseData);
+      return this.updateTestCaseWithFormDataFromObject(id, testCaseData);
     } else {
       return this.http.put<any>(`${this.baseUrl}/test-cases/${id}/update/`, testCaseData, this.getHeaders());
     }
   }
 
-  private addTestCaseWithFormData(testCaseData: any): Observable<any> {
+  // ✅ RENAMED: Private method that converts object to FormData
+  private addTestCaseWithFormDataFromObject(testCaseData: any): Observable<any> {
     const formData = new FormData();
     
     // Append all fields to FormData
@@ -68,7 +69,8 @@ export class TestCaseService {
     return this.http.post<any>(`${this.baseUrl}/test-cases/create/`, formData, this.getHeadersForFormData());
   }
 
-  private updateTestCaseWithFormData(id: number, testCaseData: any): Observable<any> {
+  // ✅ RENAMED: Private method that converts object to FormData
+  private updateTestCaseWithFormDataFromObject(id: number, testCaseData: any): Observable<any> {
     const formData = new FormData();
     
     // Append all fields to FormData
@@ -81,6 +83,15 @@ export class TestCaseService {
     });
 
     return this.http.put<any>(`${this.baseUrl}/test-cases/${id}/update/`, formData, this.getHeadersForFormData());
+  }
+
+  // ✅ PUBLIC METHODS FOR FORM DATA - These are the ones your component calls
+  updateTestCaseWithFormData(id: number, formData: FormData): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/test-cases/${id}/update/`, formData, this.getHeadersForFormData());
+  }
+
+  addTestCaseWithFormData(formData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/test-cases/create/`, formData, this.getHeadersForFormData());
   }
 
   getTestCase(requirementId: number, testCaseId: number): Observable<any> {
