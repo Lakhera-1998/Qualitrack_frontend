@@ -347,12 +347,14 @@
         <!-- Test Case ID - First Field -->
         <label>Test Case ID *</label>
         <input type="text" [(ngModel)]="newTestCase.test_case_id" name="test_case_id" 
-               [class.error]="formErrors.test_case_id" required />
+               [class.error]="formErrors.test_case_id" required 
+               placeholder="Enter test case ID (e.g., TC_001)" />
         <div *ngIf="formErrors.test_case_id" class="error-message">{{ formErrors.test_case_id }}</div>
 
         <label>Title *</label>
         <input type="text" [(ngModel)]="newTestCase.title" name="title" 
-               [class.error]="formErrors.title" required />
+               [class.error]="formErrors.title" required 
+               placeholder="Enter test case title" />
         <div *ngIf="formErrors.title" class="error-message">{{ formErrors.title }}</div>
 
         <!-- ✅ CRITICAL FIX: Page Name field with proper binding -->
@@ -364,19 +366,23 @@
 
         <label>Description *</label>
         <textarea [(ngModel)]="newTestCase.description" name="description" rows="3" 
-                  [class.error]="formErrors.description" required></textarea>
+                  [class.error]="formErrors.description" required
+                  placeholder="Describe the test scenario"></textarea>
         <div *ngIf="formErrors.description" class="error-message">{{ formErrors.description }}</div>
 
         <label>Pre Conditions</label>
-        <textarea [(ngModel)]="newTestCase.pre_conditions" name="pre_conditions" rows="2"></textarea>
+        <textarea [(ngModel)]="newTestCase.pre_conditions" name="pre_conditions" rows="2"
+        placeholder="Any prerequisites or setup required"></textarea>
 
         <label>Expected Result *</label>
         <textarea [(ngModel)]="newTestCase.expected_result" name="expected_result" rows="3" 
-                  [class.error]="formErrors.expected_result" required></textarea>
+                  [class.error]="formErrors.expected_result" required
+                  placeholder="What is the expected outcome?"></textarea>
         <div *ngIf="formErrors.expected_result" class="error-message">{{ formErrors.expected_result }}</div>
 
         <label>Actual Result</label>
-        <textarea [(ngModel)]="newTestCase.actual_result" name="actual_result" rows="3"></textarea>
+        <textarea [(ngModel)]="newTestCase.actual_result" name="actual_result" rows="3"
+        placeholder="What actually happened during execution?"></textarea>
 
         <!-- Is Executed -->
         <label class="checkbox-field">
@@ -388,7 +394,8 @@
         <ng-container *ngIf="newTestCase.is_executed">
           <label>Test Actions *</label>
           <textarea [(ngModel)]="newTestCase.test_actions" name="test_actions" rows="3" 
-                    [class.error]="formErrors.test_actions" required></textarea>
+                    [class.error]="formErrors.test_actions" required
+                    placeholder="Step-by-step actions to perform the test"></textarea>
           <div *ngIf="formErrors.test_actions" class="error-message">{{ formErrors.test_actions }}</div>
 
           <label>Executed On</label>
@@ -486,7 +493,8 @@
 
         <!-- Comments -->
         <label>Comments</label>
-        <textarea [(ngModel)]="newTestCase.comments" name="comments" rows="2"></textarea>
+        <textarea [(ngModel)]="newTestCase.comments" name="comments" rows="2"
+        placeholder="Additional notes or comments"></textarea>
 
         <div class="form-actions">
           <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
