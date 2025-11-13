@@ -167,6 +167,13 @@ export class TestCasesComponent implements OnInit {
     this.loadUsers();
   }
 
+  // ✅ NEW METHOD: Navigate to test case details page
+  navigateToTestCaseDetails(testCase: any): void {
+    if (testCase && testCase.id) {
+      this.router.navigate(['/test-case-details', testCase.id]);
+    }
+  }
+
   // ✅ Pagination methods
   paginatedTestCases(): any[] {
     const startIndex = (this.currentPage - 1) * this.pageSize;
@@ -567,19 +574,6 @@ export class TestCasesComponent implements OnInit {
   closeScreenshotViewer(): void {
     this.showScreenshotViewer = false;
     this.viewingScreenshot = '';
-  }
-
-  // ✅ Test Case Details
-  viewTestCaseDetails(testCase: any): void {
-    this.selectedTestCase = testCase;
-    this.loadTestCaseTestData(testCase.id);
-    this.showTestCaseDetailsPopup = true;
-  }
-
-  closeTestCaseDetailsPopup(): void {
-    this.showTestCaseDetailsPopup = false;
-    this.selectedTestCase = null;
-    this.testCaseTestData = [];
   }
 
   // ✅ Success/Error Messages

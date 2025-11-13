@@ -7,6 +7,7 @@ import { ProjectsComponent } from './projects/projects.component';
 import { ProjectRequirementsComponent } from './project-requirements/project-requirements.component';
 import { TestPlansComponent } from './test-plans/test-plans.component';
 import { TestCasesComponent } from './test-cases/test-cases.component';
+import { TestCaseDetailsComponent } from './test-case-details/test-case-details.component';
 import { TechnologiesComponent } from './technologies/technologies.component';
 import { TestingTypesComponent } from './testing-types/testing-types.component';
 import { ReportComponent } from './report/report.component';
@@ -24,6 +25,7 @@ export const routes: Routes = [
   { path: 'requirements', component: ProjectRequirementsComponent, canActivate: [authGuard] },
   { path: 'test-plans', component: TestPlansComponent, canActivate: [authGuard] },
   { path: 'test-cases', component: TestCasesComponent, canActivate: [authGuard] },
+  { path: 'test-case-details/:id', component: TestCaseDetailsComponent },
   
   // ✅ Keep param-based routes if you still need deep linking
   { path: 'project-requirements/:projectId', component: ProjectRequirementsComponent, canActivate: [authGuard] },

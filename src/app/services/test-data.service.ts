@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -30,33 +29,57 @@ export class TestDataService {
     };
   }
 
-  // Get test data by project - FIXED URL
-  getTestDataByProject(projectId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/test-data/?project=${projectId}`, this.getHeaders());
+  getTestDataByProject(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/test-data/?project=${projectId}`, this.getHeaders());
   }
 
-  // NEW: Get test data by test case
-  getTestDataByTestCase(testCaseId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/test-data/?test_case=${testCaseId}`, this.getHeaders());
+  getTestDataByTestCase(testCaseId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/test-data/?test_case=${testCaseId}`, this.getHeaders());
   }
 
-  // Create test data - FIXED URL (changed from /test-data/ to /test-data/create/)
-  createTestData(testData: FormData): Observable<any> {
+  createTestData(testData: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/test-data/create/`, testData, this.getHeadersForFormData());
   }
 
-  // Update test data - FIXED URL (changed from /test-data/{id}/ to /test-data/{id}/update/)
-  updateTestData(id: number, testData: FormData): Observable<any> {
+  updateTestData(id: number, testData: any): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}/test-data/${id}/update/`, testData, this.getHeadersForFormData());
   }
 
-  // Get specific test data - FIXED URL
-  getTestData(id: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/test-data/${id}/`, this.getHeaders());
+  // ✅ ADDED: Method to get file URL
+  getFileUrl(filePath: string): string {
+    if (!filePath) return '';
+    
+    // Check if it's already a full URL
+    if (filePath.startsWith('http')) {
+      return filePath;
+    }
+    
+    // If the path already starts with /media/, use it as is
+    if (filePath.startsWith('/media/')) {
+      return `${this.baseUrl}${filePath}`;
+    }
+    
+    // If it's just a filename or relative path, prepend with /media/
+    const cleanPath = filePath.startsWith('/') ? filePath : `/${filePath}`;
+    return `${this.baseUrl}/media${cleanPath}`;
   }
 
-  // Delete test data - FIXED URL
-  deleteTestData(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}/test-data/${id}/`, this.getHeaders());
+  // ✅ ADDED: Method to get image URL
+  getImageUrl(imagePath: string): string {
+    if (!imagePath) return '';
+    
+    // Check if it's already a full URL
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // If the path already starts with /media/, use it as is
+    if (imagePath.startsWith('/media/')) {
+      return `${this.baseUrl}${imagePath}`;
+    }
+    
+    // If it's just a filename or relative path, prepend with /media/
+    const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+    return `${this.baseUrl}/media${cleanPath}`;
   }
 }

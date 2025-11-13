@@ -85,14 +85,22 @@
               <!-- Serial Number -->
               <td class="col-sno">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
               
-              <!-- Test Case ID -->
+              <!-- Test Case ID - Now clickable -->
               <td class="col-test-case-id">
-                <div class="wrapped-text">{{ testCase.test_case_id || '-' }}</div>
+                <div class="clickable-text wrapped-text" 
+                     (click)="navigateToTestCaseDetails(testCase)"
+                     title="Click to view test case details">
+                  {{ testCase.test_case_id || '-' }}
+                </div>
               </td>
               
-              <!-- Title with wrapping -->
+              <!-- Title with wrapping and clickable -->
               <td class="col-title">
-                <div class="wrapped-text">{{ testCase.title }}</div>
+                <div class="clickable-text wrapped-text"
+                     (click)="navigateToTestCaseDetails(testCase)"
+                     title="Click to view test case details">
+                  {{ testCase.title }}
+                </div>
               </td>
 
               <!-- Page Name with wrapping -->
@@ -162,12 +170,11 @@
               <!-- Created At - NO WRAPPING -->
               <td class="col-datetime">{{ testCase.created_at ? (testCase.created_at | date:'medium') : '-' }}</td>
 
-              <!-- Actions -->
+              <!-- Actions - Removed eye icon -->
               <td class="actions">
                 <button class="edit-btn" (click)="editTestCase(testCase)" title="Edit Test Case">✏️</button>
                 <button class="execute-btn" (click)="executeTestCase(testCase)"
                         *ngIf="!testCase.is_executed" title="Execute Test Case">▶️</button>
-                <button class="view-details-btn" (click)="viewTestCaseDetails(testCase)" title="View Details">👁️</button>
               </td>
             </tr>
           </tbody>
@@ -501,110 +508,6 @@
           <button type="button" class="cancel-btn" (click)="closeTestCasePopup()">Cancel</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- Test Case Details Popup -->
-  <div class="popup" *ngIf="showTestCaseDetailsPopup">
-    <div class="popup-content large-popup">
-      <div class="popup-header">
-        <h3>Test Case Details: {{ selectedTestCase?.test_case_id }} - {{ selectedTestCase?.title }}</h3>
-        <button class="close-btn" (click)="closeTestCaseDetailsPopup()">✖</button>
-      </div>
-
-      <div class="test-case-details">
-        <div class="details-section">
-          <h4>Basic Information</h4>
-          <div class="detail-row">
-            <label>Test Case ID:</label>
-            <span>{{ selectedTestCase?.test_case_id || '-' }}</span>
-          </div>
-          <div class="detail-row">
-            <label>Page Name:</label>
-            <span>{{ selectedTestCase?.page_name || '-' }}</span>
-          </div>
-          <div class="detail-row">
-            <label>Description:</label>
-            <span>{{ selectedTestCase?.description }}</span>
-          </div>
-          <div class="detail-row">
-            <label>Pre Conditions:</label>
-            <span>{{ selectedTestCase?.pre_conditions || '-' }}</span>
-          </div>
-          <div class="detail-row">
-            <label>Expected Result:</label>
-            <span>{{ selectedTestCase?.expected_result }}</span>
-          </div>
-        </div>
-
-        <div class="details-section" *ngIf="selectedTestCase?.is_executed">
-          <h4>Execution Details</h4>
-          <div class="detail-row">
-            <label>Status:</label>
-            <span class="status-badge {{ selectedTestCase?.status?.toLowerCase()?.replace(' ', '-') }}">
-              {{ selectedTestCase?.status }}
-            </span>
-          </div>
-           <div class="detail-row">
-            <label>Actual Result:</label>
-            <span>{{ selectedTestCase?.actual_result || '-' }}</span>
-          </div>
-          <div class="detail-row">
-            <label>Executed By:</label>
-            <span>{{ getUserDisplay(selectedTestCase?.executed_by) }}</span>
-          </div>
-          <div class="detail-row">
-          <label>Executed On:</label>
-          <span>{{ selectedTestCase?.executed_on | date:'medium' }}</span>
-        </div>
-        </div>
-
-        <div class="details-section" *ngIf="selectedTestCase?.bug_raised">
-          <h4>Bug Information</h4>
-          <div class="detail-row">
-            <label>Bug Status:</label>
-            <span class="bug-status-badge {{ selectedTestCase?.bug_status?.toLowerCase().replace(' ', '-') }}">
-              {{ selectedTestCase?.bug_status }}
-            </span>
-          </div>
-          <div class="detail-row" *ngIf="selectedTestCase?.bug_screenshot">
-            <label>Bug Screenshot:</label>
-            <div class="screenshot-detail">
-              <img [src]="selectedTestCase?.bug_screenshot" alt="Bug Screenshot" class="detail-screenshot">
-            </div>
-          </div>
-        </div>
-
-        <div class="details-section">
-          <h4>Associated Test Data</h4>
-          <div *ngIf="testCaseTestData && testCaseTestData.length > 0" class="test-data-list">
-            <div *ngFor="let testData of testCaseTestData" class="test-data-item">
-              <div class="test-data-header">
-                <strong>{{ testData.data_type | titlecase }} Data</strong>
-                <span class="upload-date">{{ testData.uploaded_at | date:'short' }}</span>
-              </div>
-              <div class="test-data-content">
-                <div *ngIf="testData.data_type === 'text'">{{ testData.text_data }}</div>
-                <div *ngIf="testData.data_type === 'file'">
-                  <a [href]="testData.file_data" target="_blank" class="file-link">
-                    📎 {{ testData.file_data_name }}
-                  </a>
-                </div>
-                <div *ngIf="testData.data_type === 'image'">
-                  <img [src]="testData.image_data" [alt]="testData.image_data_name" class="test-data-image">
-                </div>
-              </div>
-            </div>
-          </div>
-          <div *ngIf="!testCaseTestData || testCaseTestData.length === 0" class="no-test-data">
-            No test data associated with this test case.
-          </div>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="button" class="cancel-btn" (click)="closeTestCaseDetailsPopup()">Close</button>
-      </div>
     </div>
   </div>
 

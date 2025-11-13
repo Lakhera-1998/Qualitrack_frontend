@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -33,6 +32,16 @@ export class TestCaseService {
 
   getTestCasesByRequirement(requirementId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/requirements/${requirementId}/test-cases/`, this.getHeaders());
+  }
+
+  // ✅ ADDED: Get single test case by ID (without requirement ID)
+  getTestCase(testCaseId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/test-cases/${testCaseId}/`, this.getHeaders());
+  }
+
+  // ✅ KEEP: Get test case by requirement ID and test case ID (for backward compatibility)
+  getTestCaseByRequirement(requirementId: number, testCaseId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/requirements/${requirementId}/test-cases/${testCaseId}/`, this.getHeaders());
   }
 
   addTestCase(testCaseData: any): Observable<any> {
@@ -92,10 +101,6 @@ export class TestCaseService {
 
   addTestCaseWithFormData(formData: FormData): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/test-cases/create/`, formData, this.getHeadersForFormData());
-  }
-
-  getTestCase(requirementId: number, testCaseId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/requirements/${requirementId}/test-cases/${testCaseId}/`, this.getHeaders());
   }
 
   // ✅ CORRECTED method to get proper bug screenshot URL
