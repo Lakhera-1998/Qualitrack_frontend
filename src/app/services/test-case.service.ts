@@ -103,6 +103,11 @@ export class TestCaseService {
     return this.http.post<any>(`${this.baseUrl}/test-cases/create/`, formData, this.getHeadersForFormData());
   }
 
+  // ✅ ADDED: Get test case history by test case ID
+  getTestCaseHistory(testCaseId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/test-cases/${testCaseId}/history/`, this.getHeaders());
+  }
+
   // ✅ CORRECTED method to get proper bug screenshot URL
   getBugScreenshotUrl(screenshotPath: string): string {
     if (!screenshotPath) return '';

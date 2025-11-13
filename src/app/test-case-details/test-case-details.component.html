@@ -84,27 +84,87 @@
           </div>
         </div>
 
+        <!-- Comments Section -->
+        <div class="section card" *ngIf="testCase.comments">
+          <h3>Comments</h3>
+          <div class="section-content">
+            <div class="comments-content">
+              <p>{{ testCase.comments }}</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Test Data Section -->
         <div class="section card" *ngIf="testData && testData.length > 0">
-          <h3>Test Data</h3>
+          <h3>Test Data ({{ testData.length }})</h3>
           <div class="test-data-list">
-            <div *ngFor="let data of testData" class="test-data-item">
+            <div *ngFor="let data of testData; let i = index" class="test-data-item">
               <div class="test-data-header">
-                <strong>{{ data.data_type | titlecase }} Data</strong>
-                <span class="upload-date">{{ data.uploaded_at | date:'short' }}</span>
+                <div class="test-data-title">
+                  <strong>#{{ i + 1 }} - {{ data.data_type | titlecase }} Data</strong>
+                  <span class="data-id">ID: {{ data.id }}</span>
+                </div>
+                <span class="upload-date">
+                  Uploaded: {{ data.uploaded_at | date:'medium' }}
+                  <span *ngIf="data.uploaded_by">by {{ getUsername(data.uploaded_by) }}</span>
+                </span>
               </div>
+              
               <div class="test-data-content">
-                <div *ngIf="data.data_type === 'text'" class="text-data">{{ data.text_data }}</div>
-                <div *ngIf="data.data_type === 'file'" class="file-data">
-                  <a [href]="data.file_data" target="_blank" class="file-link" download>
-                    📎 {{ data.file_data_name }}
-                  </a>
+                <!-- Text Data -->
+                <div *ngIf="data.data_type === 'text'" class="text-data-container">
+                  <label>Text Content:</label>
+                  <div class="text-data">{{ data.text_data }}</div>
                 </div>
-                <div *ngIf="data.data_type === 'image'" class="image-data">
-                  <img [src]="data.image_data" [alt]="data.image_data_name" 
-                       (click)="viewImage(data.image_data)" class="test-data-image">
+
+                <!-- File Data -->
+                <div *ngIf="data.data_type === 'file'" class="file-data-container">
+                  <label>File:</label>
+                  <div class="file-info">
+                    <a [href]="data.file_data" target="_blank" class="file-link" download>
+                      📎 Download {{ data.file_data_name }}
+                    </a>
+                    <span class="file-size" *ngIf="data.file_size">({{ data.file_size }})</span>
+                  </div>
+                </div>
+
+                <!-- Image Data -->
+                <div *ngIf="data.data_type === 'image'" class="image-data-container">
+                  <label>Image:</label>
+                  <div class="image-info">
+                    <div class="image-preview">
+                      <img [src]="data.image_data" [alt]="data.image_data_name" 
+                           (click)="viewImage(data.image_data)" class="test-data-image">
+                      <div class="image-name">{{ data.image_data_name }}</div>
+                    </div>
+                    <button class="view-full-btn" (click)="viewImage(data.image_data)">View Full Size</button>
+                  </div>
+                </div>
+
+                <!-- Other Data -->
+                <div *ngIf="data.data_type === 'other'" class="other-data-container">
+                  <label>Other Data:</label>
+                  <div class="other-data">{{ data.text_data || 'No data available' }}</div>
+                </div>
+
+                <!-- Project Reference -->
+                <div *ngIf="data.project" class="data-meta">
+                  <small><strong>Project:</strong> {{ data.project?.project_name || 'N/A' }}</small>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Test Data Message -->
+        <div class="section card" *ngIf="(!testData || testData.length === 0) && testCase.test_data">
+          <h3>Test Data</h3>
+          <div class="section-content">
+            <div class="no-test-data">
+              <p>No test data files associated with this test case.</p>
+              <p class="test-data-reference" *ngIf="testCase.test_data">
+                <strong>Referenced Test Data ID:</strong> {{ testCase.test_data }}
+              </p>
             </div>
           </div>
         </div>
@@ -128,9 +188,9 @@
               <label>Actual Result:</label>
               <span class="actual-result">{{ testCase.actual_result || '-' }}</span>
             </div>
-            <div class="detail-row" *ngIf="testCase.comments">
-              <label>Comments:</label>
-              <span>{{ testCase.comments }}</span>
+            <div class="detail-row" *ngIf="testCase.test_actions">
+              <label>Test Actions:</label>
+              <span class="test-actions">{{ testCase.test_actions }}</span>
             </div>
           </div>
         </div>
@@ -180,26 +240,124 @@
                 {{ testCase.bug_raised ? 'Yes' : 'No' }}
               </span>
             </div>
+            <div class="info-item" *ngIf="testCase.test_data">
+              <label>Test Data ID:</label>
+              <span class="test-data-id">{{ testCase.test_data }}</span>
+            </div>
           </div>
         </div>
 
         <!-- Project Information -->
-        <div class="section card" *ngIf="testCase.project_details">
+        <div class="section card" *ngIf="testCase.project">
           <h3>Project Information</h3>
           <div class="project-info">
             <div class="detail-row">
-              <label>Project:</label>
-              <span>{{ testCase.project_details.project_name }}</span>
+              <label>Project ID:</label>
+              <span>{{ testCase.project }}</span>
             </div>
-            <div class="detail-row" *ngIf="testCase.project_details.client_name">
-              <label>Client:</label>
-              <span>{{ testCase.project_details.client_name }}</span>
-            </div>
-            <div class="detail-row" *ngIf="testCase.requirement_title">
-              <label>Requirement:</label>
-              <span>{{ testCase.requirement_title }}</span>
+            <div class="detail-row" *ngIf="testCase.requirement">
+              <label>Requirement ID:</label>
+              <span>{{ testCase.requirement }}</span>
             </div>
           </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="section card">
+          <h3>System Information</h3>
+          <div class="system-info">
+            <div class="detail-row">
+              <label>Created:</label>
+              <span>{{ testCase.created_at | date:'medium' }}</span>
+            </div>
+            <div class="detail-row" *ngIf="testCase.updated_at">
+              <label>Last Updated:</label>
+              <span>{{ testCase.updated_at | date:'medium' }}</span>
+            </div>
+            <div class="detail-row">
+              <label>Created By:</label>
+              <span>{{ getUsername(testCase.created_by) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Case History Section - Full Width -->
+    <div class="history-section" *ngIf="testCaseHistory && testCaseHistory.length > 0">
+      <div class="section card full-width">
+        <h3>Update History ({{ testCaseHistory.length }})</h3>
+        <div class="history-container">
+          <div class="history-timeline">
+            <div *ngFor="let history of testCaseHistory; let i = index" class="history-item">
+              <div class="history-marker">
+                <div class="history-dot"></div>
+                <div class="history-line" *ngIf="i !== testCaseHistory.length - 1"></div>
+              </div>
+              <div class="history-content">
+                <div class="history-header">
+                  <div class="history-user">
+                    <strong>{{ history.updated_by_name || 'System' }}</strong>
+                    <span class="history-date">{{ history.updated_on | date:'medium' }}</span>
+                  </div>
+                  <div class="history-actions">
+                    <span class="history-action">Updated Test Case</span>
+                  </div>
+                </div>
+                
+                <div class="history-details">
+                  <!-- Bug Status Change -->
+                  <div class="history-change" *ngIf="history.bug_status">
+                    <label>Bug Status:</label>
+                    <div class="change-content">
+                      <span class="bug-status-badge {{ history.bug_status?.toLowerCase().replace(' ', '-') }}">
+                        {{ history.bug_status }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Test Status Change -->
+                  <div class="history-change" *ngIf="history.status">
+                    <label>Test Status:</label>
+                    <div class="change-content">
+                      <span class="status-badge {{ history.status?.toLowerCase()?.replace(' ', '-') || 'pending' }}">
+                        {{ history.status }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Comments -->
+                  <div class="history-change" *ngIf="history.comment">
+                    <label>Comments:</label>
+                    <div class="change-content">
+                      <div class="history-comment">
+                        {{ history.comment }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- No changes message -->
+                  <div class="history-change" *ngIf="!history.bug_status && !history.status && !history.comment">
+                    <label>Update:</label>
+                    <div class="change-content">
+                      <span class="no-changes">No specific changes recorded</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No History Message -->
+    <div class="history-section" *ngIf="testCaseHistory && testCaseHistory.length === 0">
+      <div class="section card full-width">
+        <h3>Update History</h3>
+        <div class="no-history">
+          <p>No update history available for this test case.</p>
+          <p class="no-history-sub">Updates will appear here when changes are made to bug status, test status, or comments.</p>
         </div>
       </div>
     </div>

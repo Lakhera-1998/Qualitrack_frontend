@@ -17,6 +17,7 @@ import { ProjectService } from '../services/project.service';
 export class TestCaseDetailsComponent implements OnInit {
   testCase: any = null;
   testData: any[] = [];
+  testCaseHistory: any[] = [];
   loading: boolean = true;
   error: string = '';
   
@@ -81,14 +82,13 @@ export class TestCaseDetailsComponent implements OnInit {
             : null
         };
         
-        // Load test data
+        // Load test data and history in parallel
         this.loadTestData(parseInt(testCaseId));
+        this.loadTestCaseHistory(parseInt(testCaseId));
         
         // Load project developers if assigned_to exists
         if (this.testCase.project && this.testCase.assigned_to) {
           this.loadProjectDevelopers(this.testCase.project);
-        } else {
-          this.loading = false;
         }
       },
       error: (error: any) => {
@@ -105,7 +105,9 @@ export class TestCaseDetailsComponent implements OnInit {
         this.testData = data.map(item => ({
           ...item,
           file_data: item.file_data ? this.testDataService.getFileUrl(item.file_data) : null,
-          image_data: item.image_data ? this.testDataService.getImageUrl(item.image_data) : null
+          image_data: item.image_data ? this.testDataService.getImageUrl(item.image_data) : null,
+          file_size: this.formatFileSize(item.file_data),
+          uploaded_by_name: this.getUsername(item.uploaded_by)
         }));
       },
       error: (error: any) => {
@@ -115,18 +117,39 @@ export class TestCaseDetailsComponent implements OnInit {
     });
   }
 
+  loadTestCaseHistory(testCaseId: number): void {
+    this.testCaseService.getTestCaseHistory(testCaseId).subscribe({
+      next: (data: any[]) => {
+        this.testCaseHistory = data;
+        this.checkLoadingComplete();
+      },
+      error: (error: any) => {
+        console.error('Error fetching test case history:', error);
+        this.testCaseHistory = [];
+        this.checkLoadingComplete();
+      }
+    });
+  }
+
   loadProjectDevelopers(projectId: number): void {
     this.projectService.getProjectDevelopers(projectId).subscribe({
       next: (data: any[]) => {
         this.projectDevelopers = data;
-        this.loading = false;
+        this.checkLoadingComplete();
       },
       error: (error: any) => {
         console.error('Error fetching project developers:', error);
         this.projectDevelopers = [];
-        this.loading = false;
+        this.checkLoadingComplete();
       }
     });
+  }
+
+  private checkLoadingComplete(): void {
+    // This method ensures loading stops only when all data is loaded
+    if (this.testCase && this.testData !== null && this.testCaseHistory !== null) {
+      this.loading = false;
+    }
   }
 
   getUsername(userId: number): string {
@@ -165,16 +188,11 @@ export class TestCaseDetailsComponent implements OnInit {
     this.viewingImage = '';
   }
 
-  // Edit button functionality removed
-  // editTestCase(): void {
-  //   if (this.testCase && this.testCase.id) {
-  //     this.router.navigate(['/test-cases'], { 
-  //       queryParams: { 
-  //         edit: this.testCase.id
-  //       }
-  //     });
-  //   }
-  // }
+  // Helper method to format file sizes
+  private formatFileSize(filePath: string): string {
+    if (!filePath) return '';
+    return 'Unknown size';
+  }
 
   goBack(): void {
     this.router.navigate(['/test-cases']);
