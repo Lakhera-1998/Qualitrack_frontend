@@ -827,7 +827,7 @@ textarea {
 
 /* Clickable text styles for Test Case ID and Title */
 .clickable-text {
-  color: #007bff;
+  color: #000000; /* Black color by default */
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
@@ -836,8 +836,8 @@ textarea {
 }
 
 .clickable-text:hover {
-  color: #0056b3;
-  text-decoration: underline;
+  color: #007bff; /* Blue color on hover */
+  /* text-decoration: underline; */
   background-color: #f8f9fa;
   border-radius: 4px;
   padding: 2px 4px;

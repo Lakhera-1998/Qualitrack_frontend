@@ -37,10 +37,10 @@
           <strong>Page:</strong> {{ testCase.page_name || '-' }}
         </div>
         <div class="meta-item">
-          <strong>Created:</strong> {{ testCase.created_at | date:'medium' }} by {{ getUsername(testCase.created_by) }}
+          <strong>Created:</strong> {{ testCase.created_at | date:'medium' }} by {{ getUserDisplayName(testCase.created_by) }}
         </div>
         <div class="meta-item" *ngIf="testCase.assigned_to">
-          <strong>Assigned To:</strong> {{ getDeveloperDisplay(testCase.assigned_to) }}
+          <strong>Assigned To:</strong> {{ getUserDisplayName(testCase.assigned_to) }}
         </div>
         <div class="meta-item" *ngIf="testCase.updated_at">
           <strong>Last Updated:</strong> {{ testCase.updated_at | date:'medium' }}
@@ -52,44 +52,80 @@
     <div class="content-grid">
       <!-- Left Column -->
       <div class="left-column">
-        <!-- Description Section -->
+        <!-- Consolidated Test Case Details Card -->
         <div class="section card">
-          <h3>Description</h3>
-          <div class="section-content">
-            <p>{{ testCase.description }}</p>
-          </div>
-        </div>
+          <h3>Test Case Information</h3>
+          <div class="details-grid">
+            <!-- Description Section -->
+            <div class="detail-item">
+              <label>Description</label>
+              <div class="detail-value">
+                <p>{{ testCase.description }}</p>
+              </div>
+            </div>
 
-        <!-- Pre Conditions Section -->
-        <div class="section card" *ngIf="testCase.pre_conditions">
-          <h3>Pre Conditions</h3>
-          <div class="section-content">
-            <p>{{ testCase.pre_conditions }}</p>
-          </div>
-        </div>
+            <!-- Pre Conditions Section -->
+            <div class="detail-item" *ngIf="testCase.pre_conditions">
+              <label>Pre Conditions</label>
+              <div class="detail-value">
+                <p>{{ testCase.pre_conditions }}</p>
+              </div>
+            </div>
 
-        <!-- Test Actions Section -->
-        <div class="section card" *ngIf="testCase.test_actions">
-          <h3>Test Actions</h3>
-          <div class="section-content">
-            <p>{{ testCase.test_actions }}</p>
-          </div>
-        </div>
+            <!-- Test Actions Section -->
+            <div class="detail-item" *ngIf="testCase.test_actions">
+              <label>Test Actions</label>
+              <div class="detail-value">
+                <p>{{ testCase.test_actions }}</p>
+              </div>
+            </div>
 
-        <!-- Expected Result Section -->
-        <div class="section card">
-          <h3>Expected Result</h3>
-          <div class="section-content">
-            <p>{{ testCase.expected_result }}</p>
-          </div>
-        </div>
+            <!-- Expected Result Section -->
+            <div class="detail-item">
+              <label>Expected Result</label>
+              <div class="detail-value">
+                <p>{{ testCase.expected_result }}</p>
+              </div>
+            </div>
 
-        <!-- Comments Section -->
-        <div class="section card" *ngIf="testCase.comments">
-          <h3>Comments</h3>
-          <div class="section-content">
-            <div class="comments-content">
-              <p>{{ testCase.comments }}</p>
+            <!-- Additional Information -->
+            <div class="detail-item">
+              <label>Additional Information</label>
+              <div class="additional-info-grid">
+                <div class="info-item">
+                  <span class="info-label">Is Automated:</span>
+                  <span [ngClass]="testCase.is_automated ? 'icon-yes' : 'icon-no'">
+                    {{ testCase.is_automated ? 'Yes' : 'No' }}
+                  </span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Is Executed:</span>
+                  <span [ngClass]="testCase.is_executed ? 'icon-yes' : 'icon-no'">
+                    {{ testCase.is_executed ? 'Yes' : 'No' }}
+                  </span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Bug Raised:</span>
+                  <span [ngClass]="testCase.bug_raised ? 'icon-yes' : 'icon-no'">
+                    {{ testCase.bug_raised ? 'Yes' : 'No' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Project Information -->
+            <div class="detail-item" *ngIf="testCase.project">
+              <label>Project Information</label>
+              <div class="project-info-grid">
+                <div class="project-item">
+                  <span class="project-label">Project:</span>
+                  <span class="project-value">{{ getProjectNameForTestCase() }}</span>
+                </div>
+                <div class="project-item" *ngIf="testCase.requirement">
+                  <span class="project-label">Requirement:</span>
+                  <span class="project-value">{{ getRequirementTitle() }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -106,7 +142,7 @@
                 </div>
                 <span class="upload-date">
                   Uploaded: {{ data.uploaded_at | date:'medium' }}
-                  <span *ngIf="data.uploaded_by">by {{ getUsername(data.uploaded_by) }}</span>
+                  <span *ngIf="data.uploaded_by">by {{ getUserDisplayName(data.uploaded_by) }}</span>
                 </span>
               </div>
               
@@ -149,7 +185,7 @@
 
                 <!-- Project Reference -->
                 <div *ngIf="data.project" class="data-meta">
-                  <small><strong>Project:</strong> {{ data.project?.project_name || 'N/A' }}</small>
+                  <small><strong>Project:</strong> {{ getProjectName(data.project) }}</small>
                 </div>
               </div>
             </div>
@@ -162,9 +198,6 @@
           <div class="section-content">
             <div class="no-test-data">
               <p>No test data files associated with this test case.</p>
-              <p class="test-data-reference" *ngIf="testCase.test_data">
-                <strong>Referenced Test Data ID:</strong> {{ testCase.test_data }}
-              </p>
             </div>
           </div>
         </div>
@@ -178,7 +211,7 @@
           <div class="execution-details">
             <div class="detail-row">
               <label>Executed By:</label>
-              <span>{{ getUsername(testCase.executed_by) }}</span>
+              <span>{{ getUserDisplayName(testCase.executed_by) }}</span>
             </div>
             <div class="detail-row">
               <label>Executed On:</label>
@@ -187,10 +220,6 @@
             <div class="detail-row">
               <label>Actual Result:</label>
               <span class="actual-result">{{ testCase.actual_result || '-' }}</span>
-            </div>
-            <div class="detail-row" *ngIf="testCase.test_actions">
-              <label>Test Actions:</label>
-              <span class="test-actions">{{ testCase.test_actions }}</span>
             </div>
           </div>
         </div>
@@ -218,50 +247,6 @@
           </div>
         </div>
 
-        <!-- Additional Information -->
-        <div class="section card">
-          <h3>Additional Information</h3>
-          <div class="additional-info">
-            <div class="info-item">
-              <label>Is Automated:</label>
-              <span [ngClass]="testCase.is_automated ? 'icon-yes' : 'icon-no'">
-                {{ testCase.is_automated ? 'Yes' : 'No' }}
-              </span>
-            </div>
-            <div class="info-item">
-              <label>Is Executed:</label>
-              <span [ngClass]="testCase.is_executed ? 'icon-yes' : 'icon-no'">
-                {{ testCase.is_executed ? 'Yes' : 'No' }}
-              </span>
-            </div>
-            <div class="info-item">
-              <label>Bug Raised:</label>
-              <span [ngClass]="testCase.bug_raised ? 'icon-yes' : 'icon-no'">
-                {{ testCase.bug_raised ? 'Yes' : 'No' }}
-              </span>
-            </div>
-            <div class="info-item" *ngIf="testCase.test_data">
-              <label>Test Data ID:</label>
-              <span class="test-data-id">{{ testCase.test_data }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Project Information -->
-        <div class="section card" *ngIf="testCase.project">
-          <h3>Project Information</h3>
-          <div class="project-info">
-            <div class="detail-row">
-              <label>Project ID:</label>
-              <span>{{ testCase.project }}</span>
-            </div>
-            <div class="detail-row" *ngIf="testCase.requirement">
-              <label>Requirement ID:</label>
-              <span>{{ testCase.requirement }}</span>
-            </div>
-          </div>
-        </div>
-
         <!-- System Information -->
         <div class="section card">
           <h3>System Information</h3>
@@ -276,17 +261,17 @@
             </div>
             <div class="detail-row">
               <label>Created By:</label>
-              <span>{{ getUsername(testCase.created_by) }}</span>
+              <span>{{ getUserDisplayName(testCase.created_by) }}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Test Case History Section - Full Width -->
+    <!-- Activity Timeline Section - Full Width -->
     <div class="history-section" *ngIf="testCaseHistory && testCaseHistory.length > 0">
       <div class="section card full-width">
-        <h3>Update History ({{ testCaseHistory.length }})</h3>
+        <h3>Activity Timeline ({{ testCaseHistory.length }})</h3>
         <div class="history-container">
           <div class="history-timeline">
             <div *ngFor="let history of testCaseHistory; let i = index" class="history-item">
@@ -297,7 +282,7 @@
               <div class="history-content">
                 <div class="history-header">
                   <div class="history-user">
-                    <strong>{{ history.updated_by_name || 'System' }}</strong>
+                    <strong>{{ getUserDisplayName(history.updated_by) }}</strong>
                     <span class="history-date">{{ history.updated_on | date:'medium' }}</span>
                   </div>
                   <div class="history-actions">
@@ -354,10 +339,10 @@
     <!-- No History Message -->
     <div class="history-section" *ngIf="testCaseHistory && testCaseHistory.length === 0">
       <div class="section card full-width">
-        <h3>Update History</h3>
+        <h3>Activity Timeline</h3>
         <div class="no-history">
-          <p>No update history available for this test case.</p>
-          <p class="no-history-sub">Updates will appear here when changes are made to bug status, test status, or comments.</p>
+          <p>No activity recorded for this test case.</p>
+          <p class="no-history-sub">Activities will appear here when changes are made to bug status, test status, or comments.</p>
         </div>
       </div>
     </div>

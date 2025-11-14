@@ -165,12 +165,66 @@ export class TestCasesComponent implements OnInit {
     this.loadCurrentUser();
     this.loadClients();
     this.loadUsers();
+    
+    // ✅ Load filters from query parameters if available
+    this.loadFiltersFromQueryParams();
   }
 
-  // ✅ NEW METHOD: Navigate to test case details page
+  // ✅ Load filters from query parameters
+  loadFiltersFromQueryParams(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['clientId']) {
+        this.selectedClientId = Number(params['clientId']);
+        this.loadProjectsByClient(this.selectedClientId);
+        
+        const selectedClient = this.clients.find(client => client.id === this.selectedClientId);
+        this.selectedClientName = selectedClient ? selectedClient.client_name : '';
+      }
+      
+      if (params['projectId']) {
+        this.selectedProjectId = Number(params['projectId']);
+        this.loadRequirementsByProject(this.selectedProjectId);
+        this.loadTestData();
+        this.loadProjectDevelopers();
+        
+        const selectedProject = this.filteredProjects.find(project => project.id === this.selectedProjectId);
+        this.selectedProjectName = selectedProject ? selectedProject.project_name : '';
+      }
+      
+      if (params['requirementId']) {
+        this.selectedRequirementId = Number(params['requirementId']);
+        this.loadRequirementDetails();
+        this.loadTestCases();
+      }
+      
+      if (params['page']) {
+        this.currentPage = Number(params['page']);
+      }
+    });
+  }
+
+  // ✅ NEW METHOD: Navigate to test case details page with filter preservation
   navigateToTestCaseDetails(testCase: any): void {
     if (testCase && testCase.id) {
-      this.router.navigate(['/test-case-details', testCase.id]);
+      // Store current filters in query parameters
+      const queryParams: any = {};
+      
+      if (this.selectedClientId) {
+        queryParams.clientId = this.selectedClientId;
+      }
+      if (this.selectedProjectId) {
+        queryParams.projectId = this.selectedProjectId;
+      }
+      if (this.selectedRequirementId) {
+        queryParams.requirementId = this.selectedRequirementId;
+      }
+      if (this.currentPage > 1) {
+        queryParams.page = this.currentPage;
+      }
+      
+      this.router.navigate(['/test-case-details', testCase.id], {
+        queryParams: queryParams
+      });
     }
   }
 
@@ -188,6 +242,8 @@ export class TestCasesComponent implements OnInit {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage = page;
+      // Update URL with current page
+      this.updateUrlWithFilters();
     }
   }
 
@@ -223,6 +279,31 @@ export class TestCasesComponent implements OnInit {
   getEndIndex(): number {
     const end = this.currentPage * this.pageSize;
     return Math.min(end, this.testCases.length);
+  }
+
+  // ✅ Update URL with current filters
+  updateUrlWithFilters(): void {
+    const queryParams: any = {};
+    
+    if (this.selectedClientId) {
+      queryParams.clientId = this.selectedClientId;
+    }
+    if (this.selectedProjectId) {
+      queryParams.projectId = this.selectedProjectId;
+    }
+    if (this.selectedRequirementId) {
+      queryParams.requirementId = this.selectedRequirementId;
+    }
+    if (this.currentPage > 1) {
+      queryParams.page = this.currentPage;
+    }
+    
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: queryParams,
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   // ✅ Loaders
@@ -280,6 +361,9 @@ export class TestCasesComponent implements OnInit {
     } else {
       this.selectedClientName = '';
     }
+    
+    // Update URL with filters
+    this.updateUrlWithFilters();
   }
 
   loadProjectsByClient(clientId: number): void {
@@ -313,6 +397,9 @@ export class TestCasesComponent implements OnInit {
       this.selectedProjectName = '';
       this.testDataList = [];
     }
+    
+    // Update URL with filters
+    this.updateUrlWithFilters();
   }
 
   loadProjectDevelopers(): void {
@@ -351,6 +438,9 @@ export class TestCasesComponent implements OnInit {
       this.requirement = null;
       this.testCases = [];
     }
+    
+    // Update URL with filters
+    this.updateUrlWithFilters();
   }
 
   loadRequirementDetails(): void {
