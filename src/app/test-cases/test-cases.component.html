@@ -70,7 +70,7 @@
               <th class="col-boolean">Is Automated</th>
               <th class="col-boolean">Is Executed</th>
               <th class="col-boolean">Bug Raised</th>
-              <th>Bug Screenshot</th>
+              <th>Bug Screenshots</th>
               <th>Assigned To</th>
               <th>Executed By</th>
               <th class="col-datetime">Executed On</th>
@@ -145,14 +145,14 @@
                 </span>
               </td>
 
-              <!-- Bug Screenshot -->
+              <!-- Bug Screenshots - Updated to show view link -->
               <td>
-                <div *ngIf="testCase.bug_screenshot" class="screenshot-preview">
-                  <img [src]="testCase.bug_screenshot" alt="Bug Screenshot" 
-                       (click)="viewScreenshot(testCase.bug_screenshot)" 
-                       class="screenshot-thumbnail">
+                <div *ngIf="testCase.bug_screenshots && testCase.bug_screenshots.length > 0" class="screenshots-link">
+                  <button class="view-screenshots-btn" (click)="viewAllScreenshots(testCase)">
+                    📷 View Screenshots ({{ testCase.bug_screenshots.length }})
+                  </button>
                 </div>
-                <span *ngIf="!testCase.bug_screenshot">-</span>
+                <span *ngIf="!testCase.bug_screenshots || testCase.bug_screenshots.length === 0">-</span>
               </td>
 
               <!-- Assigned To with wrapping -->
@@ -425,37 +425,55 @@
 
         <!-- Show bug fields only if bug raised -->
         <ng-container *ngIf="newTestCase.bug_raised">
-          <label>Bug Screenshot</label>
-          <div class="screenshot-upload-section">
-            <!-- File upload option -->
+          <!-- Multiple Screenshots Upload Section -->
+          <label>Bug Screenshots</label>
+          <div class="screenshots-upload-section">
+            <!-- File upload option for multiple files -->
             <div class="file-upload-option">
-              <input type="file" (change)="onTestCaseFileSelected($event, 'bug_screenshot')" accept="image/*" />
-              <small>Or use clipboard paste below</small>
+              <input type="file" 
+                     (change)="onMultipleScreenshotsSelected($event)" 
+                     accept="image/*" 
+                     multiple />
+              <small>Select multiple screenshots (PNG, JPEG, JPG, GIF - max 5MB each)</small>
             </div>
             
-            <!-- Clipboard paste option -->
+            <!-- Clipboard paste option for multiple images -->
             <div class="clipboard-upload-option">
               <div class="clipboard-area" 
                    [class.active]="isClipboardActive"
                    (click)="activateClipboard()"
-                   (paste)="onPasteScreenshot($event)"
+                   (paste)="onPasteMultipleScreenshots($event)"
                    tabindex="0">
-                <div class="clipboard-placeholder" *ngIf="!clipboardImage">
+                <div class="clipboard-placeholder" *ngIf="uploadedScreenshots.length === 0">
                   <span class="clipboard-icon">📋</span>
-                  <p>Click here and press Ctrl+V to paste screenshot</p>
-                  <small>Supports PNG, JPEG, JPG, GIF (max 5MB)</small>
+                  <p>Click here and press Ctrl+V to paste screenshots</p>
+                  <small>You can paste multiple screenshots one by one</small>
                 </div>
-                <div class="clipboard-preview" *ngIf="clipboardImage">
-                  <img [src]="clipboardImage" alt="Pasted screenshot" class="pasted-screenshot">
-                  <button type="button" class="remove-btn" (click)="removePastedScreenshot($event)">✖</button>
+                <div class="clipboard-preview" *ngIf="uploadedScreenshots.length > 0">
+                  <div class="screenshots-grid">
+                    <div *ngFor="let screenshot of uploadedScreenshots; let i = index" class="screenshot-item">
+                      <img [src]="screenshot.preview" [alt]="'Screenshot ' + (i + 1)" class="pasted-screenshot">
+                      <button type="button" class="remove-btn" (click)="removeUploadedScreenshot(i)">✖</button>
+                    </div>
+                  </div>
+                  <p class="screenshot-count">{{ uploadedScreenshots.length }} screenshot(s) ready to upload</p>
                 </div>
               </div>
             </div>
 
-            <!-- Current screenshot preview -->
-            <div class="current-screenshot" *ngIf="newTestCase.bug_screenshot && !clipboardImage">
-              <img [src]="newTestCase.bug_screenshot" alt="Current screenshot" class="screenshot-preview-img">
-              <button type="button" class="remove-btn" (click)="removeCurrentScreenshot()">✖</button>
+            <!-- Existing screenshots preview for edit mode -->
+            <div class="existing-screenshots" *ngIf="isEditMode && existingScreenshots.length > 0">
+              <h4>Existing Screenshots</h4>
+              <div class="screenshots-grid">
+                <div *ngFor="let screenshot of existingScreenshots; let i = index" class="screenshot-item">
+                  <img [src]="screenshot.screenshot_url" [alt]="screenshot.caption || 'Screenshot ' + (i + 1)" 
+                       class="existing-screenshot">
+                  <div class="screenshot-actions">
+                    <button type="button" class="view-btn" (click)="viewScreenshot(screenshot.screenshot_url)">👁️</button>
+                    <button type="button" class="remove-btn" (click)="removeExistingScreenshot(screenshot.id)">✖</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -511,15 +529,29 @@
     </div>
   </div>
 
-  <!-- Screenshot Viewer Popup -->
-  <div class="popup" *ngIf="showScreenshotViewer">
-    <div class="popup-content image-viewer">
+  <!-- Multiple Screenshots Viewer Popup -->
+  <div class="popup" *ngIf="showScreenshotsViewer">
+    <div class="popup-content image-viewer-large">
       <div class="popup-header">
-        <h3>Bug Screenshot</h3>
-        <button class="close-btn" (click)="closeScreenshotViewer()">✖</button>
+        <h3>Bug Screenshots ({{ currentScreenshotIndex + 1 }}/{{ viewingScreenshots.length }})</h3>
+        <button class="close-btn" (click)="closeScreenshotsViewer()">✖</button>
       </div>
-      <div class="image-container">
-        <img [src]="viewingScreenshot" alt="Bug Screenshot" class="full-screenshot">
+      <div class="image-navigation">
+        <button class="nav-btn prev-btn" (click)="previousScreenshot()" [disabled]="currentScreenshotIndex === 0">‹</button>
+        <div class="image-container">
+          <img [src]="viewingScreenshots[currentScreenshotIndex]" 
+               alt="Bug Screenshot" 
+               class="full-screenshot">
+        </div>
+        <button class="nav-btn next-btn" (click)="nextScreenshot()" [disabled]="currentScreenshotIndex === viewingScreenshots.length - 1">›</button>
+      </div>
+      <div class="screenshot-thumbnails">
+        <div *ngFor="let screenshot of viewingScreenshots; let i = index" 
+             class="thumbnail" 
+             [class.active]="i === currentScreenshotIndex"
+             (click)="goToScreenshot(i)">
+          <img [src]="screenshot" [alt]="'Thumbnail ' + (i + 1)">
+        </div>
       </div>
     </div>
   </div>

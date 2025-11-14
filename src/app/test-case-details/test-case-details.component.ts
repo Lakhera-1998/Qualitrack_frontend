@@ -36,6 +36,11 @@ export class TestCaseDetailsComponent implements OnInit {
   requirementDetails: any = null;
   projectsMap: Map<number, any> = new Map();
 
+  // Screenshot viewer properties
+  showScreenshotViewer: boolean = false;
+  currentScreenshotIndex: number = 0;
+  currentScreenshot: any = null;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -82,12 +87,8 @@ export class TestCaseDetailsComponent implements OnInit {
 
     this.testCaseService.getTestCase(parseInt(testCaseId)).subscribe({
       next: (data: any) => {
-        this.testCase = {
-          ...data,
-          bug_screenshot: data.bug_screenshot 
-            ? this.testCaseService.getBugScreenshotUrl(data.bug_screenshot)
-            : null
-        };
+        // Process the test case data to ensure correct screenshot URLs
+        this.testCase = this.processTestCaseData(data);
         
         // Load additional data in parallel
         this.loadProjectAndRequirementDetails();
@@ -105,6 +106,26 @@ export class TestCaseDetailsComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  // Process test case data to ensure correct screenshot URLs
+  private processTestCaseData(data: any): any {
+    const processedData = { ...data };
+    
+    // Process single bug screenshot (legacy support)
+    if (processedData.bug_screenshot) {
+      processedData.bug_screenshot = this.testCaseService.getBugScreenshotUrl(processedData.bug_screenshot);
+    }
+    
+    // Process multiple bug screenshots array
+    if (processedData.bug_screenshots && Array.isArray(processedData.bug_screenshots)) {
+      processedData.bug_screenshots = processedData.bug_screenshots.map((screenshot: any) => ({
+        ...screenshot,
+        screenshot_url: this.testCaseService.getBugScreenshotUrl(screenshot.screenshot)
+      }));
+    }
+    
+    return processedData;
   }
 
   loadProjectAndRequirementDetails(): void {
@@ -299,5 +320,42 @@ export class TestCaseDetailsComponent implements OnInit {
     this.router.navigate(['/test-cases'], {
       queryParams: queryParams
     });
+  }
+
+  openScreenshotViewer(index: number): void {
+    if (this.testCase.bug_screenshots && this.testCase.bug_screenshots.length > 0) {
+      this.currentScreenshotIndex = index;
+      this.currentScreenshot = this.testCase.bug_screenshots[index];
+      this.showScreenshotViewer = true;
+    }
+  }
+
+  closeScreenshotViewer(): void {
+    this.showScreenshotViewer = false;
+    this.currentScreenshotIndex = 0;
+    this.currentScreenshot = null;
+  }
+
+  nextScreenshot(): void {
+    if (this.testCase.bug_screenshots && this.testCase.bug_screenshots.length > 0) {
+      this.currentScreenshotIndex = (this.currentScreenshotIndex + 1) % this.testCase.bug_screenshots.length;
+      this.currentScreenshot = this.testCase.bug_screenshots[this.currentScreenshotIndex];
+    }
+  }
+
+  prevScreenshot(): void {
+    if (this.testCase.bug_screenshots && this.testCase.bug_screenshots.length > 0) {
+      this.currentScreenshotIndex = this.currentScreenshotIndex === 0 
+        ? this.testCase.bug_screenshots.length - 1 
+        : this.currentScreenshotIndex - 1;
+      this.currentScreenshot = this.testCase.bug_screenshots[this.currentScreenshotIndex];
+    }
+  }
+
+  getScreenshotCounter(): string {
+    if (!this.testCase.bug_screenshots || this.testCase.bug_screenshots.length === 0) {
+      return '';
+    }
+    return `${this.currentScreenshotIndex + 1} of ${this.testCase.bug_screenshots.length}`;
   }
 }

@@ -2,7 +2,6 @@
   <div class="header">
     <button class="back-btn" (click)="goBack()">← Back to Test Cases</button>
     <h2>Test Case Details</h2>
-    <!-- Edit button removed -->
   </div>
 
   <div *ngIf="loading" class="loading-container">
@@ -17,7 +16,6 @@
   </div>
 
   <div *ngIf="testCase && !loading" class="test-case-content">
-    <!-- Header Section -->
     <div class="header-section card">
       <div class="test-case-header">
         <h1 class="test-case-id">{{ testCase.test_case_id }}</h1>
@@ -25,13 +23,16 @@
           <span class="status-badge {{ testCase.status?.toLowerCase()?.replace(' ', '-') || 'pending' }}">
             {{ testCase.status || 'Not tested yet' }}
           </span>
-          <span *ngIf="testCase.bug_status" 
+
+          <span *ngIf="testCase.bug_status"
                 class="bug-status-badge {{ testCase.bug_status?.toLowerCase().replace(' ', '-') }}">
             {{ testCase.bug_status }}
           </span>
         </div>
       </div>
+
       <h2 class="test-case-title">{{ testCase.title }}</h2>
+
       <div class="meta-info">
         <div class="meta-item">
           <strong>Page:</strong> {{ testCase.page_name || '-' }}
@@ -48,15 +49,14 @@
       </div>
     </div>
 
-    <!-- Main Content Grid -->
+    <!-- GRID -->
     <div class="content-grid">
-      <!-- Left Column -->
       <div class="left-column">
-        <!-- Consolidated Test Case Details Card -->
+        <!-- BASIC DETAILS -->
         <div class="section card">
           <h3>Test Case Information</h3>
+
           <div class="details-grid">
-            <!-- Description Section -->
             <div class="detail-item">
               <label>Description</label>
               <div class="detail-value">
@@ -64,7 +64,6 @@
               </div>
             </div>
 
-            <!-- Pre Conditions Section -->
             <div class="detail-item" *ngIf="testCase.pre_conditions">
               <label>Pre Conditions</label>
               <div class="detail-value">
@@ -72,7 +71,6 @@
               </div>
             </div>
 
-            <!-- Test Actions Section -->
             <div class="detail-item" *ngIf="testCase.test_actions">
               <label>Test Actions</label>
               <div class="detail-value">
@@ -80,7 +78,6 @@
               </div>
             </div>
 
-            <!-- Expected Result Section -->
             <div class="detail-item">
               <label>Expected Result</label>
               <div class="detail-value">
@@ -88,7 +85,6 @@
               </div>
             </div>
 
-            <!-- Additional Information -->
             <div class="detail-item">
               <label>Additional Information</label>
               <div class="additional-info-grid">
@@ -98,12 +94,14 @@
                     {{ testCase.is_automated ? 'Yes' : 'No' }}
                   </span>
                 </div>
+
                 <div class="info-item">
                   <span class="info-label">Is Executed:</span>
                   <span [ngClass]="testCase.is_executed ? 'icon-yes' : 'icon-no'">
                     {{ testCase.is_executed ? 'Yes' : 'No' }}
                   </span>
                 </div>
+
                 <div class="info-item">
                   <span class="info-label">Bug Raised:</span>
                   <span [ngClass]="testCase.bug_raised ? 'icon-yes' : 'icon-no'">
@@ -113,7 +111,6 @@
               </div>
             </div>
 
-            <!-- Project Information -->
             <div class="detail-item" *ngIf="testCase.project">
               <label>Project Information</label>
               <div class="project-info-grid">
@@ -121,6 +118,7 @@
                   <span class="project-label">Project:</span>
                   <span class="project-value">{{ getProjectNameForTestCase() }}</span>
                 </div>
+
                 <div class="project-item" *ngIf="testCase.requirement">
                   <span class="project-label">Requirement:</span>
                   <span class="project-value">{{ getRequirementTitle() }}</span>
@@ -130,9 +128,10 @@
           </div>
         </div>
 
-        <!-- Test Data Section -->
+        <!-- TEST DATA -->
         <div class="section card" *ngIf="testData && testData.length > 0">
           <h3>Test Data ({{ testData.length }})</h3>
+
           <div class="test-data-list">
             <div *ngFor="let data of testData; let i = index" class="test-data-item">
               <div class="test-data-header">
@@ -140,20 +139,19 @@
                   <strong>#{{ i + 1 }} - {{ data.data_type | titlecase }} Data</strong>
                   <span class="data-id">ID: {{ data.id }}</span>
                 </div>
+
                 <span class="upload-date">
                   Uploaded: {{ data.uploaded_at | date:'medium' }}
                   <span *ngIf="data.uploaded_by">by {{ getUserDisplayName(data.uploaded_by) }}</span>
                 </span>
               </div>
-              
+
               <div class="test-data-content">
-                <!-- Text Data -->
                 <div *ngIf="data.data_type === 'text'" class="text-data-container">
                   <label>Text Content:</label>
                   <div class="text-data">{{ data.text_data }}</div>
                 </div>
 
-                <!-- File Data -->
                 <div *ngIf="data.data_type === 'file'" class="file-data-container">
                   <label>File:</label>
                   <div class="file-info">
@@ -164,36 +162,37 @@
                   </div>
                 </div>
 
-                <!-- Image Data -->
                 <div *ngIf="data.data_type === 'image'" class="image-data-container">
                   <label>Image:</label>
                   <div class="image-info">
                     <div class="image-preview">
-                      <img [src]="data.image_data" [alt]="data.image_data_name" 
-                           (click)="viewImage(data.image_data)" class="test-data-image">
+                      <img [src]="data.image_data"
+                           [alt]="data.image_data_name"
+                           (click)="viewImage(data.image_data)"
+                           class="test-data-image">
                       <div class="image-name">{{ data.image_data_name }}</div>
                     </div>
+
                     <button class="view-full-btn" (click)="viewImage(data.image_data)">View Full Size</button>
                   </div>
                 </div>
 
-                <!-- Other Data -->
                 <div *ngIf="data.data_type === 'other'" class="other-data-container">
                   <label>Other Data:</label>
                   <div class="other-data">{{ data.text_data || 'No data available' }}</div>
                 </div>
 
-                <!-- Project Reference -->
                 <div *ngIf="data.project" class="data-meta">
                   <small><strong>Project:</strong> {{ getProjectName(data.project) }}</small>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
 
-        <!-- No Test Data Message -->
-        <div class="section card" *ngIf="(!testData || testData.length === 0) && testCase.test_data">
+        <div class="section card"
+             *ngIf="(!testData || testData.length === 0) && testCase.test_data">
           <h3>Test Data</h3>
           <div class="section-content">
             <div class="no-test-data">
@@ -201,22 +200,26 @@
             </div>
           </div>
         </div>
+
       </div>
 
-      <!-- Right Column -->
+      <!-- RIGHT COLUMN -->
       <div class="right-column">
-        <!-- Execution Details -->
+        <!-- EXECUTION DETAILS -->
         <div class="section card" *ngIf="testCase.is_executed">
           <h3>Execution Details</h3>
+
           <div class="execution-details">
             <div class="detail-row">
               <label>Executed By:</label>
               <span>{{ getUserDisplayName(testCase.executed_by) }}</span>
             </div>
+
             <div class="detail-row">
               <label>Executed On:</label>
               <span>{{ testCase.executed_on | date:'medium' }}</span>
             </div>
+
             <div class="detail-row">
               <label>Actual Result:</label>
               <span class="actual-result">{{ testCase.actual_result || '-' }}</span>
@@ -224,9 +227,10 @@
           </div>
         </div>
 
-        <!-- Bug Information -->
+        <!-- BUG INFORMATION -->
         <div class="section card" *ngIf="testCase.bug_raised">
           <h3>Bug Information</h3>
+
           <div class="bug-details">
             <div class="detail-row">
               <label>Bug Status:</label>
@@ -234,64 +238,116 @@
                 {{ testCase.bug_status }}
               </span>
             </div>
-            <div class="detail-row" *ngIf="testCase.bug_screenshot">
-              <label>Bug Screenshot:</label>
-              <div class="screenshot-container">
-                <img [src]="testCase.bug_screenshot" 
-                     alt="Bug Screenshot" 
-                     (click)="viewImage(testCase.bug_screenshot)"
-                     class="bug-screenshot">
-                <button class="view-full-btn" (click)="viewImage(testCase.bug_screenshot)">View Full Size</button>
+
+            <!-- Multiple screenshots -->
+            <div class="detail-row"
+                 *ngIf="testCase.bug_screenshots && testCase.bug_screenshots.length > 0">
+              <label>Bug Screenshots:</label>
+
+              <div class="screenshots-container">
+                <div class="screenshots-grid">
+                  <div *ngFor="let screenshot of testCase.bug_screenshots; let i = index"
+                       class="screenshot-thumbnail">
+
+                    <img [src]="screenshot.screenshot_url"
+                         [alt]="screenshot.screenshot_name || 'Bug Screenshot ' + (i + 1)"
+                         (click)="openScreenshotViewer(i)"
+                         class="bug-screenshot-thumb">
+
+                    <div class="screenshot-overlay" (click)="openScreenshotViewer(i)">
+                      <span class="view-icon">👁️</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="view-all-screenshots"
+                     *ngIf="testCase.bug_screenshots.length > 1">
+                  <button class="view-all-btn"
+                          (click)="openScreenshotViewer(0)">
+                    View All Screenshots ({{ testCase.bug_screenshots.length }})
+                  </button>
+                </div>
               </div>
             </div>
+
+            <!-- Single screenshot fallback -->
+            <div class="detail-row"
+                 *ngIf="testCase.bug_screenshot &&
+                       (!testCase.bug_screenshots || testCase.bug_screenshots.length === 0)">
+              <label>Bug Screenshot:</label>
+
+              <div class="screenshot-container">
+                <img [src]="testCase.bug_screenshot"
+                     alt="Bug Screenshot"
+                     (click)="viewImage(testCase.bug_screenshot)"
+                     class="bug-screenshot">
+
+                <button class="view-full-btn"
+                        (click)="viewImage(testCase.bug_screenshot)">
+                  View Full Size
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <!-- System Information -->
+        <!-- SYSTEM INFO -->
         <div class="section card">
           <h3>System Information</h3>
+
           <div class="system-info">
             <div class="detail-row">
               <label>Created:</label>
               <span>{{ testCase.created_at | date:'medium' }}</span>
             </div>
+
             <div class="detail-row" *ngIf="testCase.updated_at">
               <label>Last Updated:</label>
               <span>{{ testCase.updated_at | date:'medium' }}</span>
             </div>
+
             <div class="detail-row">
               <label>Created By:</label>
               <span>{{ getUserDisplayName(testCase.created_by) }}</span>
             </div>
           </div>
+
         </div>
       </div>
     </div>
 
-    <!-- Activity Timeline Section - Full Width -->
+    <!-- HISTORY -->
     <div class="history-section" *ngIf="testCaseHistory && testCaseHistory.length > 0">
       <div class="section card full-width">
         <h3>Activity Timeline ({{ testCaseHistory.length }})</h3>
+
         <div class="history-container">
           <div class="history-timeline">
-            <div *ngFor="let history of testCaseHistory; let i = index" class="history-item">
+            <div *ngFor="let history of testCaseHistory; let i=index"
+                 class="history-item">
+
               <div class="history-marker">
                 <div class="history-dot"></div>
-                <div class="history-line" *ngIf="i !== testCaseHistory.length - 1"></div>
+                <div class="history-line"
+                     *ngIf="i !== testCaseHistory.length - 1"></div>
               </div>
+
               <div class="history-content">
                 <div class="history-header">
                   <div class="history-user">
                     <strong>{{ getUserDisplayName(history.updated_by) }}</strong>
-                    <span class="history-date">{{ history.updated_on | date:'medium' }}</span>
+                    <span class="history-date">
+                      {{ history.updated_on | date:'medium' }}
+                    </span>
                   </div>
+
                   <div class="history-actions">
                     <span class="history-action">Updated Test Case</span>
                   </div>
                 </div>
-                
+
                 <div class="history-details">
-                  <!-- Bug Status Change -->
                   <div class="history-change" *ngIf="history.bug_status">
                     <label>Bug Status:</label>
                     <div class="change-content">
@@ -301,17 +357,15 @@
                     </div>
                   </div>
 
-                  <!-- Test Status Change -->
                   <div class="history-change" *ngIf="history.status">
                     <label>Test Status:</label>
                     <div class="change-content">
-                      <span class="status-badge {{ history.status?.toLowerCase()?.replace(' ', '-') || 'pending' }}">
+                      <span class="status-badge {{ history.status?.toLowerCase().replace(' ', '-') }}">
                         {{ history.status }}
                       </span>
                     </div>
                   </div>
 
-                  <!-- Comments -->
                   <div class="history-change" *ngIf="history.comment">
                     <label>Comments:</label>
                     <div class="change-content">
@@ -321,43 +375,101 @@
                     </div>
                   </div>
 
-                  <!-- No changes message -->
-                  <div class="history-change" *ngIf="!history.bug_status && !history.status && !history.comment">
+                  <div class="history-change"
+                       *ngIf="!history.bug_status && !history.status && !history.comment">
                     <label>Update:</label>
                     <div class="change-content">
                       <span class="no-changes">No specific changes recorded</span>
                     </div>
                   </div>
+
                 </div>
+
               </div>
+
             </div>
           </div>
         </div>
+
       </div>
     </div>
 
-    <!-- No History Message -->
-    <div class="history-section" *ngIf="testCaseHistory && testCaseHistory.length === 0">
+    <div class="history-section"
+         *ngIf="testCaseHistory && testCaseHistory.length === 0">
       <div class="section card full-width">
         <h3>Activity Timeline</h3>
         <div class="no-history">
           <p>No activity recorded for this test case.</p>
-          <p class="no-history-sub">Activities will appear here when changes are made to bug status, test status, or comments.</p>
+          <p class="no-history-sub">
+            Activities will appear here when changes are made to bug status,
+            test status, or comments.
+          </p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Image Viewer Popup -->
+  <!-- IMAGE POPUP -->
   <div class="popup" *ngIf="showImagePopup">
     <div class="popup-content image-viewer">
+
       <div class="popup-header">
         <h3>Image Viewer</h3>
         <button class="close-btn" (click)="closeImagePopup()">✖</button>
       </div>
+
       <div class="image-container">
-        <img [src]="viewingImage" alt="Full size image" class="full-image">
+        <img [src]="viewingImage"
+             alt="Full size image"
+             class="full-image">
       </div>
+
+    </div>
+  </div>
+
+  <!-- SCREENSHOT VIEWER POPUP -->
+  <div class="popup" *ngIf="showScreenshotViewer">
+    <div class="popup-content screenshot-viewer">
+
+      <div class="popup-header">
+        <h3>Screenshot Viewer</h3>
+        <div class="screenshot-counter" *ngIf="testCase.bug_screenshots && testCase.bug_screenshots.length > 1">
+          {{ getScreenshotCounter() }}
+        </div>
+        <button class="close-btn" (click)="closeScreenshotViewer()">✖</button>
+      </div>
+
+      <div class="screenshot-container-large">
+        <button class="nav-btn prev-btn" (click)="prevScreenshot()" 
+                *ngIf="testCase.bug_screenshots && testCase.bug_screenshots.length > 1">‹</button>
+        
+        <div class="screenshot-image-container">
+          <img [src]="currentScreenshot?.screenshot_url" 
+               [alt]="currentScreenshot?.screenshot_name || 'Bug Screenshot'"
+               class="screenshot-full-image">
+          <div class="screenshot-caption" *ngIf="currentScreenshot?.caption">
+            {{ currentScreenshot.caption }}
+          </div>
+          <div class="screenshot-meta" *ngIf="currentScreenshot">
+            <small>Uploaded by: {{ currentScreenshot.uploaded_by_name }} on {{ currentScreenshot.uploaded_at | date:'medium' }}</small>
+          </div>
+        </div>
+        
+        <button class="nav-btn next-btn" (click)="nextScreenshot()"
+                *ngIf="testCase.bug_screenshots && testCase.bug_screenshots.length > 1">›</button>
+      </div>
+
+      <div class="screenshot-thumbnails" *ngIf="testCase.bug_screenshots && testCase.bug_screenshots.length > 1">
+        <div *ngFor="let screenshot of testCase.bug_screenshots; let i = index" 
+             class="thumbnail-item" 
+             [class.active]="i === currentScreenshotIndex"
+             (click)="openScreenshotViewer(i)">
+          <img [src]="screenshot.screenshot_url" 
+               [alt]="'Thumbnail ' + (i + 1)"
+               class="thumbnail-image">
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

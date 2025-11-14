@@ -50,18 +50,16 @@ export class TestCasesComponent implements OnInit {
   pageSize: number = 10; // Only 5 records per page as requested
   visiblePagesCount: number = 3;
 
-  // New properties for clipboard functionality and test case details
+  // Multiple screenshots properties
   isClipboardActive: boolean = false;
-  clipboardImage: string | null = null;
-  clipboardFile: File | null = null;
-  showTestCaseDetailsPopup: boolean = false;
-  selectedTestCase: any = null;
-  testCaseTestData: any[] = [];
-  showScreenshotViewer: boolean = false;
-  viewingScreenshot: string = '';
+  uploadedScreenshots: any[] = []; // For new screenshots (files + previews)
+  existingScreenshots: any[] = []; // For existing screenshots from database
+  screenshotsToDelete: number[] = []; // Track screenshots to delete
 
-  // Store the original screenshot URL when editing to prevent loss
-  originalBugScreenshotUrl: string | null = null;
+  // Screenshots viewer properties
+  showScreenshotsViewer: boolean = false;
+  viewingScreenshots: string[] = [];
+  currentScreenshotIndex: number = 0;
 
   // Form validation
   formErrors: any = {
@@ -116,8 +114,7 @@ export class TestCasesComponent implements OnInit {
     actual_result: '',
     comments: '',
     bug_raised: false,
-    bug_status: 'Open',
-    bug_screenshot: null
+    bug_status: 'Open'
   };
 
   newTestData: any = {
@@ -462,12 +459,14 @@ export class TestCasesComponent implements OnInit {
     
     this.testCaseService.getTestCasesByRequirement(this.selectedRequirementId).subscribe({
       next: (data: any[]) => {
-        // Process screenshot URLs and ensure all data is properly loaded
+        // Process test cases with multiple screenshots
         this.testCases = data.map(testCase => ({
           ...testCase,
-          bug_screenshot: testCase.bug_screenshot 
-            ? this.testCaseService.getBugScreenshotUrl(testCase.bug_screenshot)
-            : null,
+          // Process bug screenshots array
+          bug_screenshots: testCase.bug_screenshots ? testCase.bug_screenshots.map((screenshot: any) => ({
+            ...screenshot,
+            screenshot_url: this.testCaseService.getBugScreenshotUrl(screenshot.screenshot)
+          })) : [],
           // Ensure created_by and executed_by are properly handled
           created_by: testCase.created_by || null,
           executed_by: testCase.executed_by || null,
@@ -476,7 +475,7 @@ export class TestCasesComponent implements OnInit {
           page_name: testCase.page_name || ''
         }));
         
-        console.log('Processed test cases with all data:', this.testCases);
+        console.log('Processed test cases with multiple screenshots:', this.testCases);
       },
       error: (error: any) => {
         console.error('Error fetching test cases:', error);
@@ -506,15 +505,15 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
-  // Load test data for a specific test case
-  loadTestCaseTestData(testCaseId: number): void {
-    this.testDataService.getTestDataByTestCase(testCaseId).subscribe({
+  // Load existing screenshots for a test case
+  loadExistingScreenshots(testCaseId: number): void {
+    this.testCaseService.getBugScreenshots(testCaseId).subscribe({
       next: (data: any[]) => {
-        this.testCaseTestData = data;
+        this.existingScreenshots = data;
       },
       error: (error: any) => {
-        console.error('Error fetching test case test data:', error);
-        this.testCaseTestData = [];
+        console.error('Error fetching existing screenshots:', error);
+        this.existingScreenshots = [];
       }
     });
   }
@@ -588,7 +587,7 @@ export class TestCasesComponent implements OnInit {
     }
   }
 
-  // ✅ Clipboard Functionality
+  // ✅ Multiple Screenshots Functionality
   activateClipboard(): void {
     this.isClipboardActive = true;
   }
@@ -600,7 +599,17 @@ export class TestCasesComponent implements OnInit {
     }
   }
 
-  onPasteScreenshot(event: ClipboardEvent): void {
+  onMultipleScreenshotsSelected(event: any): void {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      this.handleScreenshotFile(file);
+    }
+  }
+
+  onPasteMultipleScreenshots(event: ClipboardEvent): void {
     event.preventDefault();
     
     const clipboardData = event.clipboardData;
@@ -614,17 +623,16 @@ export class TestCasesComponent implements OnInit {
       if (item.type.startsWith('image/')) {
         const file = item.getAsFile();
         if (file) {
-          this.handlePastedImage(file);
-          break;
+          this.handleScreenshotFile(file);
         }
       }
     }
   }
 
-  handlePastedImage(file: File): void {
+  handleScreenshotFile(file: File): void {
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
-      this.displayError('Invalid image type. Please paste PNG, JPEG, JPG, or GIF images only.');
+      this.displayError('Invalid image type. Please use PNG, JPEG, JPG, or GIF images only.');
       return;
     }
 
@@ -633,37 +641,61 @@ export class TestCasesComponent implements OnInit {
       return;
     }
 
-    this.clipboardFile = file;
-    
     const reader = new FileReader();
     reader.onload = (e: any) => {
-      this.clipboardImage = e.target.result;
+      this.uploadedScreenshots.push({
+        file: file,
+        preview: e.target.result
+      });
     };
     reader.readAsDataURL(file);
+  }
+
+  removeUploadedScreenshot(index: number): void {
+    this.uploadedScreenshots.splice(index, 1);
+  }
+
+  removeExistingScreenshot(screenshotId: number): void {
+    // Add to deletion list and remove from display
+    this.screenshotsToDelete.push(screenshotId);
+    this.existingScreenshots = this.existingScreenshots.filter(s => s.id !== screenshotId);
+  }
+
+  // ✅ Multiple Screenshots Viewer
+  viewAllScreenshots(testCase: any): void {
+    if (!testCase.bug_screenshots || testCase.bug_screenshots.length === 0) return;
     
-    this.showSuccess('Screenshot pasted successfully! It will be saved when you submit the form.');
+    this.viewingScreenshots = testCase.bug_screenshots.map((s: any) => s.screenshot_url);
+    this.currentScreenshotIndex = 0;
+    this.showScreenshotsViewer = true;
   }
 
-  removePastedScreenshot(event: Event): void {
-    event.stopPropagation();
-    this.clipboardImage = null;
-    this.clipboardFile = null;
-  }
-
-  removeCurrentScreenshot(): void {
-    this.newTestCase.bug_screenshot = null;
-    this.originalBugScreenshotUrl = null;
-  }
-
-  // ✅ Screenshot Viewer
   viewScreenshot(screenshotUrl: string): void {
-    this.viewingScreenshot = screenshotUrl;
-    this.showScreenshotViewer = true;
+    this.viewingScreenshots = [screenshotUrl];
+    this.currentScreenshotIndex = 0;
+    this.showScreenshotsViewer = true;
   }
 
-  closeScreenshotViewer(): void {
-    this.showScreenshotViewer = false;
-    this.viewingScreenshot = '';
+  closeScreenshotsViewer(): void {
+    this.showScreenshotsViewer = false;
+    this.viewingScreenshots = [];
+    this.currentScreenshotIndex = 0;
+  }
+
+  previousScreenshot(): void {
+    if (this.currentScreenshotIndex > 0) {
+      this.currentScreenshotIndex--;
+    }
+  }
+
+  nextScreenshot(): void {
+    if (this.currentScreenshotIndex < this.viewingScreenshots.length - 1) {
+      this.currentScreenshotIndex++;
+    }
+  }
+
+  goToScreenshot(index: number): void {
+    this.currentScreenshotIndex = index;
   }
 
   // ✅ Success/Error Messages
@@ -821,16 +853,16 @@ export class TestCasesComponent implements OnInit {
     };
   }
 
-  // ✅ Test Case CRUD - UPDATED saveTestCase method
+  // ✅ Test Case CRUD - UPDATED for multiple screenshots
   openAddTestCasePopup(): void {
     if (!this.selectedRequirementId || !this.selectedProjectId) return;
     
     this.isEditMode = false;
     this.clearFormErrors();
-    this.clipboardImage = null;
-    this.clipboardFile = null;
+    this.uploadedScreenshots = [];
+    this.existingScreenshots = [];
+    this.screenshotsToDelete = [];
     this.isClipboardActive = false;
-    this.originalBugScreenshotUrl = null;
     
     this.newTestCase = {
       test_case_id: '',
@@ -853,8 +885,7 @@ export class TestCasesComponent implements OnInit {
       actual_result: '',
       comments: '',
       bug_raised: false,
-      bug_status: 'Open',
-      bug_screenshot: null
+      bug_status: 'Open'
     };
     this.showTestCasePopup = true;
   }
@@ -862,8 +893,9 @@ export class TestCasesComponent implements OnInit {
   editTestCase(testCase: any): void {
     this.isEditMode = true;
     this.editingTestCaseId = testCase.id;
-    this.clipboardImage = null;
-    this.clipboardFile = null;
+    this.uploadedScreenshots = [];
+    this.existingScreenshots = [];
+    this.screenshotsToDelete = [];
     this.isClipboardActive = false;
     
     let formattedExecutedOn = null;
@@ -872,17 +904,15 @@ export class TestCasesComponent implements OnInit {
       formattedExecutedOn = executedDate.toISOString().slice(0, 16);
     }
     
-    // ✅ FIX 1: Store the original screenshot URL to prevent loss
-    this.originalBugScreenshotUrl = testCase.bug_screenshot || null;
-    
     this.newTestCase = { 
       ...testCase,
       executed_on: formattedExecutedOn,
       // ✅ Ensure page_name is properly set when editing
-      page_name: testCase.page_name || '',
-      // ✅ Preserve the existing screenshot URL
-      bug_screenshot: testCase.bug_screenshot || null
+      page_name: testCase.page_name || ''
     };
+    
+    // Load existing screenshots for this test case
+    this.loadExistingScreenshots(testCase.id);
     
     this.clearFormErrors();
     this.showTestCasePopup = true;
@@ -892,10 +922,10 @@ export class TestCasesComponent implements OnInit {
     this.showTestCasePopup = false;
     this.isEditMode = false;
     this.editingTestCaseId = null;
-    this.clipboardImage = null;
-    this.clipboardFile = null;
+    this.uploadedScreenshots = [];
+    this.existingScreenshots = [];
+    this.screenshotsToDelete = [];
     this.isClipboardActive = false;
-    this.originalBugScreenshotUrl = null;
     this.clearFormErrors();
   }
 
@@ -934,7 +964,6 @@ export class TestCasesComponent implements OnInit {
     // Handle bug data
     if (!testCaseData.bug_raised) {
       testCaseData.bug_status = null;
-      testCaseData.bug_screenshot = null;
     }
 
     // Set required fields
@@ -958,43 +987,35 @@ export class TestCasesComponent implements OnInit {
 
     console.log('Saving test case with data:', testCaseData);
     console.log('Page name being sent:', testCaseData.page_name);
-    console.log('Bug screenshot being sent:', testCaseData.bug_screenshot);
+    console.log('Uploaded screenshots:', this.uploadedScreenshots.length);
+    console.log('Screenshots to delete:', this.screenshotsToDelete);
 
-    // ✅ CRITICAL FIX: Handle screenshot properly based on whether it's a new file or existing URL
     if (this.isEditMode && this.editingTestCaseId) {
-      // For updates, we need to handle the screenshot carefully
-      if (this.clipboardFile && testCaseData.bug_raised) {
-        // New file from clipboard - use FormData
+      // For updates, handle multiple screenshots
+      if (this.uploadedScreenshots.length > 0 || this.screenshotsToDelete.length > 0) {
+        // Use FormData for file uploads
         const formData = new FormData();
         
-        // Append all fields to FormData
+        // Append all test case fields to FormData
         Object.keys(testCaseData).forEach(key => {
-          if (key === 'bug_screenshot' && this.clipboardFile instanceof File) {
-            formData.append(key, this.clipboardFile);
-          } else if (testCaseData[key] !== null && testCaseData[key] !== undefined) {
+          if (testCaseData[key] !== null && testCaseData[key] !== undefined) {
             // Convert to string for FormData
             const value = typeof testCaseData[key] === 'object' ? JSON.stringify(testCaseData[key]) : testCaseData[key];
             formData.append(key, value.toString());
           }
         });
 
-        this.testCaseService.updateTestCaseWithFormData(this.editingTestCaseId, formData).subscribe({
-          next: () => {
-            this.loadTestCases();
-            this.closeTestCasePopup();
-            this.currentPage = currentPageBeforeSave;
-            this.showSuccess('Test case updated successfully!');
-          },
-          error: (error: any) => {
-            console.error('Error updating test case with file:', error);
-            this.formErrors.general = 'Error updating test case: ' + (error.error?.message || error.message);
-          }
+        // Append screenshots to delete
+        this.screenshotsToDelete.forEach(screenshotId => {
+          formData.append('screenshots_to_delete', screenshotId.toString());
         });
-      } else if (testCaseData.bug_raised && testCaseData.bug_screenshot && typeof testCaseData.bug_screenshot === 'string') {
-        // Existing screenshot URL - remove the screenshot field from the data to avoid the validation error
-        const { bug_screenshot, ...dataWithoutScreenshot } = testCaseData;
-        
-        this.testCaseService.updateTestCase(this.editingTestCaseId, dataWithoutScreenshot).subscribe({
+
+        // Append new screenshots
+        this.uploadedScreenshots.forEach((screenshot, index) => {
+          formData.append('screenshots', screenshot.file);
+        });
+
+        this.testCaseService.updateTestCaseWithMultipleScreenshots(this.editingTestCaseId, formData).subscribe({
           next: () => {
             this.loadTestCases();
             this.closeTestCasePopup();
@@ -1002,12 +1023,12 @@ export class TestCasesComponent implements OnInit {
             this.showSuccess('Test case updated successfully!');
           },
           error: (error: any) => {
-            console.error('Error updating test case without file:', error);
+            console.error('Error updating test case with screenshots:', error);
             this.formErrors.general = 'Error updating test case: ' + (error.error?.message || error.message);
           }
         });
       } else {
-        // No screenshot or bug not raised - send regular JSON
+        // No screenshots to upload or delete - send regular JSON
         this.testCaseService.updateTestCase(this.editingTestCaseId, testCaseData).subscribe({
           next: () => {
             this.loadTestCases();
@@ -1022,35 +1043,38 @@ export class TestCasesComponent implements OnInit {
         });
       }
     } else {
-      // For new test cases
-      if (this.clipboardFile && testCaseData.bug_raised) {
-        // New file from clipboard - use FormData
+      // For new test cases with screenshots
+      if (this.uploadedScreenshots.length > 0) {
+        // Use FormData for file uploads
         const formData = new FormData();
         
-        // Append all fields to FormData
+        // Append all test case fields to FormData
         Object.keys(testCaseData).forEach(key => {
-          if (key === 'bug_screenshot' && this.clipboardFile instanceof File) {
-            formData.append(key, this.clipboardFile);
-          } else if (testCaseData[key] !== null && testCaseData[key] !== undefined) {
+          if (testCaseData[key] !== null && testCaseData[key] !== undefined) {
             // Convert to string for FormData
             const value = typeof testCaseData[key] === 'object' ? JSON.stringify(testCaseData[key]) : testCaseData[key];
             formData.append(key, value.toString());
           }
         });
 
-        this.testCaseService.addTestCaseWithFormData(formData).subscribe({
+        // Append new screenshots
+        this.uploadedScreenshots.forEach((screenshot, index) => {
+          formData.append('screenshots', screenshot.file);
+        });
+
+        this.testCaseService.addTestCaseWithMultipleScreenshots(formData).subscribe({
           next: () => {
             this.loadTestCases();
             this.closeTestCasePopup();
             this.showSuccess('Test case added successfully!');
           },
           error: (error: any) => {
-            console.error('Error adding test case with file:', error);
+            console.error('Error adding test case with screenshots:', error);
             this.formErrors.general = 'Error adding test case: ' + (error.error?.message || error.message);
           }
         });
       } else {
-        // No file - send regular JSON
+        // No screenshots - send regular JSON
         this.testCaseService.addTestCase(testCaseData).subscribe({
           next: () => {
             this.loadTestCases();
@@ -1096,18 +1120,6 @@ export class TestCasesComponent implements OnInit {
   }
 
   // ✅ Separate file selection methods to avoid conflicts
-  onTestCaseFileSelected(event: any, type: string): void {
-    const file = event.target.files[0];
-    if (file) {
-      if (type === 'bug_screenshot') {
-        this.newTestCase.bug_screenshot = file;
-        this.clipboardImage = null;
-        this.clipboardFile = null;
-        this.originalBugScreenshotUrl = null; // Clear original URL when new file is selected
-      }
-    }
-  }
-
   onTestDataFileSelected(event: any, type: string): void {
     const file = event.target.files[0];
     if (file) {

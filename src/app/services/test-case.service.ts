@@ -103,6 +103,30 @@ export class TestCaseService {
     return this.http.post<any>(`${this.baseUrl}/test-cases/create/`, formData, this.getHeadersForFormData());
   }
 
+  // ✅ NEW: Methods for multiple screenshots
+  addTestCaseWithMultipleScreenshots(formData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/test-cases/create/`, formData, this.getHeadersForFormData());
+  }
+
+  updateTestCaseWithMultipleScreenshots(id: number, formData: FormData): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/test-cases/${id}/update/`, formData, this.getHeadersForFormData());
+  }
+
+  // ✅ ADDED: Get bug screenshots for a test case
+  getBugScreenshots(testCaseId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/test-cases/${testCaseId}/screenshots/`, this.getHeaders());
+  }
+
+  // ✅ ADDED: Upload additional screenshots for a test case
+  uploadBugScreenshots(testCaseId: number, formData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/test-cases/${testCaseId}/upload-screenshots/`, formData, this.getHeadersForFormData());
+  }
+
+  // ✅ ADDED: Delete a bug screenshot
+  deleteBugScreenshot(screenshotId: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/screenshots/${screenshotId}/delete/`, this.getHeaders());
+  }
+
   // ✅ ADDED: Get test case history by test case ID
   getTestCaseHistory(testCaseId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/test-cases/${testCaseId}/history/`, this.getHeaders());
