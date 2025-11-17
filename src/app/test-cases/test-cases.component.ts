@@ -28,8 +28,10 @@ export class TestCasesComponent implements OnInit {
   selectedProjectId: number | null = null;
   selectedProjectName: string = '';
   selectedRequirementId: number | null = null;
+  selectedCategory: string = ''; // ✅ ADDED: Category filter property
   requirement: any = null;
   testCases: any[] = [];
+  filteredTestCases: any[] = []; // ✅ ADDED: For category filtering
   testDataList: any[] = [];
   users: any[] = [];
   currentUser: any = null;
@@ -47,7 +49,7 @@ export class TestCasesComponent implements OnInit {
 
   // ✅ Pagination properties
   currentPage: number = 1;
-  pageSize: number = 10; // Only 5 records per page as requested
+  pageSize: number = 10;
   visiblePagesCount: number = 3;
 
   // Multiple screenshots properties
@@ -66,6 +68,7 @@ export class TestCasesComponent implements OnInit {
     test_case_id: '',
     title: '',
     page_name: '',
+    category: '', // ✅ ADDED: Category validation
     description: '',
     expected_result: '',
     test_actions: '',
@@ -95,7 +98,8 @@ export class TestCasesComponent implements OnInit {
 
   newTestCase: any = {
     test_case_id: '',
-    page_name: '', // ✅ Ensure page_name is included
+    page_name: '',
+    category: 'Functional', // ✅ ADDED: Default category
     title: '',
     description: '',
     pre_conditions: '',
@@ -104,7 +108,7 @@ export class TestCasesComponent implements OnInit {
     test_data: null,
     is_automated: false,
     requirement: null,
-    project: null, // Will be set automatically from selected project
+    project: null,
     created_by: null,
     assigned_to: null,
     is_executed: false,
@@ -193,6 +197,11 @@ export class TestCasesComponent implements OnInit {
         this.loadRequirementDetails();
         this.loadTestCases();
       }
+
+      // ✅ ADDED: Load category from query params
+      if (params['category']) {
+        this.selectedCategory = params['category'];
+      }
       
       if (params['page']) {
         this.currentPage = Number(params['page']);
@@ -200,7 +209,29 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
-  // ✅ NEW METHOD: Navigate to test case details page with filter preservation
+  // ✅ NEW METHOD: Category change handler
+  onCategoryChange(): void {
+    this.currentPage = 1; // Reset to first page when category changes
+    this.filterTestCasesByCategory();
+    
+    // Update URL with filters
+    this.updateUrlWithFilters();
+  }
+
+  // ✅ NEW METHOD: Filter test cases by category
+  filterTestCasesByCategory(): void {
+    if (!this.selectedCategory) {
+      // If no category selected, show all test cases
+      this.filteredTestCases = [...this.testCases];
+    } else {
+      // Filter test cases by selected category
+      this.filteredTestCases = this.testCases.filter(testCase => 
+        testCase.category === this.selectedCategory
+      );
+    }
+  }
+
+  // ✅ UPDATED: Navigate to test case details page with filter preservation
   navigateToTestCaseDetails(testCase: any): void {
     if (testCase && testCase.id) {
       // Store current filters in query parameters
@@ -215,6 +246,9 @@ export class TestCasesComponent implements OnInit {
       if (this.selectedRequirementId) {
         queryParams.requirementId = this.selectedRequirementId;
       }
+      if (this.selectedCategory) {
+        queryParams.category = this.selectedCategory; // ✅ ADDED: Preserve category filter
+      }
       if (this.currentPage > 1) {
         queryParams.page = this.currentPage;
       }
@@ -225,15 +259,15 @@ export class TestCasesComponent implements OnInit {
     }
   }
 
-  // ✅ Pagination methods
+  // ✅ UPDATED: Pagination methods to use filteredTestCases
   paginatedTestCases(): any[] {
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    return this.testCases.slice(startIndex, endIndex);
+    return this.filteredTestCases.slice(startIndex, endIndex);
   }
 
   totalPages(): number {
-    return Math.ceil(this.testCases.length / this.pageSize);
+    return Math.ceil(this.filteredTestCases.length / this.pageSize);
   }
 
   goToPage(page: number): void {
@@ -275,10 +309,10 @@ export class TestCasesComponent implements OnInit {
 
   getEndIndex(): number {
     const end = this.currentPage * this.pageSize;
-    return Math.min(end, this.testCases.length);
+    return Math.min(end, this.filteredTestCases.length);
   }
 
-  // ✅ Update URL with current filters
+  // ✅ UPDATED: Update URL with current filters including category
   updateUrlWithFilters(): void {
     const queryParams: any = {};
     
@@ -290,6 +324,9 @@ export class TestCasesComponent implements OnInit {
     }
     if (this.selectedRequirementId) {
       queryParams.requirementId = this.selectedRequirementId;
+    }
+    if (this.selectedCategory) {
+      queryParams.category = this.selectedCategory; // ✅ ADDED: Include category in URL
     }
     if (this.currentPage > 1) {
       queryParams.page = this.currentPage;
@@ -342,13 +379,15 @@ export class TestCasesComponent implements OnInit {
     this.selectedProjectId = null;
     this.selectedProjectName = '';
     this.selectedRequirementId = null;
+    this.selectedCategory = ''; // ✅ ADDED: Reset category filter
     this.requirement = null;
     this.testCases = [];
+    this.filteredTestCases = []; // ✅ ADDED: Reset filtered test cases
     this.filteredProjects = [];
     this.filteredRequirements = [];
     this.testDataList = [];
     this.projectDevelopers = [];
-    this.currentPage = 1; // ✅ Reset to first page
+    this.currentPage = 1;
     
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -377,11 +416,13 @@ export class TestCasesComponent implements OnInit {
 
   onProjectChange(): void {
     this.selectedRequirementId = null;
+    this.selectedCategory = ''; // ✅ ADDED: Reset category filter
     this.requirement = null;
     this.testCases = [];
+    this.filteredTestCases = []; // ✅ ADDED: Reset filtered test cases
     this.filteredRequirements = [];
     this.projectDevelopers = [];
-    this.currentPage = 1; // ✅ Reset to first page
+    this.currentPage = 1;
     
     if (this.selectedProjectId) {
       this.loadRequirementsByProject(this.selectedProjectId);
@@ -426,7 +467,8 @@ export class TestCasesComponent implements OnInit {
   }
 
   onRequirementChange(): void {
-    this.currentPage = 1; // ✅ Reset to first page
+    this.selectedCategory = ''; // ✅ ADDED: Reset category filter when requirement changes
+    this.currentPage = 1;
     
     if (this.selectedRequirementId) {
       this.loadRequirementDetails();
@@ -434,6 +476,7 @@ export class TestCasesComponent implements OnInit {
     } else {
       this.requirement = null;
       this.testCases = [];
+      this.filteredTestCases = []; // ✅ ADDED: Reset filtered test cases
     }
     
     // Update URL with filters
@@ -454,6 +497,7 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
+  // ✅ UPDATED: Load test cases and apply category filtering
   loadTestCases(): void {
     if (!this.selectedRequirementId) return;
     
@@ -471,11 +515,15 @@ export class TestCasesComponent implements OnInit {
           created_by: testCase.created_by || null,
           executed_by: testCase.executed_by || null,
           test_data: testCase.test_data || null,
-          // Ensure page_name is properly handled
-          page_name: testCase.page_name || ''
+          // Ensure page_name and category are properly handled
+          page_name: testCase.page_name || '',
+          category: testCase.category || 'Functional' // ✅ ADDED: Default category if not provided
         }));
         
         console.log('Processed test cases with multiple screenshots:', this.testCases);
+        
+        // ✅ ADDED: Apply category filtering after loading
+        this.filterTestCasesByCategory();
       },
       error: (error: any) => {
         console.error('Error fetching test cases:', error);
@@ -728,7 +776,7 @@ export class TestCasesComponent implements OnInit {
     this.errorMessage = '';
   }
 
-  // ✅ Form Validation
+  // ✅ UPDATED: Form Validation to include category
   validateTestCaseForm(): boolean {
     let isValid = true;
     this.clearFormErrors();
@@ -745,6 +793,12 @@ export class TestCasesComponent implements OnInit {
 
     if (!this.newTestCase.page_name) {
       this.formErrors.page_name = 'Page Name is required';
+      isValid = false;
+    }
+
+    // ✅ ADDED: Category validation
+    if (!this.newTestCase.category) {
+      this.formErrors.category = 'Category is required';
       isValid = false;
     }
 
@@ -825,6 +879,7 @@ export class TestCasesComponent implements OnInit {
       test_case_id: '',
       title: '',
       page_name: '',
+      category: '', // ✅ ADDED: Category error field
       description: '',
       expected_result: '',
       test_actions: '',
@@ -853,7 +908,7 @@ export class TestCasesComponent implements OnInit {
     };
   }
 
-  // ✅ Test Case CRUD - UPDATED for multiple screenshots
+  // ✅ UPDATED: Test Case CRUD to include category
   openAddTestCasePopup(): void {
     if (!this.selectedRequirementId || !this.selectedProjectId) return;
     
@@ -866,7 +921,8 @@ export class TestCasesComponent implements OnInit {
     
     this.newTestCase = {
       test_case_id: '',
-      page_name: '', // ✅ Initialize page_name
+      page_name: '',
+      category: 'Functional', // ✅ ADDED: Default category
       title: '',
       description: '',
       pre_conditions: '',
@@ -875,7 +931,7 @@ export class TestCasesComponent implements OnInit {
       test_data: null,
       is_automated: false,
       requirement: this.selectedRequirementId,
-      project: this.selectedProjectId, // Set project automatically
+      project: this.selectedProjectId,
       created_by: this.currentUser?.id,
       assigned_to: null,
       is_executed: false,
@@ -907,8 +963,8 @@ export class TestCasesComponent implements OnInit {
     this.newTestCase = { 
       ...testCase,
       executed_on: formattedExecutedOn,
-      // ✅ Ensure page_name is properly set when editing
-      page_name: testCase.page_name || ''
+      page_name: testCase.page_name || '',
+      category: testCase.category || 'Functional' // ✅ ADDED: Ensure category is set
     };
     
     // Load existing screenshots for this test case
@@ -934,7 +990,7 @@ export class TestCasesComponent implements OnInit {
       return;
     }
 
-    // ✅ FIX 2: Store current page before saving to maintain position
+    // ✅ Store current page before saving to maintain position
     const currentPageBeforeSave = this.currentPage;
 
     // Prepare the data for saving
@@ -971,9 +1027,12 @@ export class TestCasesComponent implements OnInit {
     testCaseData.project = this.selectedProjectId;
     testCaseData.created_by = this.currentUser?.id;
 
-    // Ensure page_name is included
+    // Ensure page_name and category are included
     if (!testCaseData.page_name) {
       testCaseData.page_name = '';
+    }
+    if (!testCaseData.category) {
+      testCaseData.category = 'Functional'; // ✅ ADDED: Default category
     }
 
     // Convert IDs to numbers
@@ -987,6 +1046,7 @@ export class TestCasesComponent implements OnInit {
 
     console.log('Saving test case with data:', testCaseData);
     console.log('Page name being sent:', testCaseData.page_name);
+    console.log('Category being sent:', testCaseData.category); // ✅ ADDED: Log category
     console.log('Uploaded screenshots:', this.uploadedScreenshots.length);
     console.log('Screenshots to delete:', this.screenshotsToDelete);
 
@@ -1215,14 +1275,15 @@ export class TestCasesComponent implements OnInit {
       comments: this.executionData.comments,
       bug_raised: this.executionData.bug_raised,
       bug_status: this.executionData.bug_raised ? this.executionData.bug_status : null,
-      // ✅ Ensure page_name is preserved during execution
-      page_name: this.executingTestCase.page_name || ''
+      // Ensure page_name and category are preserved during execution
+      page_name: this.executingTestCase.page_name || '',
+      category: this.executingTestCase.category || 'Functional' // ✅ ADDED: Preserve category
     };
 
     console.log('Saving execution with user:', this.currentUser);
     console.log('Execution data:', updatedTestCase);
 
-    // ✅ FIX 2: Store current page before saving execution
+    // Store current page before saving execution
     const currentPageBeforeSave = this.currentPage;
 
     // For execution, we don't need to handle screenshots, so use regular update
@@ -1230,7 +1291,7 @@ export class TestCasesComponent implements OnInit {
       next: () => {
         this.loadTestCases();
         this.closeExecutePopup();
-        // ✅ FIX 2: Restore the current page after execution
+        // Restore the current page after execution
         this.currentPage = currentPageBeforeSave;
         this.showSuccess('Test execution saved successfully!');
       },
@@ -1249,7 +1310,6 @@ export class TestCasesComponent implements OnInit {
     }
 
     // Pass project ID to get relevant developers in the template
-    // Convert null to undefined to fix the TypeScript error
     const projectId = this.selectedProjectId || undefined;
     
     this.testCaseService.downloadTemplate(projectId).subscribe({

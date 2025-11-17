@@ -43,7 +43,7 @@
   opacity: 0.6;
 }
 
-/* Filters Section */
+/* ========== SINGLE ROW FILTERS - UPDATED ========== */
 .filters-card {
   margin-bottom: 20px;
 }
@@ -54,34 +54,82 @@
   color: #333;
 }
 
-.filter-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 20px;
+/* Override the old grid layout with flexbox for single row */
+.filter-form.single-row-filters {
+  display: flex !important; /* Force flex display */
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: flex-end;
+  grid-template-columns: none !important; /* Override any grid */
 }
 
-.form-group {
+.filter-form.single-row-filters .form-group.compact {
+  flex: 1;
+  min-width: 180px;
+  max-width: 250px;
+  margin-bottom: 0;
   display: flex;
   flex-direction: column;
 }
 
-.form-group label {
-  margin-bottom: 8px;
+.filter-form.single-row-filters .form-group.compact label {
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+  display: block;
   font-weight: 600;
   color: #555;
 }
 
-.form-control {
+.filter-form.single-row-filters .form-group.compact .form-control {
+  width: 100%;
+  font-size: 0.9rem;
   padding: 10px 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 14px;
   background: white;
 }
 
-.form-control:disabled {
+.filter-form.single-row-filters .form-group.compact .form-control:disabled {
   background: #f5f5f5;
   cursor: not-allowed;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 1200px) {
+  .filter-form.single-row-filters .form-group.compact {
+    min-width: 160px;
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 992px) {
+  .filter-form.single-row-filters {
+    gap: 12px;
+  }
+  
+  .filter-form.single-row-filters .form-group.compact {
+    min-width: 140px;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-form.single-row-filters {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .filter-form.single-row-filters .form-group.compact {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Remove old filter form styles that might conflict */
+.filter-form:not(.single-row-filters) {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
 }
 
 /* Requirements Content */
@@ -1042,6 +1090,11 @@ textarea {
   min-width: 120px;
 }
 
+.col-category {
+  min-width: 120px;
+  max-width: 150px;
+}
+
 /* Screenshots column */
 .screenshots-link {
   display: flex;
@@ -1288,7 +1341,7 @@ textarea {
 
 /* Responsive design */
 @media (max-width: 1024px) {
-  .filter-form {
+  .filter-form:not(.single-row-filters) {
     grid-template-columns: 1fr 1fr;
   }
   
@@ -1324,7 +1377,7 @@ textarea {
 }
 
 @media (max-width: 768px) {
-  .filter-form {
+  .filter-form:not(.single-row-filters) {
     grid-template-columns: 1fr;
     gap: 15px;
   }
