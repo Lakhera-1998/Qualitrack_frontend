@@ -14,10 +14,7 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, FormsModule]
 })
 export class ProjectRequirementsComponent implements OnInit {
-  clients: any[] = [];
-  filteredProjects: any[] = [];
-  selectedClientId: number | null = null;
-  selectedClientName: string = '';
+  allProjects: any[] = [];
   selectedProjectId: number | null = null;
   project: any = null;
   requirements: any[] = [];
@@ -26,14 +23,18 @@ export class ProjectRequirementsComponent implements OnInit {
   // Search and filter properties
   searchText: string = '';
   selectedPriority: string = '';
+  filterIsDeveloped: boolean = false;
+  filterIsTested: boolean = false;
+  filterIsDelivered: boolean = false;
+  filtersApplied: boolean = false;
 
   // ✅ Pagination properties
   currentPage: number = 1;
-  pageSize: number = 5; // Only 5 records per page as requested
-  visiblePagesCount: number = 3;
+  pageSize: number = 10;
 
   // Form validation
   formErrors: any = {
+    project: '',
     requirement_title: '',
     requirement: '',
     priority: '',
@@ -56,7 +57,15 @@ export class ProjectRequirementsComponent implements OnInit {
   importErrors: string[] = [];
   requirementCount: number = 0;
 
+  // Filter popup
+  showFilterPopup: boolean = false;
+
+  // Requirement details popup
+  showRequirementDetailsPopup: boolean = false;
+  selectedRequirement: any = null;
+
   newRequirement: any = {
+    project: '',
     requirement_title: '',
     requirement: '',
     priority: '',
@@ -68,8 +77,7 @@ export class ProjectRequirementsComponent implements OnInit {
     is_delivered: false,
     uat_testing: false,
     bug_raised_by_client_after_uat: false,
-    bug_fixed: false,
-    project: null
+    bug_fixed: false
   };
 
   showRequirementPopup = false;
@@ -85,60 +93,62 @@ export class ProjectRequirementsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadClients();
+    this.loadAllProjects();
   }
 
-  loadClients(): void {
-    this.clientsService.getClients().subscribe({
+  loadAllProjects(): void {
+    this.projectService.getAllProjects().subscribe({
       next: (data: any[]) => {
-        this.clients = data;
+        this.allProjects = data;
       },
-      error: (err) => console.error('Error fetching clients:', err)
+      error: (err) => console.error('Error fetching all projects:', err)
     });
   }
 
-  onClientChange(): void {
-    this.selectedProjectId = null;
-    this.project = null;
-    this.requirements = [];
-    this.filteredRequirements = [];
-    this.filteredProjects = [];
-    this.searchText = '';
-    this.selectedPriority = '';
-    this.currentPage = 1; // ✅ Reset to first page
-    
-    if (this.selectedClientId) {
-      this.loadProjectsByClient(this.selectedClientId);
-      
-      const selectedClient = this.clients.find(client => client.id === this.selectedClientId);
-      this.selectedClientName = selectedClient ? selectedClient.client_name : '';
-    } else {
-      this.selectedClientName = '';
-    }
+  openFilterPopup(): void {
+    this.showFilterPopup = true;
   }
 
-  loadProjectsByClient(clientId: number): void {
-    this.projectService.getProjectsByClient(clientId).subscribe({
-      next: (data: any[]) => {
-        this.filteredProjects = data;
-      },
-      error: (err) => console.error('Error fetching projects by client:', err)
-    });
+  closeFilterPopup(): void {
+    this.showFilterPopup = false;
   }
 
-  onProjectChange(): void {
-    this.searchText = '';
-    this.selectedPriority = '';
-    this.currentPage = 1; // ✅ Reset to first page
+  applyFilters(): void {
+    this.filtersApplied = true;
+    this.currentPage = 1;
     
     if (this.selectedProjectId) {
       this.loadProjectDetails();
       this.loadRequirements();
     } else {
-      this.project = null;
-      this.requirements = [];
-      this.filteredRequirements = [];
+      this.loadAllRequirements();
     }
+    
+    this.closeFilterPopup();
+  }
+
+  clearFilters(): void {
+    this.selectedProjectId = null;
+    this.selectedPriority = '';
+    this.filterIsDeveloped = false;
+    this.filterIsTested = false;
+    this.filterIsDelivered = false;
+    this.searchText = '';
+    this.filtersApplied = false;
+    this.requirements = [];
+    this.filteredRequirements = [];
+    this.project = null;
+    this.closeFilterPopup();
+  }
+
+  loadAllRequirements(): void {
+    this.requirementService.getAllRequirements().subscribe({
+      next: (data: any[]) => {
+        this.requirements = data;
+        this.applyAllFilters();
+      },
+      error: (err) => console.error('Error fetching all requirements:', err)
+    });
   }
 
   loadProjectDetails(): void {
@@ -158,18 +168,31 @@ export class ProjectRequirementsComponent implements OnInit {
     this.requirementService.getRequirementsByProject(this.selectedProjectId).subscribe({
       next: (data: any[]) => {
         this.requirements = data;
-        this.filteredRequirements = [...this.requirements];
-        this.currentPage = 1; // ✅ Reset to first page when data loads
+        this.applyAllFilters();
       },
       error: (err) => console.error('Error fetching requirements:', err)
     });
   }
 
-  // ✅ Excel Template Download
-  downloadTemplate(): void {
-    if (!this.selectedProjectId) return;
+  applyAllFilters(): void {
+    this.filteredRequirements = this.requirements.filter(req => {
+      // Priority filter
+      const matchesPriority = !this.selectedPriority || req.priority === this.selectedPriority;
+      
+      // Boolean filters
+      const matchesIsDeveloped = !this.filterIsDeveloped || req.is_developed === true;
+      const matchesIsTested = !this.filterIsTested || req.is_tested === true;
+      const matchesIsDelivered = !this.filterIsDelivered || req.is_delivered === true;
+      
+      return matchesPriority && matchesIsDeveloped && matchesIsTested && matchesIsDelivered;
+    });
+    
+    this.currentPage = 1;
+  }
 
-    this.requirementService.downloadTemplate(this.selectedProjectId).subscribe({
+  // ✅ Excel Template Download - now enabled without project selection
+  downloadTemplate(): void {
+    this.requirementService.downloadTemplate().subscribe({
       next: (response: any) => {
         // Create blob from response
         const blob = new Blob([response], { 
@@ -180,7 +203,7 @@ export class ProjectRequirementsComponent implements OnInit {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `requirement_template_${this.project?.project_name || 'project'}.xlsx`;
+        link.download = `requirement_template.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -195,10 +218,8 @@ export class ProjectRequirementsComponent implements OnInit {
     });
   }
 
-  // ✅ Import Requirements Functionality
+  // ✅ Import Requirements Functionality - now enabled without project selection
   openImportPopup(): void {
-    if (!this.selectedProjectId) return;
-    
     this.showImportPopup = true;
     this.selectedFile = null;
     this.importErrors = [];
@@ -302,9 +323,9 @@ export class ProjectRequirementsComponent implements OnInit {
   }
 
   importRequirements(): void {
-    if (!this.selectedFile || !this.selectedProjectId) return;
+    if (!this.selectedFile) return;
 
-    this.requirementService.importRequirements(this.selectedProjectId, this.selectedFile).subscribe({
+    this.requirementService.importRequirements(this.selectedFile).subscribe({
       next: (response: any) => {
         this.showImportConfirmation = false;
         this.closeImportPopup();
@@ -314,7 +335,14 @@ export class ProjectRequirementsComponent implements OnInit {
           this.importErrors = response.errors;
         } else {
           this.showSuccess(response.message || 'Requirements imported successfully!');
-          this.loadRequirements(); // Refresh the requirements list
+          // Refresh requirements if filters are applied
+          if (this.filtersApplied) {
+            if (this.selectedProjectId) {
+              this.loadRequirements();
+            } else {
+              this.loadAllRequirements();
+            }
+          }
         }
       },
       error: (err) => {
@@ -347,31 +375,6 @@ export class ProjectRequirementsComponent implements OnInit {
     }
   }
 
-  getVisiblePages(): number[] {
-    const total = this.totalPages();
-    const pages: number[] = [];
-    
-    if (total <= this.visiblePagesCount) {
-      for (let i = 1; i <= total; i++) {
-        pages.push(i);
-      }
-    } else {
-      let start = Math.max(1, this.currentPage - Math.floor(this.visiblePagesCount / 2));
-      let end = start + this.visiblePagesCount - 1;
-      
-      if (end > total) {
-        end = total;
-        start = Math.max(1, end - this.visiblePagesCount + 1);
-      }
-      
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-    }
-    
-    return pages;
-  }
-
   getStartIndex(): number {
     return (this.currentPage - 1) * this.pageSize + 1;
   }
@@ -381,18 +384,20 @@ export class ProjectRequirementsComponent implements OnInit {
     return Math.min(end, this.filteredRequirements.length);
   }
 
-  // Filter requirements based on search text and priority
+  // Filter requirements based on search text
   filterRequirements(): void {
+    if (!this.searchText) {
+      this.applyAllFilters();
+      return;
+    }
+    
     this.filteredRequirements = this.requirements.filter(req => {
-      const matchesSearch = !this.searchText || 
-        req.requirement_title.toLowerCase().includes(this.searchText.toLowerCase()) ||
+      const matchesSearch = req.requirement_title.toLowerCase().includes(this.searchText.toLowerCase()) ||
         req.requirement.toLowerCase().includes(this.searchText.toLowerCase());
       
-      const matchesPriority = !this.selectedPriority || req.priority === this.selectedPriority;
-      
-      return matchesSearch && matchesPriority;
+      return matchesSearch;
     });
-    this.currentPage = 1; // ✅ Reset to first page when filtering
+    this.currentPage = 1;
   }
 
   getRequirementStatus(requirement: any): string {
@@ -402,12 +407,29 @@ export class ProjectRequirementsComponent implements OnInit {
     return 'pending';
   }
 
+  getClientName(clientId: number): string {
+    // This will be used in the project dropdown to show client name
+    // You might need to adjust this based on your project data structure
+    return ''; // Remove this if not needed
+  }
+
+  // Open requirement details popup
+  openRequirementDetails(requirement: any): void {
+    this.selectedRequirement = requirement;
+    this.showRequirementDetailsPopup = true;
+  }
+
+  // Close requirement details popup
+  closeRequirementDetails(): void {
+    this.showRequirementDetailsPopup = false;
+    this.selectedRequirement = null;
+  }
+
   openAddRequirementPopup(): void {
-    if (!this.selectedProjectId) return;
-    
     this.isEditMode = false;
     this.clearFormErrors();
     this.newRequirement = {
+      project: '',
       requirement_title: '',
       requirement: '',
       priority: '',
@@ -419,8 +441,7 @@ export class ProjectRequirementsComponent implements OnInit {
       is_delivered: false,
       uat_testing: false,
       bug_raised_by_client_after_uat: false,
-      bug_fixed: false,
-      project: this.selectedProjectId
+      bug_fixed: false
     };
     this.showRequirementPopup = true;
   }
@@ -444,6 +465,11 @@ export class ProjectRequirementsComponent implements OnInit {
   validateForm(): boolean {
     let isValid = true;
     this.clearFormErrors();
+
+    if (!this.newRequirement.project) {
+      this.formErrors.project = 'Project is required';
+      isValid = false;
+    }
 
     if (!this.newRequirement.requirement_title) {
       this.formErrors.requirement_title = 'Requirement title is required';
@@ -470,6 +496,7 @@ export class ProjectRequirementsComponent implements OnInit {
 
   clearFormErrors(): void {
     this.formErrors = {
+      project: '',
       requirement_title: '',
       requirement: '',
       priority: '',
@@ -482,12 +509,17 @@ export class ProjectRequirementsComponent implements OnInit {
       return;
     }
 
-    this.newRequirement.project = this.selectedProjectId;
-
     if (this.isEditMode && this.editingRequirementId) {
       this.requirementService.updateRequirement(this.editingRequirementId, this.newRequirement).subscribe({
         next: () => {
-          this.loadRequirements();
+          // Refresh requirements if filters are applied
+          if (this.filtersApplied) {
+            if (this.selectedProjectId) {
+              this.loadRequirements();
+            } else {
+              this.loadAllRequirements();
+            }
+          }
           this.closeRequirementPopup();
           this.showSuccess('Requirement updated successfully!');
         },
@@ -496,7 +528,14 @@ export class ProjectRequirementsComponent implements OnInit {
     } else {
       this.requirementService.addRequirement(this.newRequirement).subscribe({
         next: () => {
-          this.loadRequirements();
+          // Refresh requirements if filters are applied
+          if (this.filtersApplied) {
+            if (this.selectedProjectId) {
+              this.loadRequirements();
+            } else {
+              this.loadAllRequirements();
+            }
+          }
           this.closeRequirementPopup();
           this.showSuccess('Requirement added successfully!');
         },

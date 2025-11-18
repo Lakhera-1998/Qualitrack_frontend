@@ -21,7 +21,12 @@ export class RequirementService {
     };
   }
 
-  // Existing methods - URLs remain unchanged
+  // ✅ NEW: Get all requirements (without project filter)
+  getAllRequirements(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/requirements/`, this.getHeaders());
+  }
+
+  // Existing method - Get requirements by project
   getRequirementsByProject(projectId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/projects/${projectId}/requirements/`, this.getHeaders());
   }
@@ -39,16 +44,16 @@ export class RequirementService {
     return this.http.get<any>(`${this.baseUrl}/projects/${projectId}/requirements/${id}/`, this.getHeaders());
   }
 
-  // ✅ NEW: Download Excel Template
-  downloadTemplate(projectId: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/requirements/download-template/${projectId}/`, {
+  // ✅ UPDATED: Download Excel Template (without projectId)
+  downloadTemplate(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/requirements/download-template/`, {
       ...this.getHeaders(),
       responseType: 'blob'
     });
   }
 
-  // ✅ NEW: Import Requirements from Excel
-  importRequirements(projectId: number, file: File): Observable<any> {
+  // ✅ UPDATED: Import Requirements from Excel (without projectId)
+  importRequirements(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('excel_file', file);
     
@@ -57,6 +62,6 @@ export class RequirementService {
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.post<any>(`${this.baseUrl}/requirements/import/${projectId}/`, formData, { headers });
+    return this.http.post<any>(`${this.baseUrl}/requirements/import/`, formData, { headers });
   }
 }

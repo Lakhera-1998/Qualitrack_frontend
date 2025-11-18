@@ -22,7 +22,12 @@ export class ProjectService {
     };
   }
 
-  // ✅ List all projects
+  // ✅ NEW: Get all projects
+  getAllProjects(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/projects/`, this.getHeaders());
+  }
+
+  // ✅ List all projects (existing - keep for backward compatibility)
   getProjects(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/projects/`, this.getHeaders());
   }
@@ -61,5 +66,4 @@ export class ProjectService {
   getProjectDevelopers(projectId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/projects/${projectId}/developers/`, this.getHeaders());
   }
-
 }

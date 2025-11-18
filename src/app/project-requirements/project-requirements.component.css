@@ -822,3 +822,467 @@ textarea {
     width: 100%;
   }
 }
+
+/* Add these styles to your existing CSS file */
+
+/* Filter button */
+.filter-btn {
+  background: #6f42c1;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+  font-size: 14px;
+}
+
+.filter-btn:hover {
+  background: #5a2d91;
+}
+
+/* Clear filter button */
+.clear-btn {
+  background: #dc3545;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+}
+
+.clear-btn:hover {
+  background: #c82333;
+}
+
+/* Boolean filters in popup */
+.boolean-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+/* Updated pagination styles */
+.pagination-controls {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  min-width: 40px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.pagination-btn.current-page {
+  background: #3f51b5;
+  color: white;
+  border-color: #3f51b5;
+  font-weight: bold;
+}
+
+.pagination-btn:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.first-btn, .last-btn {
+  font-weight: bold;
+}
+
+/* Title column with text wrapping */
+.col-title {
+  min-width: 250px;
+  max-width: 400px;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Search box positioned to the right with reduced width */
+.search-box-right {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
+
+.search-input-right {
+  width: 250px; /* Reduced width */
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Clickable title styles */
+.clickable-title {
+  cursor: pointer;
+  color: #333;
+  transition: color 0.2s ease;
+  word-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.title-hover {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+/* Text wrapping for title column */
+.col-title {
+  min-width: 250px;
+  max-width: 400px;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
+/* Requirement Details Popup Styles */
+.requirement-details-popup {
+  width: 600px;
+  max-width: 90vw;
+}
+
+.requirement-details {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.detail-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.detail-section h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.detail-item label {
+  font-weight: 600;
+  color: #555;
+  min-width: 150px;
+  text-align: right;
+}
+
+.detail-value {
+  color: #333;
+  flex: 1;
+  word-wrap: break-word;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .search-box-right {
+    justify-content: flex-start;
+  }
+  
+  .search-input-right {
+    width: 100%;
+  }
+  
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .detail-item label {
+    min-width: auto;
+    text-align: left;
+  }
+  
+  .requirement-details-popup {
+    width: 95%;
+  }
+}
+
+/* Table Header Section with Search Box */
+.table-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.project-header {
+  flex: 1;
+  min-width: 300px;
+}
+
+.project-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.4rem;
+}
+
+/* Search box positioned to the right with increased width */
+.search-box-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.search-input-right {
+  width: 350px; /* Increased width */
+  padding: 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.search-input-right:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
+
+/* Clickable title styles - Remove underline */
+.clickable-title {
+  cursor: pointer;
+  color: #333;
+  transition: all 0.2s ease;
+  word-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
+  padding: 4px 0;
+  border-radius: 4px;
+}
+
+.title-hover {
+  color: #007bff;
+  background-color: #f8f9fa;
+  /* No text-decoration: underline */
+}
+
+/* Enhanced Requirement Details Popup Styles */
+.requirement-details-popup {
+  width: 700px;
+  max-width: 95vw;
+  max-height: 85vh;
+}
+
+.requirement-details-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Detail Card Styles */
+.detail-card {
+  background: #ffffff;
+  border: 1px solid #e1e5e9;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.detail-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #f1f3f4;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px 12px 0 0;
+}
+
+.card-icon {
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #007bff;
+  color: white;
+  border-radius: 10px;
+}
+
+.card-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.card-content {
+  padding: 20px;
+}
+
+/* Detail Row Styles */
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 140px;
+  font-size: 14px;
+  padding-right: 16px;
+}
+
+.detail-value {
+  color: #2c3e50;
+  flex: 1;
+  word-wrap: break-word;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.description-text {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 4px solid #007bff;
+  font-style: italic;
+}
+
+/* Status Grid for Development and UAT Cards */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.status-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.status-text {
+  font-weight: 600;
+  color: #495057;
+  font-size: 13px;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .table-header-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .project-header {
+    min-width: auto;
+    text-align: center;
+  }
+  
+  .search-box-right {
+    justify-content: stretch;
+  }
+  
+  .search-input-right {
+    width: 100%;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .detail-label {
+    min-width: auto;
+    padding-right: 0;
+  }
+  
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .requirement-details-popup {
+    width: 95%;
+    margin: 10px;
+  }
+  
+  .card-header {
+    padding: 16px;
+  }
+  
+  .card-content {
+    padding: 16px;
+  }
+}
+
+/* Scrollbar styling for detail cards */
+.requirement-details-cards::-webkit-scrollbar {
+  width: 6px;
+}
+
+.requirement-details-cards::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.requirement-details-cards::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.requirement-details-cards::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
