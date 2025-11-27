@@ -2,14 +2,14 @@
   <div class="header">
     <h2>Test Cases</h2>
     <div class="header-buttons">
-      <!-- New buttons for template download and bulk import -->
-      <button class="template-btn" (click)="downloadTemplate()" [disabled]="!selectedRequirementId">
+      <!-- Updated disabled conditions -->
+      <button class="template-btn" (click)="downloadTemplate()" [disabled]="!selectedProjectId">
         📥 Download Template
       </button>
-      <button class="import-btn" (click)="openImportPopup()" [disabled]="!selectedRequirementId">
+      <button class="import-btn" (click)="openImportPopup()" [disabled]="!selectedProjectId">
         📤 Import Test Cases
       </button>
-      <button class="add-btn" (click)="openAddTestCasePopup()" [disabled]="!selectedRequirementId">+ Add Test Case</button>
+      <button class="add-btn" (click)="openAddTestCasePopup()" [disabled]="!selectedProjectId">+ Add Test Case</button>
     </div>
   </div>
 
@@ -34,16 +34,16 @@
       </div>
 
       <div class="form-group compact">
-        <label for="requirementSelect">Requirement *</label>
+        <label for="requirementSelect">Requirement</label>
         <select id="requirementSelect" [(ngModel)]="selectedRequirementId" (change)="onRequirementChange()" class="form-control" [disabled]="!selectedProjectId">
-          <option value="">Select Requirement</option>
+          <option value="">All Requirements</option>
           <option *ngFor="let requirement of filteredRequirements" [value]="requirement.id">{{ requirement.requirement_title }}</option>
         </select>
       </div>
 
       <div class="form-group compact">
         <label for="categorySelect">Category</label>
-        <select id="categorySelect" [(ngModel)]="selectedCategory" (change)="onCategoryChange()" class="form-control" [disabled]="!selectedRequirementId">
+        <select id="categorySelect" [(ngModel)]="selectedCategory" (change)="onCategoryChange()" class="form-control" [disabled]="!selectedProjectId">
           <option value="">All Categories</option>
           <option value="Functional">Functional</option>
           <option value="UI">UI</option>
@@ -56,12 +56,17 @@
     </div>
   </div>
 
-  <!-- Test Cases Display Area -->
-  <div *ngIf="selectedRequirementId && requirement" class="requirements-content">
+  <!-- ✅ UPDATED: Test Cases Display Area - Show when project is selected -->
+  <div *ngIf="selectedProjectId" class="requirements-content">
     <div class="project-header">
-      <!-- ✅ Fixed heading display to avoid showing (-) unnecessarily -->
       <h3>
-        Test Cases for {{ requirement?.requirement_title }}
+        <!-- ✅ UPDATED: Dynamic heading based on selection -->
+        <span *ngIf="selectedRequirementId && requirement">
+          Test Cases for {{ requirement?.requirement_title }}
+        </span>
+        <span *ngIf="!selectedRequirementId">
+          All Test Cases for {{ selectedProjectName }}
+        </span>
         <span *ngIf="selectedProjectName || selectedClientName">
           ({{ selectedProjectName }}<span *ngIf="selectedProjectName && selectedClientName"> - </span>{{ selectedClientName }})
         </span>
@@ -69,7 +74,7 @@
     </div>
 
     <div class="card table-card">
-      <!-- ✅ Table Container without vertical scroll -->
+      <!-- Table Container without vertical scroll -->
       <div class="table-scroll-container">
         <table class="styled-table">
           <thead>
@@ -79,6 +84,8 @@
               <th class="col-title">Title</th>
               <th class="col-page-name">Page Name</th>
               <th class="col-category">Category</th>
+              <!-- ✅ NEW: Requirement Column when showing all project test cases -->
+              <th *ngIf="showAllProjectTestCases" class="col-requirement">Requirement</th>
               <th>Status</th>
               <th>Bug Status</th>
               <th class="col-boolean">Is Automated</th>
@@ -94,7 +101,6 @@
             </tr>
           </thead>
           <tbody>
-            <!-- ✅ Updated to use paginatedTestCases with proper serial number -->
             <tr *ngFor="let testCase of paginatedTestCases(); let i = index">
               <!-- Serial Number -->
               <td class="col-sno">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
@@ -122,9 +128,14 @@
                 <div class="wrapped-text">{{ testCase.page_name || '-' }}</div>
               </td>
 
-               <!-- ✅ ADDED: Category with wrapping -->
+              <!-- Category with wrapping -->
               <td class="col-category">
                 <div class="wrapped-text">{{ testCase.category || 'Functional' }}</div>
+              </td>
+
+              <!-- ✅ NEW: Requirement Column when showing all project test cases -->
+              <td *ngIf="showAllProjectTestCases" class="col-requirement">
+                <div class="wrapped-text">{{ testCase.requirement_title || '-' }}</div>
               </td>
 
               <!-- Status -->
@@ -189,7 +200,7 @@
               <!-- Created At - NO WRAPPING -->
               <td class="col-datetime">{{ testCase.created_at ? (testCase.created_at | date:'medium') : '-' }}</td>
 
-              <!-- Actions - Removed eye icon -->
+              <!-- Actions -->
               <td class="actions">
                 <button class="edit-btn" (click)="editTestCase(testCase)" title="Edit Test Case">✏️</button>
                 <button class="execute-btn" (click)="executeTestCase(testCase)"
@@ -200,7 +211,7 @@
         </table>
       </div>
 
-      <!-- ✅ Pagination -->
+      <!-- Pagination -->
       <div class="pagination-container" *ngIf="filteredTestCases.length > 0">
         <div class="pagination-summary">
           Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ filteredTestCases.length }} records
@@ -230,18 +241,20 @@
         </div>
       </div>
 
-      <!-- ✅ UPDATED: No test cases message to check filteredTestCases -->
-      <div *ngIf="filteredTestCases.length === 0 && selectedRequirementId" class="no-requirements">
-        No test cases found {{ selectedCategory ? 'for category: ' + selectedCategory : 'for this requirement' }}.
+      <!-- ✅ UPDATED: No test cases message -->
+      <div *ngIf="filteredTestCases.length === 0 && selectedProjectId" class="no-requirements">
+        No test cases found 
+        <span *ngIf="selectedRequirementId">for this requirement</span>
+        <span *ngIf="selectedCategory"> for category: {{ selectedCategory }}</span>.
       </div>
     </div>
   </div>
 
-  <!-- Message when no client/project/requirement selected -->
-  <div *ngIf="!selectedRequirementId" class="placeholder-message card">
+  <!-- ✅ UPDATED: Message when no project selected -->
+  <div *ngIf="!selectedProjectId" class="placeholder-message card">
     <div class="message-content">
-      <h3>Select Client, Project and Requirement</h3>
-      <p>Select a client, project and requirement from the dropdowns above to display the test cases.</p>
+      <h3>Select Client and Project</h3>
+      <p>Select a client and project from the dropdowns above to display the test cases.</p>
     </div>
   </div>
 
@@ -257,7 +270,7 @@
     <button class="close-notification" (click)="hideErrorMessage()">×</button>
   </div>
 
-  <!-- Import Test Cases Popup -->
+  <!-- Import Test Cases Popup - UPDATED INSTRUCTIONS -->
   <div class="popup" *ngIf="showImportPopup">
     <div class="popup-content large-popup">
       <div class="popup-header">
@@ -266,15 +279,17 @@
       </div>
 
       <div class="import-instructions">
-        <h4>Instructions:</h4>
+        <h4>📋 IMPORTANT INSTRUCTIONS:</h4>
         <ul>
-          <li>Download the template first and fill in your test case data</li>
-          <li>Only Excel files (.xlsx, .xls) are accepted</li>
-          <li>Required fields: Test Case ID, Title, Page Name, Description, Expected Result</li>
-          <li>For test data, you can either provide an existing test data ID or new text test data</li>
-          <li>Boolean fields (is_automated, is_executed, bug_raised) must be TRUE or FALSE</li>
-          <li>Status must be: Pass, Fail, or Not tested yet</li>
-          <li>Bug status must be: Open, In Progress, Resolved, or Closed</li>
+          <li><strong>Download the template first</strong> - it's pre-configured for the selected project</li>
+          <li><strong>Project-specific template</strong> - This template is for: <strong>{{ selectedProjectName }}</strong></li>
+          <li><strong>Do NOT modify Column A (project_id)</strong> - It's automatically set to the correct project</li>
+          <li><strong>Column B (test_case_id)</strong> - Enter unique test case IDs for this project</li>
+          <li><strong>Column C (requirement_id)</strong> - Select from dropdown (only shows requirements for this project)</li>
+          <li><strong>Use dropdowns</strong> for all selection fields to avoid errors</li>
+          <li><strong>Date format</strong>: YYYY-MM-DD (e.g., 2024-01-15)</li>
+          <li><strong>Boolean fields</strong>: Use "True" or "False" (case-sensitive)</li>
+          <li>Check the <strong>Instructions sheet</strong> in the template for detailed guidance</li>
         </ul>
       </div>
 
@@ -288,7 +303,7 @@
           <div class="upload-placeholder" *ngIf="!importFile">
             <span class="upload-icon">📁</span>
             <p>Click to browse or drag and drop Excel file here</p>
-            <small>Supports .xlsx, .xls files only</small>
+            <small>Supports .xlsx, .xls files only (max 10MB)</small>
           </div>
           <div class="file-preview" *ngIf="importFile">
             <span class="file-icon">📄</span>
@@ -302,30 +317,50 @@
         <input #fileInput type="file" (change)="onImportFileSelected($event)" accept=".xlsx,.xls" hidden>
       </div>
 
-      <!-- Validation Results -->
+      <!-- Validation Results - UPDATED FOR NEW API RESPONSE STRUCTURE -->
       <div *ngIf="importResults" class="validation-results">
-        <div class="result-summary" [class.success]="importResults.success_count > 0 && importResults.error_count === 0"
-             [class.warning]="importResults.error_count > 0">
-          <strong>
-            {{ importResults.success_count }} test cases imported successfully, 
-            {{ importResults.error_count }} errors found
+        <div class="result-summary" 
+             [class.success]="importResults.success && importResults.imported > 0"
+             [class.warning]="!importResults.success || importResults.errors?.length > 0">
+          <strong *ngIf="importResults.success && importResults.imported > 0">
+            ✅ Successfully imported {{ importResults.imported }} test cases!
+          </strong>
+          <strong *ngIf="!importResults.success" class="error-text">
+            ❌ Import failed: {{ importResults.message }}
+          </strong>
+          <strong *ngIf="importResults.success && importResults.imported === 0" class="warning-text">
+            ⚠️ {{ importResults.message }}
           </strong>
         </div>
 
+        <!-- Errors List -->
         <div *ngIf="importResults.errors && importResults.errors.length > 0" class="error-details">
-          <h5>Errors:</h5>
-          <div *ngFor="let error of importResults.errors" class="error-item">
-            <strong>Row {{ error.row }}:</strong>
-            <ul>
-              <li *ngFor="let err of error.errors">{{ err }}</li>
-            </ul>
+          <h5>❌ Errors ({{ importResults.errors.length }}):</h5>
+          <div class="errors-list">
+            <div *ngFor="let error of importResults.errors" class="error-item">
+              <strong>{{ error }}</strong>
+            </div>
           </div>
         </div>
 
-        <div *ngIf="importResults.imported_test_cases && importResults.imported_test_cases.length > 0" class="success-details">
-          <h5>Imported Test Cases:</h5>
-          <div *ngFor="let testCase of importResults.imported_test_cases" class="success-item">
-            <strong>ID {{ testCase.id }}:</strong> {{ testCase.test_case_id }} - {{ testCase.title }} ({{ testCase.status }})
+        <!-- Skipped Records -->
+        <div *ngIf="importResults.skipped && importResults.skipped.length > 0" class="skipped-details">
+          <h5>⚠️ Skipped Records ({{ importResults.skipped.length }}):</h5>
+          <div class="skipped-list">
+            <div *ngFor="let skipped of importResults.skipped" class="skipped-item">
+              {{ skipped }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Success Details -->
+        <div *ngIf="importResults.success && importResults.imported > 0" class="success-details">
+          <h5>✅ Import Summary:</h5>
+          <div class="success-stats">
+            <p><strong>Total Rows Processed:</strong> {{ importResults.total_rows }}</p>
+            <p><strong>Successfully Imported:</strong> {{ importResults.imported }}</p>
+            <p *ngIf="importResults.errors?.length > 0"><strong>Errors:</strong> {{ importResults.errors.length }}</p>
+            <p *ngIf="importResults.skipped?.length > 0"><strong>Skipped:</strong> {{ importResults.skipped.length }}</p>
           </div>
         </div>
       </div>
@@ -333,14 +368,14 @@
       <div class="form-actions">
         <button type="button" class="save-btn" (click)="confirmImport()" 
                 [disabled]="!importFile || isImporting">
-          {{ isImporting ? 'Importing...' : 'Import Test Cases' }}
+          {{ isImporting ? '⏳ Importing...' : '🚀 Import Test Cases' }}
         </button>
         <button type="button" class="cancel-btn" (click)="closeImportPopup()">Cancel</button>
       </div>
     </div>
   </div>
 
-  <!-- Confirmation Popup for Import -->
+  <!-- Confirmation Popup for Import - UPDATED -->
   <div class="popup" *ngIf="showImportConfirmation">
     <div class="popup-content medium-popup">
       <div class="popup-header">
@@ -349,14 +384,31 @@
       </div>
 
       <div class="confirmation-content">
-        <p>Are you sure you want to import <strong>{{ importResults?.success_count }}</strong> test cases?</p>
-        <p *ngIf="importResults?.error_count > 0" class="warning-text">
-          Note: {{ importResults.error_count }} rows have errors and will be skipped.
-        </p>
+        <div *ngIf="importResults?.success_count > 0" class="import-success">
+          <p>✅ <strong>{{ importResults.success_count }}</strong> test cases are ready to import.</p>
+        </div>
+        
+        <div *ngIf="importResults?.error_count > 0" class="import-warnings">
+          <p>⚠️ <strong>{{ importResults.error_count }}</strong> rows have errors and will be skipped.</p>
+          
+          <div class="error-preview" *ngIf="importResults.errors && importResults.errors.length > 0">
+            <h5>Sample Errors:</h5>
+            <div *ngFor="let error of importResults.errors.slice(0, 3)" class="error-preview-item">
+              {{ error }}
+            </div>
+            <div *ngIf="importResults.errors.length > 3" class="more-errors">
+              ... and {{ importResults.errors.length - 3 }} more errors
+            </div>
+          </div>
+        </div>
+
+        <p class="confirmation-question">Do you want to proceed with the import?</p>
       </div>
 
       <div class="form-actions">
-        <button type="button" class="save-btn" (click)="proceedWithImport()">Yes, Import</button>
+        <button type="button" class="save-btn" (click)="proceedWithImport()">
+          Yes, Import {{ importResults?.success_count || 0 }} Test Cases
+        </button>
         <button type="button" class="cancel-btn" (click)="closeImportConfirmation()">Cancel</button>
       </div>
     </div>

@@ -37,6 +37,9 @@ export class TestCasesComponent implements OnInit {
   currentUser: any = null;
   projectDevelopers: any[] = [];
 
+  // ✅ NEW: Flag to track if we're showing all project test cases
+  showAllProjectTestCases: boolean = false;
+
   // New properties for import functionality
   showImportPopup: boolean = false;
   showImportConfirmation: boolean = false;
@@ -171,7 +174,7 @@ export class TestCasesComponent implements OnInit {
     this.loadFiltersFromQueryParams();
   }
 
-  // ✅ Load filters from query parameters
+  // ✅ UPDATED: Load filters from query parameters
   loadFiltersFromQueryParams(): void {
     this.route.queryParams.subscribe(params => {
       if (params['clientId']) {
@@ -190,12 +193,17 @@ export class TestCasesComponent implements OnInit {
         
         const selectedProject = this.filteredProjects.find(project => project.id === this.selectedProjectId);
         this.selectedProjectName = selectedProject ? selectedProject.project_name : '';
+        
+        // ✅ NEW: Load all test cases for project if no requirement is selected
+        if (!params['requirementId']) {
+          this.loadAllTestCasesForProject();
+        }
       }
       
       if (params['requirementId']) {
         this.selectedRequirementId = Number(params['requirementId']);
         this.loadRequirementDetails();
-        this.loadTestCases();
+        this.loadTestCasesByRequirement();
       }
 
       // ✅ ADDED: Load category from query params
@@ -375,6 +383,7 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
+  // ✅ UPDATED: Client change handler
   onClientChange(): void {
     this.selectedProjectId = null;
     this.selectedProjectName = '';
@@ -388,6 +397,7 @@ export class TestCasesComponent implements OnInit {
     this.testDataList = [];
     this.projectDevelopers = [];
     this.currentPage = 1;
+    this.showAllProjectTestCases = false; // ✅ Reset flag
     
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -414,6 +424,7 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
+  // ✅ UPDATED: Project change handler
   onProjectChange(): void {
     this.selectedRequirementId = null;
     this.selectedCategory = ''; // ✅ ADDED: Reset category filter
@@ -423,11 +434,15 @@ export class TestCasesComponent implements OnInit {
     this.filteredRequirements = [];
     this.projectDevelopers = [];
     this.currentPage = 1;
+    this.showAllProjectTestCases = false; // ✅ Reset flag
     
     if (this.selectedProjectId) {
       this.loadRequirementsByProject(this.selectedProjectId);
       this.loadTestData();
       this.loadProjectDevelopers();
+      
+      // ✅ NEW: Load all test cases for the selected project
+      this.loadAllTestCasesForProject();
       
       const selectedProject = this.filteredProjects.find(project => project.id === this.selectedProjectId);
       this.selectedProjectName = selectedProject ? selectedProject.project_name : '';
@@ -440,19 +455,21 @@ export class TestCasesComponent implements OnInit {
     this.updateUrlWithFilters();
   }
 
-  loadProjectDevelopers(): void {
-    if (!this.selectedProjectId) return;
-    
-    this.projectService.getProjectDevelopers(this.selectedProjectId).subscribe({
-      next: (data: any[]) => {
-        this.projectDevelopers = data;
-      },
-      error: (error: any) => {
-        console.error('Error fetching project developers:', error);
-        this.displayError('Error loading project developers: ' + (error.error?.message || error.message));
-      }
-    });
-  }
+  // ✅ UPDATED: Load project developers for the template
+loadProjectDevelopers(): void {
+  if (!this.selectedProjectId) return;
+  
+  this.projectService.getProjectDevelopers(this.selectedProjectId).subscribe({
+    next: (data: any[]) => {
+      this.projectDevelopers = data;
+      console.log('Project developers loaded:', this.projectDevelopers);
+    },
+    error: (error: any) => {
+      console.error('Error fetching project developers:', error);
+      this.displayError('Error loading project developers: ' + (error.error?.message || error.message));
+    }
+  });
+}
 
   loadRequirementsByProject(projectId: number): void {
     this.requirementService.getRequirementsByProject(projectId).subscribe({
@@ -466,17 +483,24 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
+  // ✅ UPDATED: Requirement change handler
   onRequirementChange(): void {
     this.selectedCategory = ''; // ✅ ADDED: Reset category filter when requirement changes
     this.currentPage = 1;
+    this.showAllProjectTestCases = false; // ✅ Reset flag when requirement is selected
     
     if (this.selectedRequirementId) {
       this.loadRequirementDetails();
-      this.loadTestCases();
+      this.loadTestCasesByRequirement();
     } else {
       this.requirement = null;
-      this.testCases = [];
-      this.filteredTestCases = []; // ✅ ADDED: Reset filtered test cases
+      // ✅ NEW: If no requirement selected but project is selected, show all project test cases
+      if (this.selectedProjectId) {
+        this.loadAllTestCasesForProject();
+      } else {
+        this.testCases = [];
+        this.filteredTestCases = [];
+      }
     }
     
     // Update URL with filters
@@ -497,8 +521,48 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
-  // ✅ UPDATED: Load test cases and apply category filtering
-  loadTestCases(): void {
+  // ✅ NEW METHOD: Load all test cases for the selected project
+loadAllTestCasesForProject(): void {
+  if (!this.selectedProjectId) return;
+  
+  this.testCaseService.getTestCasesByProject(this.selectedProjectId).subscribe({
+    next: (data: any[]) => {
+      // Process test cases with multiple screenshots
+      this.testCases = data.map(testCase => ({
+        ...testCase,
+        // Process bug screenshots array
+        bug_screenshots: testCase.bug_screenshots ? testCase.bug_screenshots.map((screenshot: any) => ({
+          ...screenshot,
+          screenshot_url: this.testCaseService.getBugScreenshotUrl(screenshot.screenshot)
+        })) : [],
+        // Ensure created_by and executed_by are properly handled
+        created_by: testCase.created_by || null,
+        executed_by: testCase.executed_by || null,
+        test_data: testCase.test_data || null,
+        // Ensure page_name and category are properly handled
+        page_name: testCase.page_name || '',
+        category: testCase.category || 'Functional' // ✅ ADDED: Default category if not provided
+      }));
+      
+      console.log('Loaded all project test cases:', this.testCases);
+      this.showAllProjectTestCases = true; // ✅ Set flag to true
+      
+      // ✅ ADDED: Apply category filtering after loading
+      this.filterTestCasesByCategory();
+    },
+    error: (error: any) => {
+      console.error('Error fetching project test cases:', error);
+      if (error.status === 401 || error.status === 403) {
+        this.displayError('Authentication failed. Please log in again.');
+      } else {
+        this.displayError('Error loading test cases: ' + (error.error?.message || error.message));
+      }
+    }
+  });
+}
+
+  // ✅ UPDATED: Load test cases by specific requirement
+  loadTestCasesByRequirement(): void {
     if (!this.selectedRequirementId) return;
     
     this.testCaseService.getTestCasesByRequirement(this.selectedRequirementId).subscribe({
@@ -520,7 +584,8 @@ export class TestCasesComponent implements OnInit {
           category: testCase.category || 'Functional' // ✅ ADDED: Default category if not provided
         }));
         
-        console.log('Processed test cases with multiple screenshots:', this.testCases);
+        console.log('Loaded requirement-specific test cases:', this.testCases);
+        this.showAllProjectTestCases = false; // ✅ Set flag to false
         
         // ✅ ADDED: Apply category filtering after loading
         this.filterTestCasesByCategory();
@@ -910,7 +975,7 @@ export class TestCasesComponent implements OnInit {
 
   // ✅ UPDATED: Test Case CRUD to include category
   openAddTestCasePopup(): void {
-    if (!this.selectedRequirementId || !this.selectedProjectId) return;
+    if (!this.selectedProjectId) return;
     
     this.isEditMode = false;
     this.clearFormErrors();
@@ -1023,9 +1088,13 @@ export class TestCasesComponent implements OnInit {
     }
 
     // Set required fields
-    testCaseData.requirement = this.selectedRequirementId;
     testCaseData.project = this.selectedProjectId;
     testCaseData.created_by = this.currentUser?.id;
+    
+    // Set requirement only if selected, otherwise keep it null
+    if (this.selectedRequirementId) {
+      testCaseData.requirement = this.selectedRequirementId;
+    }
 
     // Ensure page_name and category are included
     if (!testCaseData.page_name) {
@@ -1077,7 +1146,7 @@ export class TestCasesComponent implements OnInit {
 
         this.testCaseService.updateTestCaseWithMultipleScreenshots(this.editingTestCaseId, formData).subscribe({
           next: () => {
-            this.loadTestCases();
+            this.loadAllTestCasesForProject(); // ✅ UPDATED: Reload based on current view
             this.closeTestCasePopup();
             this.currentPage = currentPageBeforeSave;
             this.showSuccess('Test case updated successfully!');
@@ -1091,7 +1160,7 @@ export class TestCasesComponent implements OnInit {
         // No screenshots to upload or delete - send regular JSON
         this.testCaseService.updateTestCase(this.editingTestCaseId, testCaseData).subscribe({
           next: () => {
-            this.loadTestCases();
+            this.loadAllTestCasesForProject(); // ✅ UPDATED: Reload based on current view
             this.closeTestCasePopup();
             this.currentPage = currentPageBeforeSave;
             this.showSuccess('Test case updated successfully!');
@@ -1124,7 +1193,7 @@ export class TestCasesComponent implements OnInit {
 
         this.testCaseService.addTestCaseWithMultipleScreenshots(formData).subscribe({
           next: () => {
-            this.loadTestCases();
+            this.loadAllTestCasesForProject(); // ✅ UPDATED: Reload based on current view
             this.closeTestCasePopup();
             this.showSuccess('Test case added successfully!');
           },
@@ -1137,7 +1206,7 @@ export class TestCasesComponent implements OnInit {
         // No screenshots - send regular JSON
         this.testCaseService.addTestCase(testCaseData).subscribe({
           next: () => {
-            this.loadTestCases();
+            this.loadAllTestCasesForProject(); // ✅ UPDATED: Reload based on current view
             this.closeTestCasePopup();
             this.showSuccess('Test case added successfully!');
           },
@@ -1289,7 +1358,7 @@ export class TestCasesComponent implements OnInit {
     // For execution, we don't need to handle screenshots, so use regular update
     this.testCaseService.updateTestCase(this.executingTestCase.id, updatedTestCase).subscribe({
       next: () => {
-        this.loadTestCases();
+        this.loadAllTestCasesForProject(); // ✅ UPDATED: Reload based on current view
         this.closeExecutePopup();
         // Restore the current page after execution
         this.currentPage = currentPageBeforeSave;
@@ -1302,38 +1371,38 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
-  // ✅ Template Download and Import Functionality
+  // ✅ UPDATED: Template Download and Import Functionality
   downloadTemplate(): void {
-    if (!this.selectedRequirementId) {
-      this.displayError('Please select a requirement first');
-      return;
-    }
-
-    // Pass project ID to get relevant developers in the template
-    const projectId = this.selectedProjectId || undefined;
-    
-    this.testCaseService.downloadTemplate(projectId).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'test_case_template.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        this.showSuccess('Template downloaded successfully! Check the Developers sheet for available developers.');
-      },
-      error: (error: any) => {
-        console.error('Error downloading template:', error);
-        this.displayError('Error downloading template: ' + (error.error?.message || error.message));
-      }
-    });
+  if (!this.selectedProjectId) {
+    this.displayError('Please select a project first');
+    return;
   }
 
+  // Pass project ID as required by the updated backend
+  this.testCaseService.downloadTemplate(this.selectedProjectId).subscribe({
+    next: (blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Get filename from content-disposition header or use default
+      a.download = `testcase_template_${this.selectedProjectName || 'project'}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      this.showSuccess('Template downloaded successfully! Only project developers are available in user dropdowns.');
+    },
+    error: (error: any) => {
+      console.error('Error downloading template:', error);
+      this.displayError('Error downloading template: ' + (error.error?.message || error.message));
+    }
+  });
+}
+
   openImportPopup(): void {
-    if (!this.selectedRequirementId) {
-      this.displayError('Please select a requirement first');
+    if (!this.selectedProjectId) {
+      this.displayError('Please select a project first');
       return;
     }
     this.showImportPopup = true;
@@ -1411,36 +1480,43 @@ export class TestCasesComponent implements OnInit {
   }
 
   confirmImport(): void {
-    if (!this.importFile || !this.selectedRequirementId) {
+    if (!this.importFile || !this.selectedProjectId) {
       this.displayError('Please select a file to import');
       return;
     }
 
     this.isImporting = true;
     
-    this.testCaseService.bulkImportTestCases(this.selectedRequirementId, this.importFile).subscribe({
+    // ✅ UPDATED: Pass projectId instead of requirementId
+    this.testCaseService.bulkImportTestCases(this.selectedProjectId, this.importFile).subscribe({
       next: (results: any) => {
         this.importResults = results;
         this.isImporting = false;
         
-        if (results.error_count === 0) {
-          // No errors, proceed directly
-          this.proceedWithImport();
+        if (results.success) {
+          if (results.imported > 0) {
+            // Success with imported records
+            this.proceedWithImport();
+          } else {
+            // No records imported but API call successful
+            this.displayError(results.message || 'No test cases were imported.');
+            this.closeImportPopup();
+          }
         } else {
-          // Show errors and ask for confirmation
-          this.showImportConfirmation = true;
+          // API returned success: false
+          this.displayError(results.message || 'Import failed. Please check the file and try again.');
         }
       },
       error: (error: any) => {
         this.isImporting = false;
-        console.error('Error during import validation:', error);
+        console.error('Error during import:', error);
         
         if (error.status === 207) {
           // Multi-status response with errors
           this.importResults = error.error;
           this.showImportConfirmation = true;
         } else {
-          this.displayError('Error validating import file: ' + (error.error?.message || error.message));
+          this.displayError('Error importing file: ' + (error.error?.message || error.message));
         }
       }
     });
@@ -1451,10 +1527,18 @@ export class TestCasesComponent implements OnInit {
   }
 
   proceedWithImport(): void {
-    if (this.importResults && this.importResults.success_count > 0) {
-      this.showSuccess(`Successfully imported ${this.importResults.success_count} test cases!`);
-      this.loadTestCases(); // Refresh the test cases list
-      this.loadTestData(); // Refresh test data list as new test data might be created
+    if (this.importResults) {
+      if (this.importResults.imported > 0) {
+        this.showSuccess(`Successfully imported ${this.importResults.imported} test cases!`);
+        this.loadAllTestCasesForProject(); // Reload test cases
+        this.loadTestData(); // Refresh test data list as new test data might be created
+      }
+      
+      // Show any warnings or skipped records
+      if (this.importResults.skipped && this.importResults.skipped.length > 0) {
+        const skippedCount = this.importResults.skipped.length;
+        console.warn(`${skippedCount} records were skipped:`, this.importResults.skipped);
+      }
     }
     
     this.closeImportConfirmation();

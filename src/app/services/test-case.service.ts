@@ -120,6 +120,11 @@ export class TestCaseService {
     return this.http.get<any[]>(`${this.baseUrl}/test-cases/${testCaseId}/history/`, this.getHeaders());
   }
 
+  // Get test cases by project
+  getTestCasesByProject(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/project/${projectId}/test-cases/`, this.getHeaders());
+  }
+
   getBugScreenshotUrl(screenshotPath: string): string {
     if (!screenshotPath) return '';
     if (screenshotPath.startsWith('http')) {
@@ -133,41 +138,40 @@ export class TestCaseService {
   }
 
   // -----------------------------
-  // Template download & bulk import
+  // Template download & bulk import - UPDATED WITH CORRECT ENDPOINTS
   // -----------------------------
 
   /**
-   * Download test-case template.
-   * If projectId provided, query param project_id will be added.
-   * Returns a Blob Observable so component can trigger download.
+   * Download test-case template - UPDATED WITH CORRECT ENDPOINT
+   * Now requires project_id as query parameter
    */
-  downloadTemplate(projectId?: number): Observable<Blob> {
-    let params = new HttpParams();
-    if (projectId) {
-      params = params.set('project_id', projectId.toString());
+  downloadTemplate(projectId: number): Observable<Blob> {
+    if (!projectId) {
+      throw new Error('Project ID is required to download template');
     }
 
-    // request as blob; use 'observe' if you need headers
+    const params = new HttpParams().set('project_id', projectId.toString());
+
     return this.http.get(`${this.baseUrl}/test-cases/download-template/`, {
       ...this.getHeaders(),
       params,
-      responseType: 'blob' as 'blob'
+      responseType: 'blob'
     });
   }
 
   /**
-   * Bulk import endpoint.
-   * NOTE: your urls.py showed path 'testcases/template/import/' — we call that exact path here.
-   * Passes 'file' (required) and optionally 'requirement_id' if you want.
+   * Bulk import endpoint - UPDATED WITH CORRECT ENDPOINT
+   * Now requires project_id in form data along with the file
    */
-  bulkImportTestCases(requirementId: number | null, file: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('file', file);
-    if (requirementId !== null && requirementId !== undefined) {
-      formData.append('requirement_id', requirementId.toString());
+  bulkImportTestCases(projectId: number, file: File): Observable<any> {
+    if (!projectId) {
+      throw new Error('Project ID is required for import');
     }
 
-    // Use the exact path you provided in urls.py
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('project_id', projectId.toString());
+
     return this.http.post<any>(`${this.baseUrl}/testcases/template/import/`, formData, this.getHeadersForFormData());
   }
 }
