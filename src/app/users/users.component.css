@@ -223,12 +223,6 @@
   display: flex;
   flex-direction: column;
 }
-.form-grid input, .form-grid select {
-  margin-bottom: 12px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
 .form-actions {
   display: flex;
   justify-content: space-between;
@@ -278,26 +272,75 @@
   font-weight: bold;
 }
 
-/* Input focus effect */
-.form-grid input:focus,
-.form-grid select:focus {
-  border: solid 1px gray;
+/* Form input styling for consistency - UPDATED */
+.form-grid input:not([type="checkbox"]),
+.form-grid select,
+.form-input {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box; /* This ensures padding doesn't increase width */
+}
+
+.form-grid input:focus:not([type="checkbox"]),
+.form-grid select:focus,
+.form-input:focus {
+  border: 1px solid #3f51b5;
   outline: none;
+  box-shadow: 0 0 5px rgba(63, 81, 181, 0.3);
 }
 
-/* Error styling */
-.error {
-  border: 2px solid red;
-  background-color: #ffe5e5;
+/* Password input container - FIXED */
+.password-container {
+  position: relative;
+  margin-bottom: 12px;
+  width: 100%;
 }
 
-.error-message {
-  color: red;
-  font-size: 14px;
-  margin-bottom: 10px;
+.password-container input {
+  width: 100%;
+  padding: 10px 40px 10px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
 }
 
-/* Error border styling */
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  height: 24px;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:hover {
+  color: #333;
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+
+/* Remove placeholders for edit mode */
+.password-container input::placeholder {
+  color: transparent;
+}
+
+/* For edit mode specifically, show empty placeholder */
+.password-container input:not(.form-input[value=""])::placeholder {
+  color: #999;
+}
+
+/* Make sure error border works with password fields */
 .error-border {
   border: 2px solid red !important;
   animation: pulseError 0.5s ease-in-out;
@@ -307,6 +350,16 @@
   0% { border-color: red; }
   50% { border-color: #ff6666; }
   100% { border-color: red; }
+}
+
+/* Adjust info message spacing */
+.info-message {
+  color: #666;
+  font-size: 12px;
+  margin-top: -8px;
+  margin-bottom: 12px;
+  font-style: italic;
+  padding-left: 5px;
 }
 
 /* Field error message */
@@ -404,7 +457,8 @@
   border-radius: 6px;
   width: 300px;
   transition: border 0.2s, box-shadow 0.2s;
-  height: 25px;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 /* ✅ Highlight border and shadow on hover */
@@ -417,44 +471,6 @@
   border-color: #3f51b5;
   box-shadow: 0 0 5px rgba(63, 81, 181, 0.5);
   outline: none;
-}
-
-/* Password input container */
-.password-container {
-  position: relative;
-  margin-bottom: 12px;
-}
-
-.password-container input {
-  width: 100%;
-  padding: 10px 40px 10px 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #666;
-  padding: 5px;
-}
-
-.password-toggle:hover {
-  color: #333;
-}
-
-/* Info message styling */
-.info-message {
-  color: #666;
-  font-size: 12px;
-  margin-top: -8px;
-  margin-bottom: 12px;
-  font-style: italic;
 }
 
 /* Optional field label */

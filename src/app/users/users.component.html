@@ -108,64 +108,68 @@
 
         <!-- Password fields for Add User -->
         <ng-container *ngIf="!isEditMode">
-          <label>Password *</label>
-          <div class="password-container">
+        <label>Password *</label>
+        <div class="password-container">
             <input [type]="showPassword ? 'text' : 'password'" 
-                   [(ngModel)]="newUser.password" name="password" 
-                   [ngClass]="{'error-border': submitted && !newUser.password}"  required />
+                [(ngModel)]="newUser.password" name="password" 
+                [ngClass]="{'error-border': submitted && !newUser.password}" 
+                class="form-input"
+                required />
             <button type="button" class="password-toggle" (click)="togglePasswordVisibility('password')">
-              {{ showPassword ? '🙈' : '👁️' }}
+            {{ showPassword ? '🙈' : '👁️' }}
             </button>
-          </div>
-          <div *ngIf="submitted && !newUser.password" class="field-error">
+        </div>
+        <div *ngIf="submitted && !newUser.password" class="field-error">
             This field is mandatory
-          </div>
+        </div>
 
-          <label>Confirm Password *</label>
-          <div class="password-container">
+        <label>Confirm Password *</label>
+        <div class="password-container">
             <input [type]="showConfirmPassword ? 'text' : 'password'" 
-                   [(ngModel)]="newUser.confirm_password" name="confirm_password" 
-                   [ngClass]="{'error-border': (submitted && !newUser.confirm_password) || passwordError}"  required />
+                [(ngModel)]="newUser.confirm_password" name="confirm_password" 
+                [ngClass]="{'error-border': (submitted && !newUser.confirm_password) || passwordError}" 
+                class="form-input"
+                required />
             <button type="button" class="password-toggle" (click)="togglePasswordVisibility('confirm_password')">
-              {{ showConfirmPassword ? '🙈' : '👁️' }}
+            {{ showConfirmPassword ? '🙈' : '👁️' }}
             </button>
-          </div>
-          <div *ngIf="submitted && !newUser.confirm_password" class="field-error">
+        </div>
+        <div *ngIf="submitted && !newUser.confirm_password" class="field-error">
             This field is mandatory
-          </div>
-          <div *ngIf="passwordError" class="field-error">
+        </div>
+        <div *ngIf="passwordError" class="field-error">
             Passwords do not match
-          </div>
+        </div>
         </ng-container>
 
         <!-- Password fields for Edit User -->
         <ng-container *ngIf="isEditMode">
-          <label>New Password <span class="optional-label">(Optional)</span></label>
-          <div class="password-container">
+        <label>New Password <span class="optional-label">(Optional)</span></label>
+        <div class="password-container">
             <input [type]="showNewPassword ? 'text' : 'password'" 
-                   [(ngModel)]="newUser.password" name="password" 
-                   placeholder="Enter new password to change" />
+                [(ngModel)]="newUser.password" name="password" 
+                class="form-input" />
             <button type="button" class="password-toggle" (click)="togglePasswordVisibility('new_password')">
-              {{ showNewPassword ? '🙈' : '👁️' }}
+            {{ showNewPassword ? '🙈' : '👁️' }}
             </button>
-          </div>
-          <div class="info-message">
+        </div>
+        <div class="info-message">
             Leave blank if you don't want to change the password
-          </div>
+        </div>
 
-          <label>Confirm New Password <span class="optional-label">(Optional)</span></label>
-          <div class="password-container">
+        <label>Confirm New Password <span class="optional-label">(Optional)</span></label>
+        <div class="password-container">
             <input [type]="showConfirmNewPassword ? 'text' : 'password'" 
-                   [(ngModel)]="newUser.confirm_password" name="confirm_password" 
-                   [ngClass]="{'error-border': passwordError}" 
-                   placeholder="Confirm new password" />
+                [(ngModel)]="newUser.confirm_password" name="confirm_password" 
+                [ngClass]="{'error-border': passwordError}" 
+                class="form-input" />
             <button type="button" class="password-toggle" (click)="togglePasswordVisibility('confirm_new_password')">
-              {{ showConfirmNewPassword ? '🙈' : '👁️' }}
+            {{ showConfirmNewPassword ? '🙈' : '👁️' }}
             </button>
-          </div>
-          <div *ngIf="passwordError" class="field-error">
+        </div>
+        <div *ngIf="passwordError" class="field-error">
             Passwords do not match
-          </div>
+        </div>
         </ng-container>
 
         <div *ngIf="apiErrorMessage" class="api-error-message">

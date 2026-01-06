@@ -443,7 +443,6 @@
                placeholder="Enter page name (e.g., Login, Dashboard, Profile)" />
         <div *ngIf="formErrors.page_name" class="error-message">{{ formErrors.page_name }}</div>
 
-
          <!-- ✅ ADDED: Category Field -->
         <label>Category *</label>
         <select [(ngModel)]="newTestCase.category" name="category" 
@@ -547,19 +546,27 @@
               </div>
             </div>
 
-            <!-- Existing screenshots preview for edit mode -->
+            <!-- ✅ UPDATED: Existing screenshots preview for edit mode -->
             <div class="existing-screenshots" *ngIf="isEditMode && existingScreenshots.length > 0">
-              <h4>Existing Screenshots</h4>
+              <h4>Existing Screenshots ({{ existingScreenshots.length }})</h4>
               <div class="screenshots-grid">
                 <div *ngFor="let screenshot of existingScreenshots; let i = index" class="screenshot-item">
-                  <img [src]="screenshot.screenshot_url" [alt]="screenshot.caption || 'Screenshot ' + (i + 1)" 
-                       class="existing-screenshot">
+                  <img [src]="screenshot.screenshot_url" 
+                       [alt]="screenshot.caption || 'Screenshot ' + (i + 1)" 
+                       class="existing-screenshot"
+                       (click)="viewScreenshot(screenshot.screenshot_url)">
                   <div class="screenshot-actions">
                     <button type="button" class="view-btn" (click)="viewScreenshot(screenshot.screenshot_url)">👁️</button>
                     <button type="button" class="remove-btn" (click)="removeExistingScreenshot(screenshot.id)">✖</button>
                   </div>
                 </div>
               </div>
+              <p class="screenshot-note">Click on any screenshot to view in full size</p>
+            </div>
+
+            <!-- ✅ ADDED: No existing screenshots message -->
+            <div class="no-screenshots" *ngIf="isEditMode && existingScreenshots.length === 0">
+              <p>No existing screenshots found for this test case.</p>
             </div>
           </div>
 

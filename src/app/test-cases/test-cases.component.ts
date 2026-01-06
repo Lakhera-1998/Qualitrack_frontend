@@ -28,10 +28,10 @@ export class TestCasesComponent implements OnInit {
   selectedProjectId: number | null = null;
   selectedProjectName: string = '';
   selectedRequirementId: number | null = null;
-  selectedCategory: string = ''; // ✅ ADDED: Category filter property
+  selectedCategory: string = '';
   requirement: any = null;
   testCases: any[] = [];
-  filteredTestCases: any[] = []; // ✅ ADDED: For category filtering
+  filteredTestCases: any[] = [];
   testDataList: any[] = [];
   users: any[] = [];
   currentUser: any = null;
@@ -57,9 +57,9 @@ export class TestCasesComponent implements OnInit {
 
   // Multiple screenshots properties
   isClipboardActive: boolean = false;
-  uploadedScreenshots: any[] = []; // For new screenshots (files + previews)
-  existingScreenshots: any[] = []; // For existing screenshots from database
-  screenshotsToDelete: number[] = []; // Track screenshots to delete
+  uploadedScreenshots: any[] = [];
+  existingScreenshots: any[] = [];
+  screenshotsToDelete: number[] = [];
 
   // Screenshots viewer properties
   showScreenshotsViewer: boolean = false;
@@ -71,7 +71,7 @@ export class TestCasesComponent implements OnInit {
     test_case_id: '',
     title: '',
     page_name: '',
-    category: '', // ✅ ADDED: Category validation
+    category: '',
     description: '',
     expected_result: '',
     test_actions: '',
@@ -102,7 +102,7 @@ export class TestCasesComponent implements OnInit {
   newTestCase: any = {
     test_case_id: '',
     page_name: '',
-    category: 'Functional', // ✅ ADDED: Default category
+    category: 'Functional',
     title: '',
     description: '',
     pre_conditions: '',
@@ -219,7 +219,7 @@ export class TestCasesComponent implements OnInit {
 
   // ✅ NEW METHOD: Category change handler
   onCategoryChange(): void {
-    this.currentPage = 1; // Reset to first page when category changes
+    this.currentPage = 1;
     this.filterTestCasesByCategory();
     
     // Update URL with filters
@@ -229,10 +229,8 @@ export class TestCasesComponent implements OnInit {
   // ✅ NEW METHOD: Filter test cases by category
   filterTestCasesByCategory(): void {
     if (!this.selectedCategory) {
-      // If no category selected, show all test cases
       this.filteredTestCases = [...this.testCases];
     } else {
-      // Filter test cases by selected category
       this.filteredTestCases = this.testCases.filter(testCase => 
         testCase.category === this.selectedCategory
       );
@@ -242,7 +240,6 @@ export class TestCasesComponent implements OnInit {
   // ✅ UPDATED: Navigate to test case details page with filter preservation
   navigateToTestCaseDetails(testCase: any): void {
     if (testCase && testCase.id) {
-      // Store current filters in query parameters
       const queryParams: any = {};
       
       if (this.selectedClientId) {
@@ -255,7 +252,7 @@ export class TestCasesComponent implements OnInit {
         queryParams.requirementId = this.selectedRequirementId;
       }
       if (this.selectedCategory) {
-        queryParams.category = this.selectedCategory; // ✅ ADDED: Preserve category filter
+        queryParams.category = this.selectedCategory;
       }
       if (this.currentPage > 1) {
         queryParams.page = this.currentPage;
@@ -281,7 +278,6 @@ export class TestCasesComponent implements OnInit {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage = page;
-      // Update URL with current page
       this.updateUrlWithFilters();
     }
   }
@@ -334,7 +330,7 @@ export class TestCasesComponent implements OnInit {
       queryParams.requirementId = this.selectedRequirementId;
     }
     if (this.selectedCategory) {
-      queryParams.category = this.selectedCategory; // ✅ ADDED: Include category in URL
+      queryParams.category = this.selectedCategory;
     }
     if (this.currentPage > 1) {
       queryParams.page = this.currentPage;
@@ -388,16 +384,16 @@ export class TestCasesComponent implements OnInit {
     this.selectedProjectId = null;
     this.selectedProjectName = '';
     this.selectedRequirementId = null;
-    this.selectedCategory = ''; // ✅ ADDED: Reset category filter
+    this.selectedCategory = '';
     this.requirement = null;
     this.testCases = [];
-    this.filteredTestCases = []; // ✅ ADDED: Reset filtered test cases
+    this.filteredTestCases = [];
     this.filteredProjects = [];
     this.filteredRequirements = [];
     this.testDataList = [];
     this.projectDevelopers = [];
     this.currentPage = 1;
-    this.showAllProjectTestCases = false; // ✅ Reset flag
+    this.showAllProjectTestCases = false;
     
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -408,7 +404,6 @@ export class TestCasesComponent implements OnInit {
       this.selectedClientName = '';
     }
     
-    // Update URL with filters
     this.updateUrlWithFilters();
   }
 
@@ -427,14 +422,14 @@ export class TestCasesComponent implements OnInit {
   // ✅ UPDATED: Project change handler
   onProjectChange(): void {
     this.selectedRequirementId = null;
-    this.selectedCategory = ''; // ✅ ADDED: Reset category filter
+    this.selectedCategory = '';
     this.requirement = null;
     this.testCases = [];
-    this.filteredTestCases = []; // ✅ ADDED: Reset filtered test cases
+    this.filteredTestCases = [];
     this.filteredRequirements = [];
     this.projectDevelopers = [];
     this.currentPage = 1;
-    this.showAllProjectTestCases = false; // ✅ Reset flag
+    this.showAllProjectTestCases = false;
     
     if (this.selectedProjectId) {
       this.loadRequirementsByProject(this.selectedProjectId);
@@ -451,25 +446,24 @@ export class TestCasesComponent implements OnInit {
       this.testDataList = [];
     }
     
-    // Update URL with filters
     this.updateUrlWithFilters();
   }
 
   // ✅ UPDATED: Load project developers for the template
-loadProjectDevelopers(): void {
-  if (!this.selectedProjectId) return;
-  
-  this.projectService.getProjectDevelopers(this.selectedProjectId).subscribe({
-    next: (data: any[]) => {
-      this.projectDevelopers = data;
-      console.log('Project developers loaded:', this.projectDevelopers);
-    },
-    error: (error: any) => {
-      console.error('Error fetching project developers:', error);
-      this.displayError('Error loading project developers: ' + (error.error?.message || error.message));
-    }
-  });
-}
+  loadProjectDevelopers(): void {
+    if (!this.selectedProjectId) return;
+    
+    this.projectService.getProjectDevelopers(this.selectedProjectId).subscribe({
+      next: (data: any[]) => {
+        this.projectDevelopers = data;
+        console.log('Project developers loaded:', this.projectDevelopers);
+      },
+      error: (error: any) => {
+        console.error('Error fetching project developers:', error);
+        this.displayError('Error loading project developers: ' + (error.error?.message || error.message));
+      }
+    });
+  }
 
   loadRequirementsByProject(projectId: number): void {
     this.requirementService.getRequirementsByProject(projectId).subscribe({
@@ -485,16 +479,15 @@ loadProjectDevelopers(): void {
 
   // ✅ UPDATED: Requirement change handler
   onRequirementChange(): void {
-    this.selectedCategory = ''; // ✅ ADDED: Reset category filter when requirement changes
+    this.selectedCategory = '';
     this.currentPage = 1;
-    this.showAllProjectTestCases = false; // ✅ Reset flag when requirement is selected
+    this.showAllProjectTestCases = false;
     
     if (this.selectedRequirementId) {
       this.loadRequirementDetails();
       this.loadTestCasesByRequirement();
     } else {
       this.requirement = null;
-      // ✅ NEW: If no requirement selected but project is selected, show all project test cases
       if (this.selectedProjectId) {
         this.loadAllTestCasesForProject();
       } else {
@@ -503,7 +496,6 @@ loadProjectDevelopers(): void {
       }
     }
     
-    // Update URL with filters
     this.updateUrlWithFilters();
   }
 
@@ -522,44 +514,25 @@ loadProjectDevelopers(): void {
   }
 
   // ✅ NEW METHOD: Load all test cases for the selected project
-loadAllTestCasesForProject(): void {
-  if (!this.selectedProjectId) return;
-  
-  this.testCaseService.getTestCasesByProject(this.selectedProjectId).subscribe({
-    next: (data: any[]) => {
-      // Process test cases with multiple screenshots
-      this.testCases = data.map(testCase => ({
-        ...testCase,
-        // Process bug screenshots array
-        bug_screenshots: testCase.bug_screenshots ? testCase.bug_screenshots.map((screenshot: any) => ({
-          ...screenshot,
-          screenshot_url: this.testCaseService.getBugScreenshotUrl(screenshot.screenshot)
-        })) : [],
-        // Ensure created_by and executed_by are properly handled
-        created_by: testCase.created_by || null,
-        executed_by: testCase.executed_by || null,
-        test_data: testCase.test_data || null,
-        // Ensure page_name and category are properly handled
-        page_name: testCase.page_name || '',
-        category: testCase.category || 'Functional' // ✅ ADDED: Default category if not provided
-      }));
-      
-      console.log('Loaded all project test cases:', this.testCases);
-      this.showAllProjectTestCases = true; // ✅ Set flag to true
-      
-      // ✅ ADDED: Apply category filtering after loading
-      this.filterTestCasesByCategory();
-    },
-    error: (error: any) => {
-      console.error('Error fetching project test cases:', error);
-      if (error.status === 401 || error.status === 403) {
-        this.displayError('Authentication failed. Please log in again.');
-      } else {
-        this.displayError('Error loading test cases: ' + (error.error?.message || error.message));
+  loadAllTestCasesForProject(): void {
+    if (!this.selectedProjectId) return;
+    
+    this.testCaseService.getTestCasesByProject(this.selectedProjectId).subscribe({
+      next: (data: any[]) => {
+        this.processTestCases(data);
+        this.showAllProjectTestCases = true;
+        this.filterTestCasesByCategory();
+      },
+      error: (error: any) => {
+        console.error('Error fetching project test cases:', error);
+        if (error.status === 401 || error.status === 403) {
+          this.displayError('Authentication failed. Please log in again.');
+        } else {
+          this.displayError('Error loading test cases: ' + (error.error?.message || error.message));
+        }
       }
-    }
-  });
-}
+    });
+  }
 
   // ✅ UPDATED: Load test cases by specific requirement
   loadTestCasesByRequirement(): void {
@@ -567,27 +540,8 @@ loadAllTestCasesForProject(): void {
     
     this.testCaseService.getTestCasesByRequirement(this.selectedRequirementId).subscribe({
       next: (data: any[]) => {
-        // Process test cases with multiple screenshots
-        this.testCases = data.map(testCase => ({
-          ...testCase,
-          // Process bug screenshots array
-          bug_screenshots: testCase.bug_screenshots ? testCase.bug_screenshots.map((screenshot: any) => ({
-            ...screenshot,
-            screenshot_url: this.testCaseService.getBugScreenshotUrl(screenshot.screenshot)
-          })) : [],
-          // Ensure created_by and executed_by are properly handled
-          created_by: testCase.created_by || null,
-          executed_by: testCase.executed_by || null,
-          test_data: testCase.test_data || null,
-          // Ensure page_name and category are properly handled
-          page_name: testCase.page_name || '',
-          category: testCase.category || 'Functional' // ✅ ADDED: Default category if not provided
-        }));
-        
-        console.log('Loaded requirement-specific test cases:', this.testCases);
-        this.showAllProjectTestCases = false; // ✅ Set flag to false
-        
-        // ✅ ADDED: Apply category filtering after loading
+        this.processTestCases(data);
+        this.showAllProjectTestCases = false;
         this.filterTestCasesByCategory();
       },
       error: (error: any) => {
@@ -595,6 +549,31 @@ loadAllTestCasesForProject(): void {
         this.displayError('Error loading test cases: ' + (error.error?.message || error.message));
       }
     });
+  }
+
+  // ✅ NEW METHOD: Process test cases data (common for both project and requirement)
+  processTestCases(data: any[]): void {
+    this.testCases = data.map(testCase => ({
+      ...testCase,
+      bug_screenshots: this.processBugScreenshots(testCase.bug_screenshots),
+      created_by: testCase.created_by || null,
+      executed_by: testCase.executed_by || null,
+      test_data: testCase.test_data || null,
+      page_name: testCase.page_name || '',
+      category: testCase.category || 'Functional'
+    }));
+    
+    console.log('Processed test cases:', this.testCases);
+  }
+
+  // ✅ NEW METHOD: Process bug screenshots with proper URLs
+  processBugScreenshots(screenshots: any[]): any[] {
+    if (!screenshots || screenshots.length === 0) return [];
+    
+    return screenshots.map((screenshot: any) => ({
+      ...screenshot,
+      screenshot_url: this.testCaseService.getBugScreenshotUrl(screenshot.screenshot)
+    }));
   }
 
   loadTestData(): void {
@@ -618,11 +597,17 @@ loadAllTestCasesForProject(): void {
     });
   }
 
-  // Load existing screenshots for a test case
+  // ✅ **FIXED METHOD: Load existing screenshots for a test case**
   loadExistingScreenshots(testCaseId: number): void {
     this.testCaseService.getBugScreenshots(testCaseId).subscribe({
       next: (data: any[]) => {
-        this.existingScreenshots = data;
+        // Process the screenshots to include proper URLs
+        this.existingScreenshots = data.map(screenshot => ({
+          ...screenshot,
+          screenshot_url: this.testCaseService.getBugScreenshotUrl(screenshot.screenshot),
+          caption: screenshot.caption || `Screenshot ${screenshot.id}`
+        }));
+        console.log('Loaded existing screenshots:', this.existingScreenshots);
       },
       error: (error: any) => {
         console.error('Error fetching existing screenshots:', error);
@@ -654,29 +639,23 @@ loadAllTestCasesForProject(): void {
   getUserDisplay(userId: number): string {
     if (!userId) return '-';
     
-    console.log('Looking up user with ID:', userId);
-    
     if (this.currentUser && userId === this.currentUser.id) {
       const displayName = this.currentUser.displayName || this.currentUser.username || this.currentUser.email;
-      console.log('Found as current user:', displayName);
       return displayName || 'Current User';
     }
     
     const user = this.users.find(u => u.id === userId);
     if (user) {
       const displayName = user.email || user.username;
-      console.log('Found in users array:', displayName);
       return displayName || 'Unknown';
     }
     
     const developer = this.projectDevelopers.find(dev => dev.id === userId);
     if (developer) {
       const displayName = developer.email || developer.name;
-      console.log('Found in project developers:', displayName);
       return displayName || 'Unknown';
     }
     
-    console.log('User not found in any list');
     return 'Unknown';
   }
 
@@ -769,7 +748,6 @@ loadAllTestCasesForProject(): void {
   }
 
   removeExistingScreenshot(screenshotId: number): void {
-    // Add to deletion list and remove from display
     this.screenshotsToDelete.push(screenshotId);
     this.existingScreenshots = this.existingScreenshots.filter(s => s.id !== screenshotId);
   }
@@ -861,7 +839,6 @@ loadAllTestCasesForProject(): void {
       isValid = false;
     }
 
-    // ✅ ADDED: Category validation
     if (!this.newTestCase.category) {
       this.formErrors.category = 'Category is required';
       isValid = false;
@@ -944,7 +921,7 @@ loadAllTestCasesForProject(): void {
       test_case_id: '',
       title: '',
       page_name: '',
-      category: '', // ✅ ADDED: Category error field
+      category: '',
       description: '',
       expected_result: '',
       test_actions: '',
@@ -973,7 +950,7 @@ loadAllTestCasesForProject(): void {
     };
   }
 
-  // ✅ UPDATED: Test Case CRUD to include category
+  // ✅ **FIXED METHOD: Open edit test case popup with screenshots**
   openAddTestCasePopup(): void {
     if (!this.selectedProjectId) return;
     
@@ -987,7 +964,7 @@ loadAllTestCasesForProject(): void {
     this.newTestCase = {
       test_case_id: '',
       page_name: '',
-      category: 'Functional', // ✅ ADDED: Default category
+      category: 'Functional',
       title: '',
       description: '',
       pre_conditions: '',
@@ -1011,6 +988,7 @@ loadAllTestCasesForProject(): void {
     this.showTestCasePopup = true;
   }
 
+  // ✅ **FIXED METHOD: Edit test case with proper screenshot loading**
   editTestCase(testCase: any): void {
     this.isEditMode = true;
     this.editingTestCaseId = testCase.id;
@@ -1019,20 +997,28 @@ loadAllTestCasesForProject(): void {
     this.screenshotsToDelete = [];
     this.isClipboardActive = false;
     
+    // Format executed_on date
     let formattedExecutedOn = null;
     if (testCase.executed_on) {
       const executedDate = new Date(testCase.executed_on);
       formattedExecutedOn = executedDate.toISOString().slice(0, 16);
     }
     
+    // Set test case data
     this.newTestCase = { 
       ...testCase,
       executed_on: formattedExecutedOn,
       page_name: testCase.page_name || '',
-      category: testCase.category || 'Functional' // ✅ ADDED: Ensure category is set
+      category: testCase.category || 'Functional',
+      // Ensure bug_raised is set correctly based on bug_status
+      bug_raised: !!testCase.bug_status,
+      // Handle test_data assignment
+      test_data: testCase.test_data || null,
+      // Handle assigned_to
+      assigned_to: testCase.assigned_to || null
     };
     
-    // Load existing screenshots for this test case
+    // ✅ **CRITICAL FIX: Load existing screenshots using separate API call**
     this.loadExistingScreenshots(testCase.id);
     
     this.clearFormErrors();
@@ -1055,10 +1041,7 @@ loadAllTestCasesForProject(): void {
       return;
     }
 
-    // ✅ Store current page before saving to maintain position
     const currentPageBeforeSave = this.currentPage;
-
-    // Prepare the data for saving
     const testCaseData = { ...this.newTestCase };
 
     // Handle execution data
@@ -1091,7 +1074,6 @@ loadAllTestCasesForProject(): void {
     testCaseData.project = this.selectedProjectId;
     testCaseData.created_by = this.currentUser?.id;
     
-    // Set requirement only if selected, otherwise keep it null
     if (this.selectedRequirementId) {
       testCaseData.requirement = this.selectedRequirementId;
     }
@@ -1101,7 +1083,7 @@ loadAllTestCasesForProject(): void {
       testCaseData.page_name = '';
     }
     if (!testCaseData.category) {
-      testCaseData.category = 'Functional'; // ✅ ADDED: Default category
+      testCaseData.category = 'Functional';
     }
 
     // Convert IDs to numbers
@@ -1114,13 +1096,11 @@ loadAllTestCasesForProject(): void {
     }
 
     console.log('Saving test case with data:', testCaseData);
-    console.log('Page name being sent:', testCaseData.page_name);
-    console.log('Category being sent:', testCaseData.category); // ✅ ADDED: Log category
     console.log('Uploaded screenshots:', this.uploadedScreenshots.length);
     console.log('Screenshots to delete:', this.screenshotsToDelete);
+    console.log('Existing screenshots:', this.existingScreenshots.length);
 
     if (this.isEditMode && this.editingTestCaseId) {
-      // For updates, handle multiple screenshots
       if (this.uploadedScreenshots.length > 0 || this.screenshotsToDelete.length > 0) {
         // Use FormData for file uploads
         const formData = new FormData();
@@ -1128,7 +1108,6 @@ loadAllTestCasesForProject(): void {
         // Append all test case fields to FormData
         Object.keys(testCaseData).forEach(key => {
           if (testCaseData[key] !== null && testCaseData[key] !== undefined) {
-            // Convert to string for FormData
             const value = typeof testCaseData[key] === 'object' ? JSON.stringify(testCaseData[key]) : testCaseData[key];
             formData.append(key, value.toString());
           }
@@ -1146,7 +1125,7 @@ loadAllTestCasesForProject(): void {
 
         this.testCaseService.updateTestCaseWithMultipleScreenshots(this.editingTestCaseId, formData).subscribe({
           next: () => {
-            this.loadAllTestCasesForProject(); // ✅ UPDATED: Reload based on current view
+            this.loadAllTestCasesForProject();
             this.closeTestCasePopup();
             this.currentPage = currentPageBeforeSave;
             this.showSuccess('Test case updated successfully!');
@@ -1160,7 +1139,7 @@ loadAllTestCasesForProject(): void {
         // No screenshots to upload or delete - send regular JSON
         this.testCaseService.updateTestCase(this.editingTestCaseId, testCaseData).subscribe({
           next: () => {
-            this.loadAllTestCasesForProject(); // ✅ UPDATED: Reload based on current view
+            this.loadAllTestCasesForProject();
             this.closeTestCasePopup();
             this.currentPage = currentPageBeforeSave;
             this.showSuccess('Test case updated successfully!');
@@ -1174,13 +1153,10 @@ loadAllTestCasesForProject(): void {
     } else {
       // For new test cases with screenshots
       if (this.uploadedScreenshots.length > 0) {
-        // Use FormData for file uploads
         const formData = new FormData();
         
-        // Append all test case fields to FormData
         Object.keys(testCaseData).forEach(key => {
           if (testCaseData[key] !== null && testCaseData[key] !== undefined) {
-            // Convert to string for FormData
             const value = typeof testCaseData[key] === 'object' ? JSON.stringify(testCaseData[key]) : testCaseData[key];
             formData.append(key, value.toString());
           }
@@ -1193,7 +1169,7 @@ loadAllTestCasesForProject(): void {
 
         this.testCaseService.addTestCaseWithMultipleScreenshots(formData).subscribe({
           next: () => {
-            this.loadAllTestCasesForProject(); // ✅ UPDATED: Reload based on current view
+            this.loadAllTestCasesForProject();
             this.closeTestCasePopup();
             this.showSuccess('Test case added successfully!');
           },
@@ -1206,7 +1182,7 @@ loadAllTestCasesForProject(): void {
         // No screenshots - send regular JSON
         this.testCaseService.addTestCase(testCaseData).subscribe({
           next: () => {
-            this.loadAllTestCasesForProject(); // ✅ UPDATED: Reload based on current view
+            this.loadAllTestCasesForProject();
             this.closeTestCasePopup();
             this.showSuccess('Test case added successfully!');
           },
@@ -1344,23 +1320,19 @@ loadAllTestCasesForProject(): void {
       comments: this.executionData.comments,
       bug_raised: this.executionData.bug_raised,
       bug_status: this.executionData.bug_raised ? this.executionData.bug_status : null,
-      // Ensure page_name and category are preserved during execution
       page_name: this.executingTestCase.page_name || '',
-      category: this.executingTestCase.category || 'Functional' // ✅ ADDED: Preserve category
+      category: this.executingTestCase.category || 'Functional'
     };
 
     console.log('Saving execution with user:', this.currentUser);
     console.log('Execution data:', updatedTestCase);
 
-    // Store current page before saving execution
     const currentPageBeforeSave = this.currentPage;
 
-    // For execution, we don't need to handle screenshots, so use regular update
     this.testCaseService.updateTestCase(this.executingTestCase.id, updatedTestCase).subscribe({
       next: () => {
-        this.loadAllTestCasesForProject(); // ✅ UPDATED: Reload based on current view
+        this.loadAllTestCasesForProject();
         this.closeExecutePopup();
-        // Restore the current page after execution
         this.currentPage = currentPageBeforeSave;
         this.showSuccess('Test execution saved successfully!');
       },
@@ -1373,32 +1345,30 @@ loadAllTestCasesForProject(): void {
 
   // ✅ UPDATED: Template Download and Import Functionality
   downloadTemplate(): void {
-  if (!this.selectedProjectId) {
-    this.displayError('Please select a project first');
-    return;
-  }
-
-  // Pass project ID as required by the updated backend
-  this.testCaseService.downloadTemplate(this.selectedProjectId).subscribe({
-    next: (blob: Blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      
-      // Get filename from content-disposition header or use default
-      a.download = `testcase_template_${this.selectedProjectName || 'project'}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      this.showSuccess('Template downloaded successfully! Only project developers are available in user dropdowns.');
-    },
-    error: (error: any) => {
-      console.error('Error downloading template:', error);
-      this.displayError('Error downloading template: ' + (error.error?.message || error.message));
+    if (!this.selectedProjectId) {
+      this.displayError('Please select a project first');
+      return;
     }
-  });
-}
+
+    this.testCaseService.downloadTemplate(this.selectedProjectId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        a.download = `testcase_template_${this.selectedProjectName || 'project'}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.showSuccess('Template downloaded successfully! Only project developers are available in user dropdowns.');
+      },
+      error: (error: any) => {
+        console.error('Error downloading template:', error);
+        this.displayError('Error downloading template: ' + (error.error?.message || error.message));
+      }
+    });
+  }
 
   openImportPopup(): void {
     if (!this.selectedProjectId) {
@@ -1446,7 +1416,6 @@ loadAllTestCasesForProject(): void {
   handleFileSelection(file: File): void {
     if (!file) return;
 
-    // Validate file type
     const allowedExtensions = ['.xlsx', '.xls'];
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
     
@@ -1455,7 +1424,6 @@ loadAllTestCasesForProject(): void {
       return;
     }
 
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       this.displayError('File size too large. Maximum 10MB allowed.');
       return;
@@ -1487,7 +1455,6 @@ loadAllTestCasesForProject(): void {
 
     this.isImporting = true;
     
-    // ✅ UPDATED: Pass projectId instead of requirementId
     this.testCaseService.bulkImportTestCases(this.selectedProjectId, this.importFile).subscribe({
       next: (results: any) => {
         this.importResults = results;
@@ -1495,15 +1462,12 @@ loadAllTestCasesForProject(): void {
         
         if (results.success) {
           if (results.imported > 0) {
-            // Success with imported records
             this.proceedWithImport();
           } else {
-            // No records imported but API call successful
             this.displayError(results.message || 'No test cases were imported.');
             this.closeImportPopup();
           }
         } else {
-          // API returned success: false
           this.displayError(results.message || 'Import failed. Please check the file and try again.');
         }
       },
@@ -1512,7 +1476,6 @@ loadAllTestCasesForProject(): void {
         console.error('Error during import:', error);
         
         if (error.status === 207) {
-          // Multi-status response with errors
           this.importResults = error.error;
           this.showImportConfirmation = true;
         } else {
@@ -1530,11 +1493,10 @@ loadAllTestCasesForProject(): void {
     if (this.importResults) {
       if (this.importResults.imported > 0) {
         this.showSuccess(`Successfully imported ${this.importResults.imported} test cases!`);
-        this.loadAllTestCasesForProject(); // Reload test cases
-        this.loadTestData(); // Refresh test data list as new test data might be created
+        this.loadAllTestCasesForProject();
+        this.loadTestData();
       }
       
-      // Show any warnings or skipped records
       if (this.importResults.skipped && this.importResults.skipped.length > 0) {
         const skippedCount = this.importResults.skipped.length;
         console.warn(`${skippedCount} records were skipped:`, this.importResults.skipped);
