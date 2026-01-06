@@ -1,0 +1,191 @@
+<div class="container">
+  <h2>Users</h2>
+
+  <!-- ✅ Users Table -->
+  <div class="card">
+
+    <!-- ✅ Add User Button -->
+    <button class="add-btn" (click)="openAddUserPopup()">+ Add User</button>
+
+    <!-- ✅ Search Field -->
+    <div class="search-container">
+      <input type="text" [(ngModel)]="searchText" placeholder="Search by Email or Username" />
+    </div>
+
+    <!-- ✅ Table Container without vertical scroll -->
+    <div class="table-scroll-container">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>S. No.</th>
+            <th>Email</th>
+            <th>Username</th>
+            <th>Phone</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of paginatedUsers(); let i = index">
+            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.phone }}</td>
+            <td class="actions">
+              <button class="edit-btn" (click)="editUser(user)">✏️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ✅ Pagination -->
+    <div class="pagination-container" *ngIf="filteredUsers().length > 0">
+      <div class="pagination-summary">
+        Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ filteredUsers().length }} records
+      </div>
+      <div class="pagination-controls">
+        <button 
+          class="pagination-btn" 
+          [disabled]="currentPage === 1" 
+          (click)="goToPage(currentPage - 1)">
+          Previous
+        </button>
+        
+        <button 
+          *ngFor="let page of getVisiblePages()" 
+          class="pagination-btn" 
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)">
+          {{ page }}
+        </button>
+        
+        <button 
+          class="pagination-btn" 
+          [disabled]="currentPage === totalPages()" 
+          (click)="goToPage(currentPage + 1)">
+          Next
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ No records message -->
+    <div *ngIf="filteredUsers().length === 0" class="no-records">
+      No users found
+    </div>
+  </div>
+
+  <!-- ✅ Add/Edit User Popup -->
+  <div class="popup" *ngIf="showAddUserPopup">
+    <div class="popup-content">
+      <div class="popup-header">
+        <h3>{{ isEditMode ? 'Edit User' : 'Add User' }}</h3>
+        <button class="close-btn" (click)="closeAddUserPopup()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveUser()" class="form-grid" #userForm="ngForm">
+
+        <label>Username *</label>
+        <input type="text" [(ngModel)]="newUser.username" name="username" 
+              [ngClass]="{'error-border': submitted && !newUser.username}" required />
+        <div *ngIf="submitted && !newUser.username" class="field-error">
+          This field is mandatory
+        </div>
+
+        <label>Email *</label>
+        <input type="email" [(ngModel)]="newUser.email" name="email" 
+              [ngClass]="{'error-border': (submitted && !newUser.email) || apiError}" 
+              [disabled]="isEditMode" required />
+        <div *ngIf="submitted && !newUser.email" class="field-error">
+          This field is mandatory
+        </div>
+
+        <label>Phone *</label>
+        <input type="text" [(ngModel)]="newUser.phone" name="phone" 
+              [ngClass]="{'error-border': submitted && !newUser.phone}" required />
+        <div *ngIf="submitted && !newUser.phone" class="field-error">
+          This field is mandatory
+        </div>
+
+        <!-- Password fields for Add User -->
+        <ng-container *ngIf="!isEditMode">
+          <label>Password *</label>
+          <div class="password-container">
+            <input [type]="showPassword ? 'text' : 'password'" 
+                   [(ngModel)]="newUser.password" name="password" 
+                   [ngClass]="{'error-border': submitted && !newUser.password}"  required />
+            <button type="button" class="password-toggle" (click)="togglePasswordVisibility('password')">
+              {{ showPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          <div *ngIf="submitted && !newUser.password" class="field-error">
+            This field is mandatory
+          </div>
+
+          <label>Confirm Password *</label>
+          <div class="password-container">
+            <input [type]="showConfirmPassword ? 'text' : 'password'" 
+                   [(ngModel)]="newUser.confirm_password" name="confirm_password" 
+                   [ngClass]="{'error-border': (submitted && !newUser.confirm_password) || passwordError}"  required />
+            <button type="button" class="password-toggle" (click)="togglePasswordVisibility('confirm_password')">
+              {{ showConfirmPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          <div *ngIf="submitted && !newUser.confirm_password" class="field-error">
+            This field is mandatory
+          </div>
+          <div *ngIf="passwordError" class="field-error">
+            Passwords do not match
+          </div>
+        </ng-container>
+
+        <!-- Password fields for Edit User -->
+        <ng-container *ngIf="isEditMode">
+          <label>New Password <span class="optional-label">(Optional)</span></label>
+          <div class="password-container">
+            <input [type]="showNewPassword ? 'text' : 'password'" 
+                   [(ngModel)]="newUser.password" name="password" 
+                   placeholder="Enter new password to change" />
+            <button type="button" class="password-toggle" (click)="togglePasswordVisibility('new_password')">
+              {{ showNewPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          <div class="info-message">
+            Leave blank if you don't want to change the password
+          </div>
+
+          <label>Confirm New Password <span class="optional-label">(Optional)</span></label>
+          <div class="password-container">
+            <input [type]="showConfirmNewPassword ? 'text' : 'password'" 
+                   [(ngModel)]="newUser.confirm_password" name="confirm_password" 
+                   [ngClass]="{'error-border': passwordError}" 
+                   placeholder="Confirm new password" />
+            <button type="button" class="password-toggle" (click)="togglePasswordVisibility('confirm_new_password')">
+              {{ showConfirmNewPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          <div *ngIf="passwordError" class="field-error">
+            Passwords do not match
+          </div>
+        </ng-container>
+
+        <div *ngIf="apiErrorMessage" class="api-error-message">
+          {{ apiErrorMessage }}
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="save-btn">
+            {{ isEditMode ? 'Update' : 'Save' }}
+          </button>
+          <button type="button" class="cancel-btn" (click)="closeAddUserPopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ Success Message Overlay -->
+<div *ngIf="successMessage" class="success-overlay">
+  <div class="success-box">
+    {{ successMessage }}
+  </div>
+</div>

@@ -13,11 +13,13 @@ import { TestingTypesComponent } from './testing-types/testing-types.component';
 import { ReportComponent } from './report/report.component';
 import { authGuard } from './guards/auth.guard'; // ✅ Changed from AuthGuard to authGuard
 import { loginGuard } from './guards/login.guard';
+import { UsersComponent } from './users/users.component'; // ✅ Add this import
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [loginGuard] },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'user-dashboard', component: UserDashboardComponent, canActivate: [authGuard] },
+  { path: 'users', component: UsersComponent, canActivate: [authGuard] },
   { path: 'clients', component: ClientsComponent, canActivate: [authGuard] },
   { path: 'projects', component: ProjectsComponent, canActivate: [authGuard] },
 

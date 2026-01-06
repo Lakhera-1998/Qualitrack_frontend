@@ -6,7 +6,7 @@
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
   position: fixed;
   top: 80px; /* Below navbar */
-  left: 20px;
+  left: 0px;
   transition: transform 0.3s ease;
   z-index: 999; /* Ensure sidebar is above content */
   overflow-y: auto;

@@ -1,10 +1,12 @@
 <div class="sidebar">
+
   <!-- ✅ Home Section (Visible for ALL logged-in users) -->
   <div class="menu-section">
     <h3>Home</h3>
     <ul>
-      <!-- Show Dashboard for all users: superadmin, staff, and active -->
-      <li [class.active]="currentRoute === '/dashboard' || currentRoute === '/user-dashboard'">
+      <!-- Dashboard route based on role -->
+      <li
+        [class.active]="currentRoute === '/dashboard' || currentRoute === '/user-dashboard'">
         <a [routerLink]="getDashboardRoute()">Dashboard</a>
       </li>
     </ul>
@@ -14,52 +16,74 @@
   <div class="menu-section">
     <h3>PAGES</h3>
     <ul>
-      <!-- ✅ Superadmin & Staff see ALL pages -->
+
+      <!-- ✅ Super Admin & Staff menus -->
       <ng-container *ngIf="showAllMenus()">
+
+        <!-- 🔹 Users → ONLY for Super Admin -->
+        <ng-container *ngIf="isSuperAdmin">
+          <li [class.active]="currentRoute === '/users'">
+            <a routerLink="/users">Users</a>
+          </li>
+        </ng-container>
+
         <li [class.active]="currentRoute === '/clients'">
           <a routerLink="/clients">Clients</a>
         </li>
+
         <li [class.active]="currentRoute === '/projects'">
           <a routerLink="/projects">Projects</a>
         </li>
+
         <li [class.active]="currentRoute === '/requirements'">
           <a routerLink="/requirements">Requirements</a>
         </li>
+
         <li [class.active]="currentRoute === '/test-plans'">
           <a routerLink="/test-plans">Test Plans</a>
         </li>
+
         <li [class.active]="currentRoute === '/test-cases'">
           <a routerLink="/test-cases">Test Cases</a>
         </li>
+
         <li [class.active]="currentRoute === '/technologies'">
           <a routerLink="/technologies">Technologies</a>
         </li>
+
         <li [class.active]="currentRoute === '/testing-types'">
           <a routerLink="/testing-types">Testing Types</a>
         </li>
+
         <li [class.active]="currentRoute === '/reports'">
           <a routerLink="/reports">Report</a>
         </li>
       </ng-container>
 
-      <!-- ✅ Normal active users (limited pages) -->
+      <!-- ✅ Normal Active Users (LIMITED menus only) -->
       <ng-container *ngIf="showLimitedMenus()">
         <li [class.active]="currentRoute === '/projects'">
           <a routerLink="/projects">Projects</a>
         </li>
+
         <li [class.active]="currentRoute === '/requirements'">
           <a routerLink="/requirements">Requirements</a>
         </li>
+
         <li [class.active]="currentRoute === '/test-plans'">
           <a routerLink="/test-plans">Test Plans</a>
         </li>
+
         <li [class.active]="currentRoute === '/test-cases'">
           <a routerLink="/test-cases">Test Cases</a>
         </li>
+
         <li [class.active]="currentRoute === '/reports'">
           <a routerLink="/reports">Report</a>
         </li>
       </ng-container>
+
     </ul>
   </div>
+
 </div>
