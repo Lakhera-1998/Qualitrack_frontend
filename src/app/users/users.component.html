@@ -100,76 +100,122 @@
         </div>
 
         <label>Phone *</label>
-        <input type="text" [(ngModel)]="newUser.phone" name="phone" 
-              [ngClass]="{'error-border': submitted && !newUser.phone}" required />
+        <input type="tel" [(ngModel)]="newUser.phone" name="phone" 
+              (input)="onPhoneInput($event)"
+              [ngClass]="{'error-border': (submitted && !newUser.phone) || phoneValidationError}" 
+              class="form-input"
+              maxlength="10"
+              required />
         <div *ngIf="submitted && !newUser.phone" class="field-error">
           This field is mandatory
+        </div>
+        <div *ngIf="phoneValidationError" class="field-error">
+          {{ phoneValidationError }}
         </div>
 
         <!-- Password fields for Add User -->
         <ng-container *ngIf="!isEditMode">
-        <label>Password *</label>
-        <div class="password-container">
+          <label>Password *</label>
+          <div class="password-container">
             <input [type]="showPassword ? 'text' : 'password'" 
-                [(ngModel)]="newUser.password" name="password" 
-                [ngClass]="{'error-border': submitted && !newUser.password}" 
-                class="form-input"
-                required />
+                  [(ngModel)]="newUser.password" name="password" 
+                  (input)="validatePassword(newUser.password)"
+                  [ngClass]="{'error-border': submitted && !newUser.password}" 
+                  class="form-input"
+                  required />
             <button type="button" class="password-toggle" (click)="togglePasswordVisibility('password')">
-            {{ showPassword ? '🙈' : '👁️' }}
+              <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
             </button>
-        </div>
-        <div *ngIf="submitted && !newUser.password" class="field-error">
+          </div>
+          <div *ngIf="submitted && !newUser.password" class="field-error">
             This field is mandatory
-        </div>
+          </div>
+          <div *ngIf="passwordValidationError" class="field-error">
+            {{ passwordValidationError }}
+          </div>
 
-        <label>Confirm Password *</label>
-        <div class="password-container">
+          <label>Confirm Password *</label>
+          <div class="password-container">
             <input [type]="showConfirmPassword ? 'text' : 'password'" 
-                [(ngModel)]="newUser.confirm_password" name="confirm_password" 
-                [ngClass]="{'error-border': (submitted && !newUser.confirm_password) || passwordError}" 
-                class="form-input"
-                required />
+                  [(ngModel)]="newUser.confirm_password" name="confirm_password" 
+                  [ngClass]="{'error-border': (submitted && !newUser.confirm_password) || passwordError}" 
+                  class="form-input"
+                  required />
             <button type="button" class="password-toggle" (click)="togglePasswordVisibility('confirm_password')">
-            {{ showConfirmPassword ? '🙈' : '👁️' }}
+              <svg *ngIf="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg *ngIf="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
             </button>
-        </div>
-        <div *ngIf="submitted && !newUser.confirm_password" class="field-error">
+          </div>
+          <div *ngIf="submitted && !newUser.confirm_password" class="field-error">
             This field is mandatory
-        </div>
-        <div *ngIf="passwordError" class="field-error">
+          </div>
+          <div *ngIf="passwordError" class="field-error">
             Passwords do not match
-        </div>
+          </div>
         </ng-container>
 
         <!-- Password fields for Edit User -->
         <ng-container *ngIf="isEditMode">
-        <label>New Password <span class="optional-label">(Optional)</span></label>
-        <div class="password-container">
+          <label>New Password <span class="optional-label">(Optional)</span></label>
+          <div class="password-container">
             <input [type]="showNewPassword ? 'text' : 'password'" 
-                [(ngModel)]="newUser.password" name="password" 
-                class="form-input" />
+                  [(ngModel)]="newUser.password" name="password" 
+                  (input)="validatePassword(newUser.password)"
+                  class="form-input" />
             <button type="button" class="password-toggle" (click)="togglePasswordVisibility('new_password')">
-            {{ showNewPassword ? '🙈' : '👁️' }}
+              <svg *ngIf="!showNewPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg *ngIf="showNewPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
             </button>
-        </div>
-        <div class="info-message">
+          </div>
+          <div *ngIf="passwordValidationError" class="field-error">
+            {{ passwordValidationError }}
+          </div>
+          <div class="info-message">
+            Password must contain at least 8 characters with uppercase, lowercase, number, and special character
+          </div>
+          <div class="info-message">
             Leave blank if you don't want to change the password
-        </div>
+          </div>
 
-        <label>Confirm New Password <span class="optional-label">(Optional)</span></label>
-        <div class="password-container">
+          <label>Confirm New Password <span class="optional-label">(Optional)</span></label>
+          <div class="password-container">
             <input [type]="showConfirmNewPassword ? 'text' : 'password'" 
-                [(ngModel)]="newUser.confirm_password" name="confirm_password" 
-                [ngClass]="{'error-border': passwordError}" 
-                class="form-input" />
+                  [(ngModel)]="newUser.confirm_password" name="confirm_password" 
+                  [ngClass]="{'error-border': passwordError}" 
+                  class="form-input" />
             <button type="button" class="password-toggle" (click)="togglePasswordVisibility('confirm_new_password')">
-            {{ showConfirmNewPassword ? '🙈' : '👁️' }}
+              <svg *ngIf="!showConfirmNewPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg *ngIf="showConfirmNewPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
             </button>
-        </div>
-        <div *ngIf="passwordError" class="field-error">
+          </div>
+          <div *ngIf="passwordError" class="field-error">
             Passwords do not match
-        </div>
+          </div>
         </ng-container>
 
         <div *ngIf="apiErrorMessage" class="api-error-message">
