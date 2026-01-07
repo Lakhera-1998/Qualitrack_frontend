@@ -1,56 +1,67 @@
-<div class="container">
-  <h2>Clients</h2>
+  <!-- Page Header - Navbar ke niche directly -->
+  <div class="page-header">
+    <h2 class="page-title">Clients</h2>
+  </div>
 
-  <!-- ✅ Clients Table -->
+  <!-- ✅ Clients Table Card -->
   <div class="card">
-
-    <!-- ✅ Add Client Button -->
-    <button class="add-btn" (click)="openAddClientPopup()">+ Add Client</button>
-
-    <!-- ✅ Search Field -->
-    <div class="search-container">
-      <input type="text" [(ngModel)]="searchText" placeholder="Search by Client Name or Contact Person" />
+    
+    <!-- ✅ Header with Add Button and Search -->
+    <div class="card-header">
+      <button class="add-btn" (click)="openAddClientPopup()">+ Add Client</button>
+      
+      <!-- ✅ Search Field -->
+      <div class="search-container">
+        <input type="text" [(ngModel)]="searchText" 
+               placeholder="Search by Client Name or Contact Person" />
+      </div>
     </div>
 
-    <!-- ✅ Table Container without vertical scroll -->
-    <div class="table-scroll-container">
-      <table class="styled-table">
-        <thead>
-          <tr>
-            <th>S. No.</th>
-            <th>Client Name</th>
-            <th>Type</th>
-            <th>Contact Person</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Website</th>
-            <th>Created</th>
-            <th>Updated</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let client of paginatedClients(); let i = index">
-            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
-            <td>{{ client.client_name }}</td>
-            <td>{{ client.client_type }}</td>
-            <td>{{ client.contact_person_name }}</td>
-            <td>{{ client.contact_person_email }}</td>
-            <td>{{ client.contact_person_phone }}</td>
-            <td>
-              <a *ngIf="client.website_url" [href]="client.website_url" target="_blank">{{ client.website_url }}</a>
-            </td>
-            <td>{{ client.created_at | date : 'short' }}</td>
-            <td>{{ client.updated_at | date : 'short' }}</td>
-            <td class="actions">
-              <button class="edit-btn" (click)="editClient(client)">✏️</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- ✅ Table Container with proper height -->
+    <div class="table-container-wrapper">
+      <div class="table-scroll-container">
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>S. No.</th>
+              <th>Client Name</th>
+              <th>Type</th>
+              <th>Contact Person</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Website</th>
+              <th>Created</th>
+              <th>Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let client of paginatedClients(); let i = index">
+              <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+              <td>{{ client.client_name }}</td>
+              <td>{{ client.client_type }}</td>
+              <td>{{ client.contact_person_name }}</td>
+              <td>{{ client.contact_person_email }}</td>
+              <td>{{ client.contact_person_phone }}</td>
+              <td>
+                <a *ngIf="client.website_url" [href]="client.website_url" target="_blank" 
+                   [title]="client.website_url">
+                  {{ client.website_url }}
+                </a>
+                <span *ngIf="!client.website_url">-</span>
+              </td>
+              <td>{{ client.created_at | date : 'short' }}</td>
+              <td>{{ client.updated_at | date : 'short' }}</td>
+              <td class="actions">
+                <button class="edit-btn" (click)="editClient(client)" title="Edit Client">✏️ Edit</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- ✅ Pagination -->
+    <!-- ✅ Pagination - Ab yeh full visible hoga -->
     <div class="pagination-container" *ngIf="filteredClients().length > 0">
       <div class="pagination-summary">
         Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ filteredClients().length }} records
@@ -95,10 +106,11 @@
       </div>
 
       <form (ngSubmit)="saveClient()" class="form-grid" #clientForm="ngForm">
-
+        <!-- Form fields remain the same as before -->
         <label>Client Name *</label>
         <input type="text" [(ngModel)]="newClient.client_name" name="client_name" 
-              [ngClass]="{'error-border': submitted && !newClient.client_name}" required />
+              [ngClass]="{'error-border': submitted && !newClient.client_name}" 
+              placeholder="Enter client name" required />
         <div *ngIf="submitted && !newClient.client_name" class="field-error">
           This field is mandatory
         </div>
@@ -115,31 +127,35 @@
 
         <label>Contact Person Name *</label>
         <input type="text" [(ngModel)]="newClient.contact_person_name" name="contact_person_name" 
-              [ngClass]="{'error-border': submitted && !newClient.contact_person_name}" required />
+              [ngClass]="{'error-border': submitted && !newClient.contact_person_name}" 
+              placeholder="Enter contact person name" required />
         <div *ngIf="submitted && !newClient.contact_person_name" class="field-error">
           This field is mandatory
         </div>
 
         <label>Contact Person Email *</label>
         <input type="email" [(ngModel)]="newClient.contact_person_email" name="contact_person_email" 
-              [ngClass]="{'error-border': (submitted && !newClient.contact_person_email) || apiError}" required />
+              [ngClass]="{'error-border': (submitted && !newClient.contact_person_email) || apiError}" 
+              placeholder="Enter email address" required />
         <div *ngIf="submitted && !newClient.contact_person_email" class="field-error">
           This field is mandatory
         </div>
 
         <label>Contact Person Phone *</label>
         <input type="text" [(ngModel)]="newClient.contact_person_phone" name="contact_person_phone" 
-              [ngClass]="{'error-border': submitted && !newClient.contact_person_phone}" required />
+              [ngClass]="{'error-border': submitted && !newClient.contact_person_phone}" 
+              placeholder="Enter phone number" required />
         <div *ngIf="submitted && !newClient.contact_person_phone" class="field-error">
           This field is mandatory
         </div>
 
         <label>Company Logo</label>
-        <input type="file" (change)="onFileSelected($event)" />
+        <input type="file" (change)="onFileSelected($event)" accept="image/*" />
 
         <label>Website URL</label>
         <input type="text" [(ngModel)]="newClient.website_url" name="website_url" 
-              [ngClass]="{'error-border': apiError}" />
+              [ngClass]="{'error-border': apiError}"
+              placeholder="Enter website URL" />
 
         <div *ngIf="apiErrorMessage" class="api-error-message">
           {{ apiErrorMessage }}
@@ -147,14 +163,14 @@
 
         <div class="form-actions">
           <button type="submit" class="save-btn">
-            {{ isEditMode ? 'Update' : 'Save' }}
+            {{ isEditMode ? 'Update Client' : 'Save Client' }}
           </button>
           <button type="button" class="cancel-btn" (click)="closeAddClientPopup()">Cancel</button>
         </div>
       </form>
     </div>
   </div>
-</div>
+
 
 <!-- ✅ Success Message Overlay -->
 <div *ngIf="successMessage" class="success-overlay">

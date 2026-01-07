@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { NavbarComponent } from './navbar/navbar.component';
-import { SidebarComponent } from './sidebar/sidebar.component';
 import { AuthService } from './auth.service';
 
 @Component({
@@ -13,8 +12,7 @@ import { AuthService } from './auth.service';
   imports: [
     CommonModule,
     RouterOutlet,
-    NavbarComponent,
-    SidebarComponent
+    NavbarComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']

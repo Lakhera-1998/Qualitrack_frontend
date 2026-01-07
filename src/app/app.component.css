@@ -7,9 +7,8 @@
 .main-content {
   flex: 1;
   margin-top: 60px; /* Below navbar */
-  padding: 20px;
-  transition: margin-left 0.3s ease;
-  margin-left: 0; /* Default when sidebar is hidden */
+  padding: 0; /* Remove padding - let components handle their own padding */
+  width: 100%;
 }
 
 .main-content.with-sidebar {

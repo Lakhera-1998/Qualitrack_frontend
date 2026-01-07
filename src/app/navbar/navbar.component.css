@@ -11,37 +11,287 @@
   left: 0;
   right: 0;
   z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.menu-btn {
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  display: none;
   background: none;
   border: none;
-  font-size: 22px;
+  font-size: 24px;
   cursor: pointer;
-  margin-right: 15px;
+  padding: 8px;
+  color: #3f51b5;
 }
 
+/* Logo */
 .logo {
   font-weight: bold;
   color: #3f51b5;
-  display: block;          /* ✅ Inline se block element banayenge */
-  width: 250px;            /* ✅ Sidebar ki width ke barabar karein */
-  text-align: center;      /* ✅ Text ko center align karein */
+  font-size: 20px;
 }
 
+/* Center Navigation (Desktop) */
+.navbar-center {
+  display: flex;
+  gap: 30px;
+  margin-left: 40px;
+}
+
+/* Navigation Items */
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  cursor: pointer;
+  color: #333;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-link:hover {
+  background: #f5f5f5;
+  color: #3f51b5;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  min-width: 200px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1001;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: block;
+  padding: 10px 16px;
+  color: #333;
+  text-decoration: none;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: #f5f5f5;
+  color: #3f51b5;
+}
+
+.dropdown-item.active {
+  background: #3f51b5;
+  color: white;
+}
+
+/* Right Side */
 .navbar-right {
   display: flex;
   gap: 20px;
   align-items: center;
 }
 
-.logout {
-  color: red;
-  cursor: pointer;
+.user {
+  color: #666;
+  font-weight: 500;
 }
 
-/* Existing navbar styles remain same */
+.logout {
+  color: #f44336;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
 
+.logout:hover {
+  background: #ffebee;
+}
+
+/* Mobile Menu */
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+
+.mobile-menu-overlay.active {
+  display: block;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  background: white;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+}
+
+.mobile-menu.active {
+  transform: translateX(0);
+}
+
+.mobile-menu-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-user {
+  font-weight: 500;
+  color: #333;
+}
+
+.mobile-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.mobile-menu-section {
+  border-bottom: 1px solid #eee;
+}
+
+.mobile-section-title {
+  padding: 16px 20px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-arrow {
+  font-size: 12px;
+  color: #666;
+}
+
+.mobile-submenu {
+  display: none;
+  background: #f9f9f9;
+  padding: 10px 0;
+}
+
+.mobile-submenu.show {
+  display: block;
+}
+
+.mobile-menu-item {
+  display: block;
+  padding: 12px 20px 12px 40px;
+  color: #333;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.mobile-menu-item:hover {
+  background: #f0f0f0;
+  border-left-color: #3f51b5;
+  color: #3f51b5;
+}
+
+.mobile-menu-item.active {
+  background: #e8eaf6;
+  border-left-color: #3f51b5;
+  color: #3f51b5;
+}
+
+.logout-mobile {
+  color: #f44336;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .navbar-center {
+    display: none;
+  }
+
+  .navbar-left {
+    flex: 1;
+    text-align: center;
+  }
+
+  .logo {
+    width: auto;
+    text-align: center;
+  }
+
+  .navbar-right .user {
+    display: none;
+  }
+
+  .logout {
+    padding: 6px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0 10px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .mobile-menu {
+    width: 100%;
+  }
+}
+
+/* Existing logout popup styles remain same */
 .logout-popup-backdrop {
   position: fixed;
   top: 0;

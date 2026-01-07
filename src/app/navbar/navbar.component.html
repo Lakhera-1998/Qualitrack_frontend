@@ -1,21 +1,152 @@
 <nav class="navbar">
+  <!-- Mobile Menu Toggle Button -->
+  <button class="mobile-menu-btn" (click)="toggleMobileMenu()" *ngIf="isMobileView">
+    ☰
+  </button>
+
   <div class="navbar-left">
     <span class="logo">Qualitrack</span>
   </div>
 
+  <!-- Desktop Navigation -->
+  <div class="navbar-center" *ngIf="!isMobileView">
+    <!-- Home Dropdown -->
+    <div class="nav-item dropdown" (mouseenter)="showHomeDropdown = true" (mouseleave)="showHomeDropdown = false">
+      <a class="nav-link" (click)="toggleHomeDropdown()">
+        Home
+        <span class="dropdown-arrow">▼</span>
+      </a>
+      <div class="dropdown-menu" [class.show]="showHomeDropdown">
+        <a class="dropdown-item" [routerLink]="getDashboardRoute()" routerLinkActive="active" 
+           (click)="navigateTo(getDashboardRoute())">
+          Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Pages Dropdown -->
+    <div class="nav-item dropdown" (mouseenter)="showPagesDropdown = true" (mouseleave)="showPagesDropdown = false">
+      <a class="nav-link" (click)="togglePagesDropdown()">
+        Pages
+        <span class="dropdown-arrow">▼</span>
+      </a>
+      <div class="dropdown-menu" [class.show]="showPagesDropdown">
+        <!-- Super Admin & Staff menus -->
+        <ng-container *ngIf="showAllMenus()">
+          <ng-container *ngIf="isSuperAdmin">
+            <a class="dropdown-item" routerLink="/users" routerLinkActive="active" 
+               (click)="navigateTo('/users')">Users</a>
+          </ng-container>
+          
+          <a class="dropdown-item" routerLink="/clients" routerLinkActive="active" 
+             (click)="navigateTo('/clients')">Clients</a>
+          <a class="dropdown-item" routerLink="/projects" routerLinkActive="active" 
+             (click)="navigateTo('/projects')">Projects</a>
+          <a class="dropdown-item" routerLink="/requirements" routerLinkActive="active" 
+             (click)="navigateTo('/requirements')">Requirements</a>
+          <a class="dropdown-item" routerLink="/test-plans" routerLinkActive="active" 
+             (click)="navigateTo('/test-plans')">Test Plans</a>
+          <a class="dropdown-item" routerLink="/test-cases" routerLinkActive="active" 
+             (click)="navigateTo('/test-cases')">Test Cases</a>
+          <a class="dropdown-item" routerLink="/technologies" routerLinkActive="active" 
+             (click)="navigateTo('/technologies')">Technologies</a>
+          <a class="dropdown-item" routerLink="/testing-types" routerLinkActive="active" 
+             (click)="navigateTo('/testing-types')">Testing Types</a>
+          <a class="dropdown-item" routerLink="/reports" routerLinkActive="active" 
+             (click)="navigateTo('/reports')">Reports</a>
+        </ng-container>
+
+        <!-- Normal Active Users (Limited menus) -->
+        <ng-container *ngIf="showLimitedMenus()">
+          <a class="dropdown-item" routerLink="/projects" routerLinkActive="active" 
+             (click)="navigateTo('/projects')">Projects</a>
+          <a class="dropdown-item" routerLink="/requirements" routerLinkActive="active" 
+             (click)="navigateTo('/requirements')">Requirements</a>
+          <a class="dropdown-item" routerLink="/test-plans" routerLinkActive="active" 
+             (click)="navigateTo('/test-plans')">Test Plans</a>
+          <a class="dropdown-item" routerLink="/test-cases" routerLinkActive="active" 
+             (click)="navigateTo('/test-cases')">Test Cases</a>
+          <a class="dropdown-item" routerLink="/reports" routerLinkActive="active" 
+             (click)="navigateTo('/reports')">Reports</a>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Username and Logout -->
   <div class="navbar-right">
-    <!-- 👇 Dynamically display logged-in user's username -->
     <span class="user">{{ username }}</span>
     <a class="logout" (click)="openLogoutPopup()">Logout</a>
   </div>
+
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-menu-overlay" [class.active]="isMobileMenuOpen && isMobileView" (click)="toggleMobileMenu()"></div>
+
+  <!-- Mobile Menu Content -->
+  <div class="mobile-menu" [class.active]="isMobileMenuOpen && isMobileView">
+    <div class="mobile-menu-header">
+      <span class="mobile-user">Welcome, {{ username }}</span>
+      <button class="mobile-close-btn" (click)="toggleMobileMenu()">×</button>
+    </div>
+
+    <!-- Mobile Home Section -->
+    <div class="mobile-menu-section">
+      <h3 class="mobile-section-title" (click)="toggleHomeDropdown()">
+        Home <span class="mobile-arrow">{{ showHomeDropdown ? '▲' : '▼' }}</span>
+      </h3>
+      <div class="mobile-submenu" [class.show]="showHomeDropdown">
+        <a class="mobile-menu-item" [routerLink]="getDashboardRoute()" (click)="navigateTo(getDashboardRoute())">
+          Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Mobile Pages Section -->
+    <div class="mobile-menu-section">
+      <h3 class="mobile-section-title" (click)="togglePagesDropdown()">
+        Pages <span class="mobile-arrow">{{ showPagesDropdown ? '▲' : '▼' }}</span>
+      </h3>
+      <div class="mobile-submenu" [class.show]="showPagesDropdown">
+        <!-- Super Admin & Staff menus -->
+        <ng-container *ngIf="showAllMenus()">
+          <ng-container *ngIf="isSuperAdmin">
+            <a class="mobile-menu-item" routerLink="/users" (click)="navigateTo('/users')">Users</a>
+          </ng-container>
+          
+          <a class="mobile-menu-item" routerLink="/clients" (click)="navigateTo('/clients')">Clients</a>
+          <a class="mobile-menu-item" routerLink="/projects" (click)="navigateTo('/projects')">Projects</a>
+          <a class="mobile-menu-item" routerLink="/requirements" (click)="navigateTo('/requirements')">Requirements</a>
+          <a class="mobile-menu-item" routerLink="/test-plans" (click)="navigateTo('/test-plans')">Test Plans</a>
+          <a class="mobile-menu-item" routerLink="/test-cases" (click)="navigateTo('/test-cases')">Test Cases</a>
+          <a class="mobile-menu-item" routerLink="/technologies" (click)="navigateTo('/technologies')">Technologies</a>
+          <a class="mobile-menu-item" routerLink="/testing-types" (click)="navigateTo('/testing-types')">Testing Types</a>
+          <a class="mobile-menu-item" routerLink="/reports" (click)="navigateTo('/reports')">Reports</a>
+        </ng-container>
+
+        <!-- Normal Active Users (Limited menus) -->
+        <ng-container *ngIf="showLimitedMenus()">
+          <a class="mobile-menu-item" routerLink="/projects" (click)="navigateTo('/projects')">Projects</a>
+          <a class="mobile-menu-item" routerLink="/requirements" (click)="navigateTo('/requirements')">Requirements</a>
+          <a class="mobile-menu-item" routerLink="/test-plans" (click)="navigateTo('/test-plans')">Test Plans</a>
+          <a class="mobile-menu-item" routerLink="/test-cases" (click)="navigateTo('/test-cases')">Test Cases</a>
+          <a class="mobile-menu-item" routerLink="/reports" (click)="navigateTo('/reports')">Reports</a>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Mobile Logout -->
+    <div class="mobile-menu-section">
+      <a class="mobile-menu-item logout-mobile" (click)="openLogoutPopup()">
+        Logout
+      </a>
+    </div>
+  </div>
 </nav>
 
-<!-- 🔽 Custom Logout Popup -->
+<!-- Logout Popup (Keep existing) -->
 <div class="logout-popup-backdrop" *ngIf="showLogoutPopup">
   <div class="logout-popup">
-    <!-- ✖ Close Icon -->
     <span class="close-icon" (click)="cancelLogout()">×</span>
-
     <h3>Confirm Logout</h3>
     <p>Are you sure you want to logout?</p>
     <div class="popup-actions">
