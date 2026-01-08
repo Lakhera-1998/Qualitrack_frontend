@@ -4,7 +4,6 @@
   margin: 0;
   padding: 0;
   min-height: calc(100vh - 60px); /* Full height minus navbar */
-  margin-top: 60px; /* Account for fixed navbar */
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
