@@ -1,74 +1,77 @@
-<div class="container">
-  <h2>Projects</h2>
+  <!-- Page Header - Navbar ke niche directly -->
+  <div class="page-header">
+    <h2 class="page-title">Projects</h2>
+  </div>
 
-  <!-- ✅ Projects Table -->
+  <!-- ✅ Projects Table Card -->
   <div class="card">
-
-    <!-- ✅ Add Project Button -->
-    <button class="add-btn" (click)="openAddProjectPopup()" *ngIf="showAddEditButtons">
-      + Add Project
-    </button>
-
-    <!-- ✅ Search Field -->
-    <div class="search-container">
-      <input type="text" [(ngModel)]="searchText" placeholder="Search by Project Name or Client" />
+    
+    <!-- ✅ Header with Add Button and Search -->
+    <div class="card-header">
+      <button class="add-btn" (click)="openAddProjectPopup()" *ngIf="showAddEditButtons">+ Add Project</button>
+      
+      <!-- ✅ Search Field -->
+      <div class="search-container">
+        <input type="text" [(ngModel)]="searchText" 
+               placeholder="Search by Project Name or Client" />
+      </div>
     </div>
 
-    <!-- ✅ Table Container without vertical scroll -->
-    <div class="table-scroll-container">
-      <table class="styled-table">
-        <thead>
-          <tr>
-            <th>S. No.</th>
-            <th>Project Name</th>
-            <th>Client</th>
-            <th>Status</th>
-            <th>Frontend Devs</th>
-            <th>Backend Devs</th>
-            <th>Project Lead</th>
-            <th>QA Lead</th>
-            <th>QA Team</th> <!-- New QA Team Column -->
-            <th>Frontend Tech</th>
-            <th>Backend Tech</th>
-            <th>Other Tech</th>
-            <th>Start</th>
-            <th>Deadline</th>
-            <th>Delivery</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let project of paginatedProjects(); let i = index">
-            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
-            <td>{{ project.project_name }}</td>
-            <td>{{ getClientName(project.client) }}</td>
-            <td>
-              <span class="status-badge" [class]="project.status.replace(' ', '-').toLowerCase()">
-                {{ project.status }}
-              </span>
-            </td>
-            <td>{{ displayUserList(project.frontend_developers) }}</td>
-            <td>{{ displayUserList(project.backend_developers) }}</td>
-            <td>{{ displayUser(project.project_lead) }}</td>
-            <td>{{ displayUser(project.qa_lead) }}</td>
-            <td>{{ displayUserList(project.qa_team) }}</td> <!-- New QA Team Data -->
-            <td>{{ displayTechList(project.frontend_technologies) }}</td>
-            <td>{{ displayTechList(project.backend_technologies) }}</td>
-            <td>{{ displayTechList(project.other_technologies) }}</td>
-            <td>{{ project.start_date | date:'mediumDate' }}</td>
-            <td>{{ project.deadline_date | date:'mediumDate' }}</td>
-            <td>{{ project.delivery_date ? (project.delivery_date | date:'mediumDate') : 'N/A' }}</td>
-            <td class="actions">
-              <button class="edit-btn" (click)="editProject(project)" *ngIf="showAddEditButtons">✏️</button>
-              <button class="view-btn" (click)="viewRequirements(project)">📋</button>
-              <button class="plan-btn" (click)="viewTestPlans(project)">📝</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- ✅ Table Container with proper height -->
+    <div class="table-container-wrapper">
+      <div class="table-scroll-container">
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>S. No.</th>
+              <th>Project Name</th>
+              <th>Client</th>
+              <th>Status</th>
+              <th>Frontend Devs</th>
+              <th>Backend Devs</th>
+              <th>Project Lead</th>
+              <th>QA Lead</th>
+              <th>QA Team</th>
+              <th>Frontend Tech</th>
+              <th>Backend Tech</th>
+              <th>Other Tech</th>
+              <th>Start</th>
+              <th>Deadline</th>
+              <th>Delivery</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let project of paginatedProjects(); let i = index">
+              <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+              <td>{{ project.project_name }}</td>
+              <td>{{ getClientName(project.client) }}</td>
+              <td>
+                <span class="status-badge" [class]="project.status.replace(' ', '-').toLowerCase()">
+                  {{ project.status }}
+                </span>
+              </td>
+              <td>{{ displayUserList(project.frontend_developers) }}</td>
+              <td>{{ displayUserList(project.backend_developers) }}</td>
+              <td>{{ displayUser(project.project_lead) }}</td>
+              <td>{{ displayUser(project.qa_lead) }}</td>
+              <td>{{ displayUserList(project.qa_team) }}</td>
+              <td>{{ displayTechList(project.frontend_technologies) }}</td>
+              <td>{{ displayTechList(project.backend_technologies) }}</td>
+              <td>{{ displayTechList(project.other_technologies) }}</td>
+              <td>{{ project.start_date | date:'mediumDate' }}</td>
+              <td>{{ project.deadline_date | date:'mediumDate' }}</td>
+              <td>{{ project.delivery_date ? (project.delivery_date | date:'mediumDate') : 'N/A' }}</td>
+              <td class="actions">
+                <button class="edit-btn" (click)="editProject(project)" *ngIf="showAddEditButtons" title="Edit Project">✏️</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- ✅ Pagination -->
+    <!-- ✅ Pagination - Ab yeh full visible hoga -->
     <div class="pagination-container" *ngIf="filteredProjects().length > 0">
       <div class="pagination-summary">
         Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ filteredProjects().length }} records
@@ -104,7 +107,7 @@
     </div>
   </div>
 
-  <!-- Add/Edit Popup -->
+  <!-- ✅ Add/Edit Project Popup -->
   <div class="popup" *ngIf="showProjectPopup">
     <div class="popup-content">
       <div class="popup-header">
@@ -114,11 +117,13 @@
 
       <form (ngSubmit)="saveProject()" #projectForm="ngForm" class="form-grid" novalidate>
         <label>Project Name *</label>
-        <input type="text" [(ngModel)]="newProject.project_name" name="project_name" required />
+        <input type="text" [(ngModel)]="newProject.project_name" name="project_name" 
+              [ngClass]="{'error-border': submitted && !newProject.project_name}" required />
         <div *ngIf="submitted && !newProject.project_name" class="field-error">This field is mandatory</div>
 
         <label>Client *</label>
-        <select [(ngModel)]="newProject.client" name="client" required>
+        <select [(ngModel)]="newProject.client" name="client" 
+                [ngClass]="{'error-border': submitted && !newProject.client}" required>
           <option [ngValue]="null" disabled>Select Client</option>
           <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.client_name }}</option>
         </select>
@@ -134,10 +139,14 @@
         </select>
 
         <label>Start Date *</label>
-        <input type="date" [(ngModel)]="newProject.start_date" name="start_date" required />
+        <input type="date" [(ngModel)]="newProject.start_date" name="start_date" 
+              [ngClass]="{'error-border': submitted && !newProject.start_date}" required />
+        <div *ngIf="submitted && !newProject.start_date" class="field-error">This field is mandatory</div>
 
         <label>Deadline Date *</label>
-        <input type="date" [(ngModel)]="newProject.deadline_date" name="deadline_date" required />
+        <input type="date" [(ngModel)]="newProject.deadline_date" name="deadline_date" 
+              [ngClass]="{'error-border': submitted && !newProject.deadline_date}" required />
+        <div *ngIf="submitted && !newProject.deadline_date" class="field-error">This field is mandatory</div>
 
         <label>Delivery Date</label>
         <input type="date" [(ngModel)]="newProject.delivery_date" name="delivery_date" />
@@ -195,8 +204,8 @@
       </form>
     </div>
   </div>
-</div>
 
-<div *ngIf="successMessage" class="success-overlay">
-  <div class="success-box">{{ successMessage }}</div>
-</div>
+  <!-- ✅ Success Message Overlay -->
+  <div *ngIf="successMessage" class="success-overlay">
+    <div class="success-box">{{ successMessage }}</div>
+  </div>

@@ -1,187 +1,183 @@
-<div class="requirements-container">
-  <div class="header">
-    <h2>Project Requirements</h2>
-    <div class="action-buttons">
-      <!-- New buttons for Excel functionality - now enabled without project selection -->
-      <button class="download-template-btn" (click)="downloadTemplate()">
-        📥 Download Template
-      </button>
-      <button class="import-requirements-btn" (click)="openImportPopup()">
-        📤 Import Requirements
-      </button>
-      <button class="add-btn" (click)="openAddRequirementPopup()">
-        + Add Requirement
-      </button>
-      <button class="filter-btn" (click)="openFilterPopup()">
-        🔍 Filter Requirements
-      </button>
-    </div>
+  <!-- Page Header - Navbar ke niche directly -->
+  <div class="page-header">
+    <h2 class="page-title">Project Requirements</h2>
   </div>
 
-  <!-- Requirements Display Area -->
-  <div class="requirements-content">
-    <!-- Message when no filters applied -->
-    <div *ngIf="!filtersApplied" class="placeholder-message card">
-      <div class="message-content">
-        <h3>Apply Filters to View Requirements</h3>
-        <p>Click the "Filter Requirements" button to apply filters and display project requirements.</p>
+  <!-- ✅ Requirements Table Card -->
+  <div class="card">
+    
+    <!-- ✅ Header with All Action Buttons -->
+    <div class="card-header">
+      <!-- ✅ Left side: Action Buttons -->
+      <div class="action-buttons">
+        <button class="download-template-btn" (click)="downloadTemplate()" title="Download Excel Template">
+          📥 Download Template
+        </button>
+        <button class="import-requirements-btn" (click)="openImportPopup()" title="Import Requirements from Excel">
+          📤 Import Requirements
+        </button>
+        <button class="add-btn" (click)="openAddRequirementPopup()" title="Add New Requirement">
+          + Add Requirement
+        </button>
+        <button class="filter-btn" (click)="openFilterPopup()" title="Filter Requirements">
+          🔍 Filter Requirements
+        </button>
       </div>
     </div>
 
-    <div *ngIf="filtersApplied" class="card table-card">
-      <div class="table-header-section">
-        <div class="project-header" *ngIf="selectedProjectId && project">
-          <h3>Requirements for {{ project?.project_name }}</h3>
-        </div>
-        
-        <!-- Search Box - Properly positioned on the right side -->
-        <div class="search-box-right">
-          <input type="text" [(ngModel)]="searchText" (input)="filterRequirements()" 
-                 placeholder="Search requirements..." class="search-input-right">
+    <!-- ✅ Requirements Display Area -->
+    <div class="requirements-content">
+      <!-- Message when no filters applied -->
+      <div *ngIf="!filtersApplied" class="placeholder-message">
+        <div class="message-content">
+          <h3>Apply Filters to View Requirements</h3>
+          <p>Click the "Filter Requirements" button to apply filters and display project requirements.</p>
         </div>
       </div>
 
-      <!-- ✅ Table Container without vertical scroll -->
-      <div class="table-scroll-container">
-        <table class="styled-table">
-          <thead>
-            <tr>
-              <th class="col-sno">S. No.</th>
-              <th class="col-title">Title</th>
-              <th>Priority</th>
-              <th>Reported Date</th>
-              <th>Expected Delivery</th>
-              <th>Actual Delivery</th>
-              <th>Status</th>
-              <th class="col-boolean">Is Developed</th>
-              <th class="col-boolean">Is Tested</th>
-              <th class="col-boolean">Is Delivered</th>
-              <th class="col-boolean">UAT Testing Done</th>
-              <th class="col-boolean">Bug Raised After UAT</th>
-              <th class="col-boolean">Bug Fixed</th>
-              <th class="actions-header">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- ✅ Updated to use paginatedRequirements with proper serial number -->
-            <tr *ngFor="let requirement of paginatedRequirements(); let i = index">
-              <td class="col-sno">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
-              
-              <!-- Clickable Title Column with Text Wrapping -->
-              <td class="col-title">
-                <span class="clickable-title" 
-                      (click)="openRequirementDetails(requirement)"
-                      (mouseenter)="requirement.isHovered = true"
-                      (mouseleave)="requirement.isHovered = false"
-                      [class.title-hover]="requirement.isHovered">
-                  {{ requirement.requirement_title }}
-                </span>
-              </td>
-
-              <td>
-                <span class="priority-badge {{ requirement.priority.toLowerCase() }}">
-                  {{ requirement.priority }}
-                </span>
-              </td>
-
-              <td>{{ requirement.reported_date | date:'mediumDate' }}</td>
-              <td>{{ requirement.expected_delivery | date:'mediumDate' }}</td>
-              <td>{{ requirement.actual_delivery ? (requirement.actual_delivery | date:'mediumDate') : 'Pending' }}</td>
-
-              <td>
-                <span class="status-badge {{ getRequirementStatus(requirement) }}">
-                  {{ getRequirementStatus(requirement) }}
-                </span>
-              </td>
-
-              <td class="col-boolean">
-                <span [ngClass]="requirement.is_developed ? 'icon-yes' : 'icon-no'">
-                  {{ requirement.is_developed ? '✔' : '✖' }}
-                </span>
-              </td>
-              <td class="col-boolean">
-                <span [ngClass]="requirement.is_tested ? 'icon-yes' : 'icon-no'">
-                  {{ requirement.is_tested ? '✔' : '✖' }}
-                </span>
-              </td>
-              <td class="col-boolean">
-                <span [ngClass]="requirement.is_delivered ? 'icon-yes' : 'icon-no'">
-                  {{ requirement.is_delivered ? '✔' : '✖' }}
-                </span>
-              </td>
-              <td class="col-boolean">
-                <span [ngClass]="requirement.uat_testing ? 'icon-yes' : 'icon-no'">
-                  {{ requirement.uat_testing ? '✔' : '✖' }}
-                </span>
-              </td>
-              <td class="col-boolean">
-                <span [ngClass]="requirement.bug_raised_by_client_after_uat ? 'icon-yes' : 'icon-no'">
-                  {{ requirement.bug_raised_by_client_after_uat ? '✔' : '✖' }}
-                </span>
-              </td>
-              <td class="col-boolean">
-                <span [ngClass]="requirement.bug_fixed ? 'icon-yes' : 'icon-no'">
-                  {{ requirement.bug_fixed ? '✔' : '✖' }}
-                </span>
-              </td>
-
-              <td class="actions">
-                <button class="edit-btn" (click)="editRequirement(requirement)" title="Edit Requirement">✏️</button>
-                <button class="test-case-btn" (click)="viewTestCases(requirement)" title="View Test Cases">🧪</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- ✅ Updated Pagination -->
-      <div class="pagination-container" *ngIf="filteredRequirements.length > 0">
-        <div class="pagination-summary">
-          Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ filteredRequirements.length }} records
-        </div>
-        <div class="pagination-controls">
-          <button 
-            class="pagination-btn first-btn" 
-            [disabled]="currentPage === 1" 
-            (click)="goToPage(1)"
-            title="First Page">
-            &lt;&lt;
-          </button>
-          <button 
-            class="pagination-btn prev-btn" 
-            [disabled]="currentPage === 1" 
-            (click)="goToPage(currentPage - 1)"
-            title="Previous Page">
-            &lt;
-          </button>
+      <div *ngIf="filtersApplied" class="table-container-wrapper">
+        <!-- Table Header with Search -->
+        <div class="table-header-section">
+          <div class="project-header" *ngIf="selectedProjectId && project">
+            <h3>Requirements for {{ project?.project_name }}</h3>
+          </div>
           
-          <button class="pagination-btn current-page">
-            {{ currentPage }}
-          </button>
-          
-          <button 
-            class="pagination-btn next-btn" 
-            [disabled]="currentPage === totalPages()" 
-            (click)="goToPage(currentPage + 1)"
-            title="Next Page">
-            &gt;
-          </button>
-          <button 
-            class="pagination-btn last-btn" 
-            [disabled]="currentPage === totalPages()" 
-            (click)="goToPage(totalPages())"
-            title="Last Page">
-            &gt;&gt;
-          </button>
+          <!-- Search Box - Properly positioned on the right side -->
+          <div class="search-box-right">
+            <input type="text" [(ngModel)]="searchText" (input)="filterRequirements()" 
+                   placeholder="Search requirements..." class="search-input-right">
+          </div>
         </div>
-      </div>
 
-      <div *ngIf="filteredRequirements.length === 0 && filtersApplied" class="no-requirements">
-        <div *ngIf="searchText">
-          No requirements match your search criteria.
+        <!-- ✅ Table Container with proper height -->
+        <div class="table-scroll-container">
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th class="col-sno">S. No.</th>
+                <th class="col-title">Title</th>
+                <th>Priority</th>
+                <th>Reported Date</th>
+                <th>Expected Delivery</th>
+                <th>Actual Delivery</th>
+                <th>Status</th>
+                <th class="col-boolean">Is Developed</th>
+                <th class="col-boolean">Is Tested</th>
+                <th class="col-boolean">Is Delivered</th>
+                <th class="col-boolean">UAT Testing Done</th>
+                <th class="col-boolean">Bug Raised After UAT</th>
+                <th class="col-boolean">Bug Fixed</th>
+                <th class="actions-header">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- ✅ Updated to use paginatedRequirements with proper serial number -->
+              <tr *ngFor="let requirement of paginatedRequirements(); let i = index">
+                <td class="col-sno">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+                
+                <!-- Clickable Title Column with Text Wrapping -->
+                <td class="col-title">
+                  <span class="clickable-title" 
+                        (click)="openRequirementDetails(requirement)"
+                        (mouseenter)="requirement.isHovered = true"
+                        (mouseleave)="requirement.isHovered = false"
+                        [class.title-hover]="requirement.isHovered">
+                    {{ requirement.requirement_title }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="priority-badge {{ requirement.priority.toLowerCase() }}">
+                    {{ requirement.priority }}
+                  </span>
+                </td>
+
+                <td>{{ requirement.reported_date | date:'mediumDate' }}</td>
+                <td>{{ requirement.expected_delivery | date:'mediumDate' }}</td>
+                <td>{{ requirement.actual_delivery ? (requirement.actual_delivery | date:'mediumDate') : 'Pending' }}</td>
+
+                <td>
+                  <span class="status-badge {{ getRequirementStatus(requirement) }}">
+                    {{ getRequirementStatus(requirement) }}
+                  </span>
+                </td>
+
+                <td class="col-boolean">
+                  <span [ngClass]="requirement.is_developed ? 'icon-yes' : 'icon-no'">
+                    {{ requirement.is_developed ? '✔' : '✖' }}
+                  </span>
+                </td>
+                <td class="col-boolean">
+                  <span [ngClass]="requirement.is_tested ? 'icon-yes' : 'icon-no'">
+                    {{ requirement.is_tested ? '✔' : '✖' }}
+                  </span>
+                </td>
+                <td class="col-boolean">
+                  <span [ngClass]="requirement.is_delivered ? 'icon-yes' : 'icon-no'">
+                    {{ requirement.is_delivered ? '✔' : '✖' }}
+                  </span>
+                </td>
+                <td class="col-boolean">
+                  <span [ngClass]="requirement.uat_testing ? 'icon-yes' : 'icon-no'">
+                    {{ requirement.uat_testing ? '✔' : '✖' }}
+                  </span>
+                </td>
+                <td class="col-boolean">
+                  <span [ngClass]="requirement.bug_raised_by_client_after_uat ? 'icon-yes' : 'icon-no'">
+                    {{ requirement.bug_raised_by_client_after_uat ? '✔' : '✖' }}
+                  </span>
+                </td>
+                <td class="col-boolean">
+                  <span [ngClass]="requirement.bug_fixed ? 'icon-yes' : 'icon-no'">
+                    {{ requirement.bug_fixed ? '✔' : '✖' }}
+                  </span>
+                </td>
+
+                <td class="actions">
+                  <button class="edit-btn" (click)="editRequirement(requirement)" title="Edit Requirement">✏️</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div *ngIf="!searchText">
-          No requirements found for the applied filters.
+
+        <!-- ✅ Pagination -->
+        <div class="pagination-container" *ngIf="filteredRequirements.length > 0">
+          <div class="pagination-summary">
+            Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ filteredRequirements.length }} records
+          </div>
+          <div class="pagination-controls">
+            <button 
+              class="pagination-btn" 
+              [disabled]="currentPage === 1" 
+              (click)="goToPage(currentPage - 1)">
+              Previous
+            </button>
+            
+            <button 
+              *ngFor="let page of getVisiblePages()" 
+              class="pagination-btn" 
+              [class.active]="page === currentPage"
+              (click)="goToPage(page)">
+              {{ page }}
+            </button>
+            
+            <button 
+              class="pagination-btn" 
+              [disabled]="currentPage === totalPages()" 
+              (click)="goToPage(currentPage + 1)">
+              Next
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="filteredRequirements.length === 0 && filtersApplied" class="no-records">
+          <div *ngIf="searchText">
+            No requirements match your search criteria.
+          </div>
+          <div *ngIf="!searchText">
+            No requirements found for the applied filters.
+          </div>
         </div>
       </div>
     </div>
@@ -199,7 +195,7 @@
     <button class="close-notification" (click)="hideErrorMessage()">×</button>
   </div>
 
-  <!-- Requirement Details Popup - Redesigned with Cards -->
+  <!-- Requirement Details Popup -->
   <div class="popup" *ngIf="showRequirementDetailsPopup">
     <div class="popup-content requirement-details-popup">
       <div class="popup-header">
@@ -330,40 +326,44 @@
       <form (ngSubmit)="saveRequirement()" class="form-grid">
         <!-- Project Selection -->
         <label>Project *</label>
-        <select [(ngModel)]="newRequirement.project" name="project" [class.error]="formErrors.project">
-          <option value="">Select Project</option>
-          <option *ngFor="let project of allProjects" [value]="project.id">{{ project.project_name }}</option>
-        </select>
-        <div *ngIf="formErrors.project" class="error-message">{{ formErrors.project }}</div>
+        <div class="select-wrapper">
+          <select [(ngModel)]="newRequirement.project" name="project" [class.error]="formErrors.project">
+            <option value="">Select Project</option>
+            <option *ngFor="let project of allProjects" [value]="project.id">{{ project.project_name }}</option>
+          </select>
+        </div>
+        <div *ngIf="formErrors.project" class="field-error">{{ formErrors.project }}</div>
 
         <!-- Title -->
         <label>Requirement Title *</label>
         <input type="text" [(ngModel)]="newRequirement.requirement_title" name="requirement_title" 
                [class.error]="formErrors.requirement_title" />
-        <div *ngIf="formErrors.requirement_title" class="error-message">{{ formErrors.requirement_title }}</div>
+        <div *ngIf="formErrors.requirement_title" class="field-error">{{ formErrors.requirement_title }}</div>
 
         <!-- Description -->
         <label>Requirement Description *</label>
         <textarea [(ngModel)]="newRequirement.requirement" name="requirement" rows="3" 
                   [class.error]="formErrors.requirement"></textarea>
-        <div *ngIf="formErrors.requirement" class="error-message">{{ formErrors.requirement }}</div>
+        <div *ngIf="formErrors.requirement" class="field-error">{{ formErrors.requirement }}</div>
 
         <!-- Priority -->
         <label>Priority *</label>
-        <select [(ngModel)]="newRequirement.priority" name="priority" [class.error]="formErrors.priority">
-          <option value="">Select Priority</option>
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-          <option value="Critical">Critical</option>
-        </select>
-        <div *ngIf="formErrors.priority" class="error-message">{{ formErrors.priority }}</div>
+        <div class="select-wrapper">
+          <select [(ngModel)]="newRequirement.priority" name="priority" [class.error]="formErrors.priority">
+            <option value="">Select Priority</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+          </select>
+        </div>
+        <div *ngIf="formErrors.priority" class="field-error">{{ formErrors.priority }}</div>
 
         <!-- Dates -->
         <label>Reported Date *</label>
         <input type="date" [(ngModel)]="newRequirement.reported_date" name="reported_date" 
                [class.error]="formErrors.reported_date" />
-        <div *ngIf="formErrors.reported_date" class="error-message">{{ formErrors.reported_date }}</div>
+        <div *ngIf="formErrors.reported_date" class="field-error">{{ formErrors.reported_date }}</div>
 
         <label>Expected Delivery</label>
         <input type="date" [(ngModel)]="newRequirement.expected_delivery" name="expected_delivery" />
@@ -399,7 +399,8 @@
           </div>
         </div>
 
-        <!-- Buttons -->
+        <div *ngIf="apiErrorMessage" class="api-error-message">{{ apiErrorMessage }}</div>
+
         <div class="form-actions">
           <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
           <button type="button" class="cancel-btn" (click)="closeRequirementPopup()">Cancel</button>
@@ -420,22 +421,26 @@
         <!-- Project Filter Only -->
         <div class="form-group">
           <label for="projectSelect">Project</label>
-          <select id="projectSelect" [(ngModel)]="selectedProjectId" name="projectSelect" class="form-control">
-            <option value="">All Projects</option>
-            <option *ngFor="let project of allProjects" [value]="project.id">{{ project.project_name }}</option>
-          </select>
+          <div class="select-wrapper">
+            <select id="projectSelect" [(ngModel)]="selectedProjectId" name="projectSelect" class="form-control">
+              <option value="">All Projects</option>
+              <option *ngFor="let project of allProjects" [value]="project.id">{{ project.project_name }}</option>
+            </select>
+          </div>
         </div>
 
         <!-- Priority Filter -->
         <div class="form-group">
           <label for="priorityFilter">Priority</label>
-          <select id="priorityFilter" [(ngModel)]="selectedPriority" name="priorityFilter" class="form-control">
-            <option value="">All Priorities</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-            <option value="Critical">Critical</option>
-          </select>
+          <div class="select-wrapper">
+            <select id="priorityFilter" [(ngModel)]="selectedPriority" name="priorityFilter" class="form-control">
+              <option value="">All Priorities</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
         </div>
 
         <!-- Boolean Filters -->
@@ -546,4 +551,3 @@
       </div>
     </div>
   </div>
-</div>

@@ -49,6 +49,9 @@ export class ProjectRequirementsComponent implements OnInit {
   showErrorMessage: boolean = false;
   errorMessage: string = '';
 
+  // ✅ Add this line - API Error Message for requirement form
+  apiErrorMessage: string = ''; // <-- ADD THIS LINE
+
   // Import functionality
   showImportPopup: boolean = false;
   showImportConfirmation: boolean = false;
@@ -384,6 +387,37 @@ export class ProjectRequirementsComponent implements OnInit {
     return Math.min(end, this.filteredRequirements.length);
   }
 
+  // ✅ Add this method - for visible page numbers in pagination
+getVisiblePages(): number[] {
+  const total = this.totalPages();
+  const pages: number[] = [];
+  const visiblePagesCount = 5; // Show 5 page numbers at a time
+  
+  if (total <= visiblePagesCount) {
+    // If total pages are less than or equal to visible pages, show all
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Calculate start and end page numbers
+    let start = Math.max(1, this.currentPage - Math.floor(visiblePagesCount / 2));
+    let end = start + visiblePagesCount - 1;
+    
+    // Adjust if we go beyond total pages
+    if (end > total) {
+      end = total;
+      start = Math.max(1, end - visiblePagesCount + 1);
+    }
+    
+    // Generate page numbers
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+  }
+  
+  return pages;
+  }
+
   // Filter requirements based on search text
   filterRequirements(): void {
     if (!this.searchText) {
@@ -505,45 +539,56 @@ export class ProjectRequirementsComponent implements OnInit {
   }
 
   saveRequirement(): void {
-    if (!this.validateForm()) {
-      return;
-    }
-
-    if (this.isEditMode && this.editingRequirementId) {
-      this.requirementService.updateRequirement(this.editingRequirementId, this.newRequirement).subscribe({
-        next: () => {
-          // Refresh requirements if filters are applied
-          if (this.filtersApplied) {
-            if (this.selectedProjectId) {
-              this.loadRequirements();
-            } else {
-              this.loadAllRequirements();
-            }
-          }
-          this.closeRequirementPopup();
-          this.showSuccess('Requirement updated successfully!');
-        },
-        error: (err) => console.error('Error updating requirement:', err)
-      });
-    } else {
-      this.requirementService.addRequirement(this.newRequirement).subscribe({
-        next: () => {
-          // Refresh requirements if filters are applied
-          if (this.filtersApplied) {
-            if (this.selectedProjectId) {
-              this.loadRequirements();
-            } else {
-              this.loadAllRequirements();
-            }
-          }
-          this.closeRequirementPopup();
-          this.showSuccess('Requirement added successfully!');
-        },
-        error: (err) => console.error('Error adding requirement:', err)
-      });
-    }
+  // Clear any previous API error messages
+  this.apiErrorMessage = '';
+  
+  if (!this.validateForm()) {
+    return;
   }
 
+  if (this.isEditMode && this.editingRequirementId) {
+    this.requirementService.updateRequirement(this.editingRequirementId, this.newRequirement).subscribe({
+      next: () => {
+        // Refresh requirements if filters are applied
+        if (this.filtersApplied) {
+          if (this.selectedProjectId) {
+            this.loadRequirements();
+          } else {
+            this.loadAllRequirements();
+          }
+        }
+        this.closeRequirementPopup();
+        this.showSuccess('Requirement updated successfully!');
+      },
+      error: (err) => {
+        console.error('Error updating requirement:', err);
+        // Set the API error message
+        this.apiErrorMessage = err.error?.detail || err.error?.message || 'Failed to update requirement. Please try again.';
+      }
+    });
+  } else {
+    this.requirementService.addRequirement(this.newRequirement).subscribe({
+      next: () => {
+        // Refresh requirements if filters are applied
+        if (this.filtersApplied) {
+          if (this.selectedProjectId) {
+            this.loadRequirements();
+          } else {
+            this.loadAllRequirements();
+          }
+        }
+        this.closeRequirementPopup();
+        this.showSuccess('Requirement added successfully!');
+      },
+      error: (err) => {
+        console.error('Error adding requirement:', err);
+        // Set the API error message
+        this.apiErrorMessage = err.error?.detail || err.error?.message || 'Failed to add requirement. Please try again.';
+      }
+    });
+  }
+  }
+  
   // Show success message
   showSuccess(message: string): void {
     this.successMessage = message;
