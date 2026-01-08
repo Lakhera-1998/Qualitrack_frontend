@@ -1,24 +1,33 @@
-<div class="requirements-container">
-  <div class="header">
-    <h2>Test Plans</h2>
-    <button class="add-btn" (click)="openAddTestPlanPopup()" [disabled]="!selectedProjectId">+ Add Test Plan</button>
-  </div>
+<!-- Page Header - Navbar ke niche directly -->
+<div class="page-header">
+  <h2 class="page-title">Test Plans</h2>
+</div>
 
-  <!-- Client and Project Filters -->
-  <div class="filters-card card">
-    <h3>Filter Test Plans</h3>
-    <div class="filter-form">
-      <div class="form-group">
-        <label for="clientSelect">Client *</label>
-        <select id="clientSelect" [(ngModel)]="selectedClientId" (change)="onClientChange()" class="form-control">
+<!-- ✅ Test Plans Table Card -->
+<div class="card">
+  
+  <!-- ✅ Header with Add Button and Filters - UPDATED -->
+  <div class="card-header">
+    <!-- Filters container with button inline -->
+    <div class="filters-container">
+      <!-- Add button as first element -->
+      <div class="button-container">
+        <button class="add-btn" (click)="openAddTestPlanPopup()" [disabled]="!selectedProjectId">+ Add Test Plan</button>
+      </div>
+
+      <!-- ✅ Client and Project Filters -->
+      <div class="filter-group">
+        <label for="clientSelect" class="filter-label">Client *</label>
+        <select id="clientSelect" [(ngModel)]="selectedClientId" (change)="onClientChange()" class="filter-select">
           <option value="">Select Client</option>
           <option *ngFor="let client of clients" [value]="client.id">{{ client.client_name }}</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label for="projectSelect">Project *</label>
-        <select id="projectSelect" [(ngModel)]="selectedProjectId" (change)="onProjectChange()" class="form-control" [disabled]="!selectedClientId">
+      <div class="filter-group">
+        <label for="projectSelect" class="filter-label">Project *</label>
+        <select id="projectSelect" [(ngModel)]="selectedProjectId" (change)="onProjectChange()" 
+                class="filter-select" [disabled]="!selectedClientId">
           <option value="">Select Project</option>
           <option *ngFor="let project of filteredProjects" [value]="project.id">{{ project.project_name }}</option>
         </select>
@@ -26,148 +35,157 @@
     </div>
   </div>
 
-  <!-- Test Plans Display Area -->
-  <div *ngIf="selectedProjectId && project" class="requirements-content">
-    <div class="project-header">
-      <h3>Test Plans for {{ project?.project_name }} ({{ selectedClientName }})</h3>
-    </div>
-
-    <div class="card">
-      <div class="table-container">
-        <table class="styled-table">
-          <thead>
-            <tr>
-              <th class="col-sno">S. No.</th>
-              <th>Test Plan ID</th>
-              <th>Title</th>
-              <th>Objective</th>
-              <th>Testing Types</th>
-              <th>Test Lead</th>
-              <th>Created At</th>
-              <th class="actions-header">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let testPlan of testPlans; let i = index">
-              <td class="col-sno">{{ i + 1 }}</td>
-              <td>{{ testPlan.test_plan_id }}</td>
-              <td>{{ testPlan.title }}</td>
-              <td>{{ testPlan.objective | truncate:50 }}</td>
-              <td>
-                <span *ngFor="let type of testPlan.testing_types" class="badge">
-                  {{ type.name }}
-                </span>
-              </td>
-              <td>{{ getUsername(testPlan.test_lead) }}</td>
-              <td>{{ testPlan.created_at | date:'mediumDate' }}</td>
-              <td class="actions">
-                <button class="edit-btn" (click)="editTestPlan(testPlan)" title="Edit Test Plan">✏️</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <div *ngIf="testPlans.length === 0 && selectedProjectId" class="no-requirements">
-          No test plans found for this project.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Message when no client/project selected -->
-  <div *ngIf="!selectedProjectId" class="placeholder-message card">
+  <!-- ✅ Message when no client/project selected -->
+  <div *ngIf="!selectedProjectId" class="placeholder-message">
     <div class="message-content">
       <h3>Select Client and Project</h3>
       <p>Select a client and project from the dropdowns above to display the test plans.</p>
     </div>
   </div>
 
-  <!-- Success Notification -->
-  <div *ngIf="showSuccessMessage" class="success-notification">
-    <span>{{ successMessage }}</span>
-    <button class="close-notification" (click)="hideSuccessMessage()">×</button>
+  <!-- ✅ Table Container with proper height -->
+  <div *ngIf="selectedProjectId" class="table-container-wrapper">
+    <div class="table-scroll-container">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th class="col-sno">S. No.</th>
+            <th>Test Plan ID</th>
+            <th>Title</th>
+            <th>Objective</th>
+            <th>Testing Types</th>
+            <th>Technologies</th>
+            <th>Test Lead</th>
+            <th>Project Lead</th>
+            <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let testPlan of testPlans; let i = index">
+            <td class="col-sno">{{ i + 1 }}</td>
+            <td>{{ testPlan.test_plan_id }}</td>
+            <td>{{ testPlan.title }}</td>
+            <td class="truncate-text">{{ testPlan.objective | truncate:50 }}</td>
+            <td>
+              <div class="badges-container">
+                <span *ngFor="let type of testPlan.testing_types" class="badge">
+                  {{ type.name }}
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="badges-container">
+                <span *ngFor="let tech of testPlan.technologies" class="badge badge-tech">
+                  {{ tech.name }}
+                </span>
+              </div>
+            </td>
+            <td>{{ getUsername(testPlan.test_lead) }}</td>
+            <td>{{ getUsername(testPlan.project_lead) }}</td>
+            <td>{{ testPlan.created_at | date:'mediumDate' }}</td>
+            <td class="actions">
+              <button class="edit-btn" (click)="editTestPlan(testPlan)" title="Edit Test Plan">✏️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Add/Edit Test Plan Popup -->
-  <div class="popup" *ngIf="showTestPlanPopup">
-    <div class="popup-content large-popup">
-      <div class="popup-header">
-        <h3>{{ isEditMode ? 'Edit Test Plan' : 'Add Test Plan' }}</h3>
-        <button class="close-btn" (click)="closeTestPlanPopup()">×</button>
+  <!-- ✅ No test plans message -->
+  <div *ngIf="selectedProjectId && testPlans.length === 0" class="no-records">
+    No test plans found for this project.
+  </div>
+</div>
+
+<!-- ✅ Add/Edit Test Plan Popup -->
+<div class="popup" *ngIf="showTestPlanPopup">
+  <div class="popup-content">
+    <div class="popup-header">
+      <h3>{{ isEditMode ? 'Edit Test Plan' : 'Add Test Plan' }}</h3>
+      <button class="close-btn" (click)="closeTestPlanPopup()">×</button>
+    </div>
+
+    <form (ngSubmit)="saveTestPlan()" #testPlanForm="ngForm" class="form-grid" novalidate>
+      <label>Test Plan ID *</label>
+      <input type="text" [(ngModel)]="newTestPlan.test_plan_id" name="test_plan_id" 
+             [ngClass]="{'error-border': formErrors.test_plan_id}" required />
+      <div *ngIf="formErrors.test_plan_id" class="field-error">{{ formErrors.test_plan_id }}</div>
+
+      <label>Title *</label>
+      <input type="text" [(ngModel)]="newTestPlan.title" name="title" 
+             [ngClass]="{'error-border': formErrors.title}" required />
+      <div *ngIf="formErrors.title" class="field-error">{{ formErrors.title }}</div>
+
+      <label>Objective *</label>
+      <textarea [(ngModel)]="newTestPlan.objective" name="objective" rows="3" 
+                [ngClass]="{'error-border': formErrors.objective}" required></textarea>
+      <div *ngIf="formErrors.objective" class="field-error">{{ formErrors.objective }}</div>
+
+      <label>Scope *</label>
+      <textarea [(ngModel)]="newTestPlan.scope" name="scope" rows="3" 
+                [ngClass]="{'error-border': formErrors.scope}" required></textarea>
+      <div *ngIf="formErrors.scope" class="field-error">{{ formErrors.scope }}</div>
+
+      <!-- Testing Types Section -->
+      <div class="checkbox-section">
+        <label class="section-label">Testing Types</label>
+        <div class="checkbox-grid">
+          <div *ngFor="let type of testingTypes" class="checkbox-field">
+            <input type="checkbox" 
+                   [id]="'type-' + type.id" 
+                   [value]="type.id" 
+                   [checked]="isTestingTypeSelected(type.id)"
+                   (change)="onTestingTypeChange(type.id, $event)">
+            <label [for]="'type-' + type.id" class="checkbox-label">{{ type.name }}</label>
+          </div>
+        </div>
       </div>
 
-      <form (ngSubmit)="saveTestPlan()" class="form-grid">
-        <label>Test Plan ID *</label>
-        <input type="text" [(ngModel)]="newTestPlan.test_plan_id" name="test_plan_id" 
-               [class.error]="formErrors.test_plan_id" required />
-        <div *ngIf="formErrors.test_plan_id" class="error-message">{{ formErrors.test_plan_id }}</div>
-
-        <label>Title *</label>
-        <input type="text" [(ngModel)]="newTestPlan.title" name="title" 
-               [class.error]="formErrors.title" required />
-        <div *ngIf="formErrors.title" class="error-message">{{ formErrors.title }}</div>
-
-        <label>Objective *</label>
-        <textarea [(ngModel)]="newTestPlan.objective" name="objective" rows="3" 
-                  [class.error]="formErrors.objective" required></textarea>
-        <div *ngIf="formErrors.objective" class="error-message">{{ formErrors.objective }}</div>
-
-        <label>Scope *</label>
-        <textarea [(ngModel)]="newTestPlan.scope" name="scope" rows="3" 
-                  [class.error]="formErrors.scope" required></textarea>
-        <div *ngIf="formErrors.scope" class="error-message">{{ formErrors.scope }}</div>
-
-        <!-- Testing Types Section -->
-        <div class="checkbox-section">
-          <h4>Testing Types</h4>
-          <div class="boolean-fields">
-            <div *ngFor="let type of testingTypes" class="checkbox-field">
-              <input type="checkbox" 
-                     [id]="'type-' + type.id" 
-                     [value]="type.id" 
-                     [checked]="isTestingTypeSelected(type.id)"
-                     (change)="onTestingTypeChange(type.id, $event)">
-              <label [for]="'type-' + type.id">{{ type.name }}</label>
-            </div>
+      <!-- Technologies Section -->
+      <div class="checkbox-section">
+        <label class="section-label">Technologies</label>
+        <div class="checkbox-grid">
+          <div *ngFor="let tech of technologies" class="checkbox-field">
+            <input type="checkbox" 
+                   [id]="'tech-' + tech.id" 
+                   [value]="tech.id" 
+                   [checked]="isTechnologySelected(tech.id)"
+                   (change)="onTechnologyChange(tech.id, $event)">
+            <label [for]="'tech-' + tech.id" class="checkbox-label">{{ tech.name }}</label>
           </div>
         </div>
+      </div>
 
-        <!-- Technologies Section -->
-        <div class="checkbox-section">
-          <h4>Technologies</h4>
-          <div class="boolean-fields">
-            <div *ngFor="let tech of technologies" class="checkbox-field">
-              <input type="checkbox" 
-                     [id]="'tech-' + tech.id" 
-                     [value]="tech.id" 
-                     [checked]="isTechnologySelected(tech.id)"
-                     (change)="onTechnologyChange(tech.id, $event)">
-              <label [for]="'tech-' + tech.id">{{ tech.name }}</label>
-            </div>
-          </div>
-        </div>
+      <label>Project Lead</label>
+      <select [(ngModel)]="newTestPlan.project_lead_id" name="project_lead_id" class="select-dropdown">
+        <option [value]="null">Select Project Lead</option>
+        <option *ngFor="let user of users" [value]="user.id">{{ user.username || user.email }}</option>
+      </select>
 
-        <label>Project Lead</label>
-        <select [(ngModel)]="newTestPlan.project_lead_id" name="project_lead_id">
-          <option [value]="null">Select Project Lead</option>
-          <option *ngFor="let user of users" [value]="user.id">{{ user.username || user.email }}</option>
-        </select>
+      <label>Roles Covered</label>
+      <input type="text" [(ngModel)]="newTestPlan.roles_covered" name="roles_covered" />
 
-        <label>Roles Covered</label>
-        <input type="text" [(ngModel)]="newTestPlan.roles_covered" name="roles_covered" />
+      <label>Test Lead</label>
+      <select [(ngModel)]="newTestPlan.test_lead_id" name="test_lead_id" class="select-dropdown">
+        <option [value]="null">Select Test Lead</option>
+        <option *ngFor="let user of users" [value]="user.id">{{ user.username || user.email }}</option>
+      </select>
 
-        <label>Test Lead</label>
-        <select [(ngModel)]="newTestPlan.test_lead_id" name="test_lead_id">
-          <option [value]="null">Select Test Lead</option>
-          <option *ngFor="let user of users" [value]="user.id">{{ user.username || user.email }}</option>
-        </select>
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
+        <button type="button" class="cancel-btn" (click)="closeTestPlanPopup()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-        <!-- Actions -->
-        <div class="form-actions">
-          <button type="submit" class="save-btn">{{ isEditMode ? 'Update' : 'Save' }}</button>
-          <button type="button" class="cancel-btn" (click)="closeTestPlanPopup()">Cancel</button>
-        </div>
-      </form>
-    </div>
+<!-- ✅ Success Notification -->
+<div *ngIf="showSuccessMessage" class="success-overlay">
+  <div class="success-box">
+    <span>{{ successMessage }}</span>
+    <button class="close-notification" (click)="hideSuccessMessage()">×</button>
   </div>
 </div>

@@ -1,22 +1,23 @@
-<div class="container">
-  <h2>Testing Types</h2>
+<!-- Page Header - Navbar ke niche directly -->
+<div class="page-header">
+  <h2 class="page-title">Testing Types</h2>
+</div>
 
-  <!-- ✅ Success Message -->
-  <div *ngIf="successMessage" class="success-message-top">
-    {{ successMessage }}
+<!-- ✅ Testing Types Table Card -->
+<div class="card">
+  
+  <!-- ✅ Header with Add Button -->
+  <div class="card-header">
+    <button class="add-btn" (click)="openAddTestingTypePopup()">+ Add Testing Type</button>
   </div>
 
-  <!-- Testing Types Table with vertical scrolling -->
-  <div class="card">
-
-    <!-- Add Testing Type Button -->
-  <button class="add-btn" (click)="openAddTestingTypePopup()">+ Add Testing Type</button>
-
-    <div class="table-vertical-scroll">
+  <!-- ✅ Table Container with proper height -->
+  <div class="table-container-wrapper">
+    <div class="table-scroll-container">
       <table class="styled-table">
         <thead>
           <tr>
-            <th class="col-sno">S. No.</th> <!-- Added Serial Number column -->
+            <th class="col-sno">S. No.</th>
             <th>Name</th>
             <th>Description</th>
             <th>Actions</th>
@@ -24,11 +25,11 @@
         </thead>
         <tbody>
           <tr *ngFor="let testingType of testingTypes; let i = index">
-            <td class="col-sno">{{ i + 1 }}</td> <!-- Serial Number -->
+            <td class="col-sno">{{ i + 1 }}</td>
             <td>{{ testingType.name }}</td>
-            <td>{{ testingType.description | truncate:50 }}</td>
+            <td class="truncate-text">{{ testingType.description | truncate:50 }}</td>
             <td class="actions">
-              <button class="edit-btn" (click)="editTestingType(testingType)">✏️</button>
+              <button class="edit-btn" (click)="editTestingType(testingType)" title="Edit Testing Type">✏️</button>
             </td>
           </tr>
         </tbody>
@@ -36,32 +37,42 @@
     </div>
   </div>
 
-  <!-- Add/Edit Testing Type Popup -->
-  <div class="popup" *ngIf="showTestingTypePopup">
-    <div class="popup-content">
-      <div class="popup-header">
-        <h3>{{ isEditMode ? 'Edit Testing Type' : 'Add Testing Type' }}</h3>
-        <button class="close-btn" (click)="closeTestingTypePopup()">×</button>
+  <!-- ✅ No records message -->
+  <div *ngIf="testingTypes.length === 0" class="no-records">
+    No testing types found
+  </div>
+</div>
+
+<!-- ✅ Add/Edit Testing Type Popup -->
+<div class="popup" *ngIf="showTestingTypePopup">
+  <div class="popup-content">
+    <div class="popup-header">
+      <h3>{{ isEditMode ? 'Edit Testing Type' : 'Add Testing Type' }}</h3>
+      <button class="close-btn" (click)="closeTestingTypePopup()">×</button>
+    </div>
+
+    <form (ngSubmit)="saveTestingType()" class="form-grid" #testingTypeForm="ngForm">
+      <label>Name *</label>
+      <input type="text" [(ngModel)]="newTestingType.name" name="name"
+             [ngClass]="{'error-border': submitted && !newTestingType.name}" required />
+      <div *ngIf="submitted && !newTestingType.name" class="field-error">
+        This field is required
       </div>
 
-      <form (ngSubmit)="saveTestingType()" class="form-grid" #testingTypeForm="ngForm">
-        <label>Name *</label>
-        <input type="text" [(ngModel)]="newTestingType.name" name="name"
-               [ngClass]="{'error': submitted && !newTestingType.name}" required />
-        <div *ngIf="submitted && !newTestingType.name" class="field-error">
-          This field is required
-        </div>
+      <label>Description</label>
+      <textarea [(ngModel)]="newTestingType.description" name="description" rows="3"></textarea>
 
-        <label>Description</label>
-        <textarea [(ngModel)]="newTestingType.description" name="description" rows="3"></textarea>
-
-        <div class="form-actions">
-          <button type="submit" class="save-btn">
-            {{ isEditMode ? 'Update' : 'Save' }}
-          </button>
-          <button type="button" class="cancel-btn" (click)="closeTestingTypePopup()">Cancel</button>
-        </div>
-      </form>
-    </div>
+      <div class="form-actions">
+        <button type="submit" class="save-btn">
+          {{ isEditMode ? 'Update' : 'Save' }}
+        </button>
+        <button type="button" class="cancel-btn" (click)="closeTestingTypePopup()">Cancel</button>
+      </div>
+    </form>
   </div>
+</div>
+
+<!-- ✅ Success Message Overlay -->
+<div *ngIf="successMessage" class="success-overlay">
+  <div class="success-box">{{ successMessage }}</div>
 </div>

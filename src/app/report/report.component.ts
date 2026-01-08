@@ -26,6 +26,7 @@ export class ReportComponent implements OnInit {
   isLoading = false;
   activeTab: 'summary' | 'detailed' = 'summary';
   expandedRequirements: Set<number> = new Set();
+  successMessage: string | null = null; // ✅ Added this line
 
   // Charts data (simplified - you can integrate with Chart.js or similar)
   priorityChartData: any = null;
@@ -60,6 +61,7 @@ export class ReportComponent implements OnInit {
     this.projectReport = null;
     this.detailedReport = [];
     this.filteredProjects = [];
+    this.successMessage = null; // Clear success message
 
     if (this.selectedClientId) {
       this.loadProjectsByClient(this.selectedClientId);
@@ -82,6 +84,7 @@ export class ReportComponent implements OnInit {
     this.projectReport = null;
     this.detailedReport = [];
     this.expandedRequirements.clear();
+    this.successMessage = null; // Clear success message
 
     if (this.selectedProjectId) {
       this.loadProjectReport();
@@ -92,11 +95,13 @@ export class ReportComponent implements OnInit {
     if (!this.selectedProjectId) return;
 
     this.isLoading = true;
+    this.successMessage = null; // Clear success message
     this.reportService.getProjectReport(this.selectedProjectId).subscribe({
       next: (data: any) => {
         this.projectReport = data;
         this.prepareChartData();
         this.isLoading = false;
+        this.showSuccess('Report generated successfully!');
       },
       error: (error: any) => {
         console.error('Error fetching project report:', error);
@@ -110,10 +115,12 @@ export class ReportComponent implements OnInit {
     if (!this.selectedProjectId) return;
 
     this.isLoading = true;
+    this.successMessage = null; // Clear success message
     this.reportService.getDetailedTestCaseReport(this.selectedProjectId).subscribe({
       next: (data: any[]) => {
         this.detailedReport = data;
         this.isLoading = false;
+        this.showSuccess('Detailed report loaded successfully!');
       },
       error: (error: any) => {
         console.error('Error fetching detailed report:', error);
@@ -253,18 +260,39 @@ export class ReportComponent implements OnInit {
       return new Date();
   }
 
+  // ✅ Added success message method
+  showSuccess(message: string): void {
+    this.successMessage = message;
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      this.successMessage = null;
+    }, 3000);
+  }
+
   showError(message: string): void {
     // You can implement a toast notification system here
     alert(message);
   }
 
   exportToPDF(): void {
+    if (!this.projectReport) {
+      this.showError('Please load a report first before exporting.');
+      return;
+    }
+    
     // Implement PDF export functionality
     console.log('Exporting to PDF...');
+    this.showSuccess('PDF export started!');
   }
 
   exportToExcel(): void {
+    if (!this.projectReport) {
+      this.showError('Please load a report first before exporting.');
+      return;
+    }
+    
     // Implement Excel export functionality
     console.log('Exporting to Excel...');
+    this.showSuccess('Excel export started!');
   }
 }
