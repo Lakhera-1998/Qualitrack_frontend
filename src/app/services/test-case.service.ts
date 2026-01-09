@@ -108,6 +108,19 @@ export class TestCaseService {
     return this.http.get<any[]>(`${this.baseUrl}/test-cases/${testCaseId}/screenshots/`, this.getHeaders());
   }
 
+  // ✅ ADDED: Video management methods
+  getBugVideos(testCaseId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/test-cases/${testCaseId}/videos/`, this.getHeaders());
+  }
+
+  uploadBugVideos(testCaseId: number, formData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/test-cases/${testCaseId}/upload-videos/`, formData, this.getHeadersForFormData());
+  }
+
+  deleteBugVideo(videoId: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/videos/${videoId}/delete/`, this.getHeaders());
+  }
+
   uploadBugScreenshots(testCaseId: number, formData: FormData): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/test-cases/${testCaseId}/upload-screenshots/`, formData, this.getHeadersForFormData());
   }
@@ -134,6 +147,19 @@ export class TestCaseService {
       return `${this.baseUrl}${screenshotPath}`;
     }
     const cleanPath = screenshotPath.startsWith('/') ? screenshotPath : `/${screenshotPath}`;
+    return `${this.baseUrl}/media${cleanPath}`;
+  }
+
+  // ✅ ADDED: Get bug video URL
+  getBugVideoUrl(videoPath: string): string {
+    if (!videoPath) return '';
+    if (videoPath.startsWith('http')) {
+      return videoPath;
+    }
+    if (videoPath.startsWith('/media/')) {
+      return `${this.baseUrl}${videoPath}`;
+    }
+    const cleanPath = videoPath.startsWith('/') ? videoPath : `/${videoPath}`;
     return `${this.baseUrl}/media${cleanPath}`;
   }
 

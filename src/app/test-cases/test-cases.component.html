@@ -105,6 +105,8 @@
             <th class="col-boolean">Is Executed</th>
             <th class="col-boolean">Bug Raised</th>
             <th>Bug Screenshots</th>
+            <!-- ✅ ADDED: Bug Videos Column -->
+            <th>Bug Videos</th>
             <th>Assigned To</th>
             <th>Executed By</th>
             <th class="col-datetime">Executed On</th>
@@ -196,6 +198,16 @@
                 </button>
               </div>
               <span *ngIf="!testCase.bug_screenshots || testCase.bug_screenshots.length === 0">-</span>
+            </td>
+
+            <!-- ✅ ADDED: Bug Videos - Updated to show view link -->
+            <td>
+              <div *ngIf="testCase.bug_videos && testCase.bug_videos.length > 0" class="videos-link">
+                <button class="view-videos-btn" (click)="viewAllVideos(testCase)">
+                  🎥 View ({{ testCase.bug_videos.length }})
+                </button>
+              </div>
+              <span *ngIf="!testCase.bug_videos || testCase.bug_videos.length === 0">-</span>
             </td>
 
             <!-- Assigned To with wrapping -->
@@ -368,8 +380,7 @@
   </div>
 </div>
 
-<!-- ✅ All other popups remain the same as in your original code -->
-<!-- Add/Edit Test Case Popup -->
+<!-- ✅ Add/Edit Test Case Popup -->
 <div class="popup" *ngIf="showTestCasePopup">
   <div class="popup-content large-popup">
     <div class="popup-header">
@@ -525,6 +536,67 @@
           </div>
         </div>
 
+        <!-- ✅ ADDED: Multiple Videos Upload Section -->
+        <label>Bug Videos</label>
+        <div class="videos-upload-section">
+          <!-- File upload option for multiple video files -->
+          <div class="file-upload-option">
+            <input type="file" 
+                   (change)="onMultipleVideosSelected($event)" 
+                   accept="video/*" 
+                   multiple />
+            <small>Select multiple videos (MP4, MOV, AVI, MKV - max 50MB each)</small>
+          </div>
+          
+          <!-- Video previews for uploaded files -->
+          <div class="uploaded-videos-preview" *ngIf="uploadedVideos.length > 0">
+            <h5>New Videos to Upload ({{ uploadedVideos.length }})</h5>
+            <div class="videos-grid">
+              <div *ngFor="let video of uploadedVideos; let i = index" class="video-item">
+                <div class="video-preview-container">
+                  <video class="video-preview" controls>
+                    <source [src]="video.preview" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                  <div class="video-info">
+                    <span class="video-name">{{ video.file.name }}</span>
+                    <span class="video-size">{{ getFileSize(video.file.size) }}</span>
+                  </div>
+                  <button type="button" class="remove-btn" (click)="removeUploadedVideo(i)">×</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Existing videos preview for edit mode -->
+          <div class="existing-videos" *ngIf="isEditMode && existingVideos.length > 0">
+            <h5>Existing Videos ({{ existingVideos.length }})</h5>
+            <div class="videos-grid">
+              <div *ngFor="let video of existingVideos; let i = index" class="video-item">
+                <div class="video-preview-container">
+                  <div class="video-thumbnail" (click)="playVideo(video)">
+                    <div class="play-button">▶</div>
+                    <span class="video-duration" *ngIf="video.duration">{{ formatDuration(video.duration) }}</span>
+                  </div>
+                  <div class="video-info">
+                    <span class="video-name">{{ video.video_name || 'Video ' + (i + 1) }}</span>
+                    <span class="video-uploaded">Uploaded: {{ video.uploaded_at | date:'shortDate' }}</span>
+                  </div>
+                  <div class="video-actions">
+                    <button type="button" class="view-btn" (click)="playVideo(video)" title="Play Video">▶</button>
+                    <button type="button" class="remove-btn" (click)="removeExistingVideo(video.id)">×</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- No existing videos message -->
+          <div class="no-videos" *ngIf="isEditMode && existingVideos.length === 0">
+            <p>No existing videos found for this test case.</p>
+          </div>
+        </div>
+
         <label>Bug Status *</label>
         <select [(ngModel)]="newTestCase.bug_status" name="bug_status" 
                 [class.error]="formErrors.bug_status" required>
@@ -577,7 +649,6 @@
   </div>
 </div>
 
-<!-- Other popups (Execute, Test Data, Screenshots Viewer) remain the same as in your original code -->
 <!-- Multiple Screenshots Viewer Popup -->
 <div class="popup" *ngIf="showScreenshotsViewer">
   <div class="popup-content image-viewer-large">
@@ -601,6 +672,28 @@
            (click)="goToScreenshot(i)">
         <img [src]="screenshot" [alt]="'Thumbnail ' + (i + 1)">
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ ADDED: Bug Video Viewer Popup -->
+<div class="popup" *ngIf="showVideoViewer">
+  <div class="popup-content video-viewer-popup">
+    <div class="popup-header">
+      <h3>{{ currentVideoName }}</h3>
+      <button class="close-btn" (click)="closeVideoViewer()">×</button>
+    </div>
+    <div class="video-viewer-container">
+      <video controls autoplay>
+        <source [src]="currentVideoUrl" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+    <div class="video-info-bar">
+      <span class="video-title">{{ currentVideoName }}</span>
+      <button class="download-btn" (click)="downloadVideo()" *ngIf="currentVideoUrl">
+        📥 Download
+      </button>
     </div>
   </div>
 </div>

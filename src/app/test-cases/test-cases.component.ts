@@ -61,10 +61,20 @@ export class TestCasesComponent implements OnInit {
   existingScreenshots: any[] = [];
   screenshotsToDelete: number[] = [];
 
+  // ✅ Video properties
+  uploadedVideos: any[] = [];
+  existingVideos: any[] = [];
+  videosToDelete: number[] = [];
+
   // Screenshots viewer properties
   showScreenshotsViewer: boolean = false;
   viewingScreenshots: string[] = [];
   currentScreenshotIndex: number = 0;
+
+  // ✅ Video viewer properties
+  showVideoViewer: boolean = false;
+  currentVideoUrl: string = '';
+  currentVideoName: string = '';
 
   // Form validation
   formErrors: any = {
@@ -551,11 +561,12 @@ export class TestCasesComponent implements OnInit {
     });
   }
 
-  // ✅ NEW METHOD: Process test cases data (common for both project and requirement)
+  // ✅ UPDATED: Process test cases data (common for both project and requirement)
   processTestCases(data: any[]): void {
     this.testCases = data.map(testCase => ({
       ...testCase,
       bug_screenshots: this.processBugScreenshots(testCase.bug_screenshots),
+      bug_videos: this.processBugVideos(testCase.bug_videos),
       created_by: testCase.created_by || null,
       executed_by: testCase.executed_by || null,
       test_data: testCase.test_data || null,
@@ -573,6 +584,16 @@ export class TestCasesComponent implements OnInit {
     return screenshots.map((screenshot: any) => ({
       ...screenshot,
       screenshot_url: this.testCaseService.getBugScreenshotUrl(screenshot.screenshot)
+    }));
+  }
+
+  // ✅ NEW METHOD: Process bug videos with proper URLs
+  processBugVideos(videos: any[]): any[] {
+    if (!videos || videos.length === 0) return [];
+    
+    return videos.map((video: any) => ({
+      ...video,
+      video_url: this.testCaseService.getBugVideoUrl(video.video)
     }));
   }
 
@@ -612,6 +633,24 @@ export class TestCasesComponent implements OnInit {
       error: (error: any) => {
         console.error('Error fetching existing screenshots:', error);
         this.existingScreenshots = [];
+      }
+    });
+  }
+
+  // ✅ NEW: Load existing videos
+  loadExistingVideos(testCaseId: number): void {
+    this.testCaseService.getBugVideos(testCaseId).subscribe({
+      next: (data: any[]) => {
+        this.existingVideos = data.map(video => ({
+          ...video,
+          video_url: this.testCaseService.getBugVideoUrl(video.video),
+          duration: video.duration || 0
+        }));
+        console.log('Loaded existing videos:', this.existingVideos);
+      },
+      error: (error: any) => {
+        console.error('Error fetching existing videos:', error);
+        this.existingVideos = [];
       }
     });
   }
@@ -743,13 +782,55 @@ export class TestCasesComponent implements OnInit {
     reader.readAsDataURL(file);
   }
 
+  // ✅ NEW: Video upload methods
+  onMultipleVideosSelected(event: any): void {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      this.handleVideoFile(file);
+    }
+  }
+
+  handleVideoFile(file: File): void {
+    const allowedTypes = ['video/mp4', 'video/mov', 'video/avi', 'video/mkv'];
+    if (!allowedTypes.includes(file.type)) {
+      this.displayError('Invalid video type. Please use MP4, MOV, AVI, or MKV videos only.');
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      this.displayError('Video too large. Maximum size is 50MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.uploadedVideos.push({
+        file: file,
+        preview: e.target.result
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
   removeUploadedScreenshot(index: number): void {
     this.uploadedScreenshots.splice(index, 1);
+  }
+
+  removeUploadedVideo(index: number): void {
+    this.uploadedVideos.splice(index, 1);
   }
 
   removeExistingScreenshot(screenshotId: number): void {
     this.screenshotsToDelete.push(screenshotId);
     this.existingScreenshots = this.existingScreenshots.filter(s => s.id !== screenshotId);
+  }
+
+  removeExistingVideo(videoId: number): void {
+    this.videosToDelete.push(videoId);
+    this.existingVideos = this.existingVideos.filter(v => v.id !== videoId);
   }
 
   // ✅ Multiple Screenshots Viewer
@@ -765,6 +846,39 @@ export class TestCasesComponent implements OnInit {
     this.viewingScreenshots = [screenshotUrl];
     this.currentScreenshotIndex = 0;
     this.showScreenshotsViewer = true;
+  }
+
+  // ✅ NEW: Video viewer methods
+  playVideo(video: any): void {
+    this.currentVideoUrl = video.video_url;
+    this.currentVideoName = video.video_name || 'Bug Video';
+    this.showVideoViewer = true;
+  }
+
+  closeVideoViewer(): void {
+    this.showVideoViewer = false;
+    this.currentVideoUrl = '';
+    this.currentVideoName = '';
+  }
+
+  viewAllVideos(testCase: any): void {
+    if (!testCase.bug_videos || testCase.bug_videos.length === 0) return;
+    
+    // Open the first video
+    const firstVideo = testCase.bug_videos[0];
+    this.playVideo(firstVideo);
+  }
+
+  // ✅ NEW: Video download method
+  downloadVideo(): void {
+    if (this.currentVideoUrl) {
+      const link = document.createElement('a');
+      link.href = this.currentVideoUrl;
+      link.download = this.currentVideoName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   }
 
   closeScreenshotsViewer(): void {
@@ -787,6 +901,13 @@ export class TestCasesComponent implements OnInit {
 
   goToScreenshot(index: number): void {
     this.currentScreenshotIndex = index;
+  }
+
+  // ✅ NEW: Format video duration
+  formatDuration(seconds: number): string {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   }
 
   // ✅ Success/Error Messages
@@ -950,7 +1071,7 @@ export class TestCasesComponent implements OnInit {
     };
   }
 
-  // ✅ **FIXED METHOD: Open edit test case popup with screenshots**
+  // ✅ **UPDATED METHOD: Open edit test case popup with screenshots and videos**
   openAddTestCasePopup(): void {
     if (!this.selectedProjectId) return;
     
@@ -959,6 +1080,9 @@ export class TestCasesComponent implements OnInit {
     this.uploadedScreenshots = [];
     this.existingScreenshots = [];
     this.screenshotsToDelete = [];
+    this.uploadedVideos = [];
+    this.existingVideos = [];
+    this.videosToDelete = [];
     this.isClipboardActive = false;
     
     this.newTestCase = {
@@ -988,13 +1112,16 @@ export class TestCasesComponent implements OnInit {
     this.showTestCasePopup = true;
   }
 
-  // ✅ **FIXED METHOD: Edit test case with proper screenshot loading**
+  // ✅ **UPDATED METHOD: Edit test case with proper screenshot and video loading**
   editTestCase(testCase: any): void {
     this.isEditMode = true;
     this.editingTestCaseId = testCase.id;
     this.uploadedScreenshots = [];
     this.existingScreenshots = [];
     this.screenshotsToDelete = [];
+    this.uploadedVideos = [];
+    this.existingVideos = [];
+    this.videosToDelete = [];
     this.isClipboardActive = false;
     
     // Format executed_on date
@@ -1018,13 +1145,15 @@ export class TestCasesComponent implements OnInit {
       assigned_to: testCase.assigned_to || null
     };
     
-    // ✅ **CRITICAL FIX: Load existing screenshots using separate API call**
+    // ✅ **CRITICAL FIX: Load existing screenshots and videos using separate API calls**
     this.loadExistingScreenshots(testCase.id);
+    this.loadExistingVideos(testCase.id);
     
     this.clearFormErrors();
     this.showTestCasePopup = true;
   }
 
+  // ✅ **UPDATED METHOD: Close test case popup**
   closeTestCasePopup(): void {
     this.showTestCasePopup = false;
     this.isEditMode = false;
@@ -1032,10 +1161,14 @@ export class TestCasesComponent implements OnInit {
     this.uploadedScreenshots = [];
     this.existingScreenshots = [];
     this.screenshotsToDelete = [];
+    this.uploadedVideos = [];
+    this.existingVideos = [];
+    this.videosToDelete = [];
     this.isClipboardActive = false;
     this.clearFormErrors();
   }
 
+  // ✅ **UPDATED METHOD: Save test case with video handling**
   saveTestCase(): void {
     if (!this.validateTestCaseForm()) {
       return;
@@ -1099,9 +1232,14 @@ export class TestCasesComponent implements OnInit {
     console.log('Uploaded screenshots:', this.uploadedScreenshots.length);
     console.log('Screenshots to delete:', this.screenshotsToDelete);
     console.log('Existing screenshots:', this.existingScreenshots.length);
+    console.log('Uploaded videos:', this.uploadedVideos.length);
+    console.log('Videos to delete:', this.videosToDelete);
+    console.log('Existing videos:', this.existingVideos.length);
 
     if (this.isEditMode && this.editingTestCaseId) {
-      if (this.uploadedScreenshots.length > 0 || this.screenshotsToDelete.length > 0) {
+      if (this.uploadedScreenshots.length > 0 || this.screenshotsToDelete.length > 0 || 
+          this.uploadedVideos.length > 0 || this.videosToDelete.length > 0) {
+        
         // Use FormData for file uploads
         const formData = new FormData();
         
@@ -1118,9 +1256,19 @@ export class TestCasesComponent implements OnInit {
           formData.append('screenshots_to_delete', screenshotId.toString());
         });
 
+        // Append videos to delete (NEW)
+        this.videosToDelete.forEach(videoId => {
+          formData.append('videos_to_delete', videoId.toString());
+        });
+
         // Append new screenshots
         this.uploadedScreenshots.forEach((screenshot, index) => {
           formData.append('screenshots', screenshot.file);
+        });
+
+        // Append new videos (NEW)
+        this.uploadedVideos.forEach((video, index) => {
+          formData.append('videos', video.file);
         });
 
         this.testCaseService.updateTestCaseWithMultipleScreenshots(this.editingTestCaseId, formData).subscribe({
@@ -1131,12 +1279,12 @@ export class TestCasesComponent implements OnInit {
             this.showSuccess('Test case updated successfully!');
           },
           error: (error: any) => {
-            console.error('Error updating test case with screenshots:', error);
+            console.error('Error updating test case with screenshots and videos:', error);
             this.formErrors.general = 'Error updating test case: ' + (error.error?.message || error.message);
           }
         });
       } else {
-        // No screenshots to upload or delete - send regular JSON
+        // No files to upload or delete - send regular JSON
         this.testCaseService.updateTestCase(this.editingTestCaseId, testCaseData).subscribe({
           next: () => {
             this.loadAllTestCasesForProject();
@@ -1151,8 +1299,8 @@ export class TestCasesComponent implements OnInit {
         });
       }
     } else {
-      // For new test cases with screenshots
-      if (this.uploadedScreenshots.length > 0) {
+      // For new test cases with screenshots and videos
+      if (this.uploadedScreenshots.length > 0 || this.uploadedVideos.length > 0) {
         const formData = new FormData();
         
         Object.keys(testCaseData).forEach(key => {
@@ -1167,6 +1315,11 @@ export class TestCasesComponent implements OnInit {
           formData.append('screenshots', screenshot.file);
         });
 
+        // Append new videos (NEW)
+        this.uploadedVideos.forEach((video, index) => {
+          formData.append('videos', video.file);
+        });
+
         this.testCaseService.addTestCaseWithMultipleScreenshots(formData).subscribe({
           next: () => {
             this.loadAllTestCasesForProject();
@@ -1174,12 +1327,12 @@ export class TestCasesComponent implements OnInit {
             this.showSuccess('Test case added successfully!');
           },
           error: (error: any) => {
-            console.error('Error adding test case with screenshots:', error);
+            console.error('Error adding test case with screenshots and videos:', error);
             this.formErrors.general = 'Error adding test case: ' + (error.error?.message || error.message);
           }
         });
       } else {
-        // No screenshots - send regular JSON
+        // No files - send regular JSON
         this.testCaseService.addTestCase(testCaseData).subscribe({
           next: () => {
             this.loadAllTestCasesForProject();
